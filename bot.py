@@ -49,7 +49,7 @@ def process_message(update, context):
             context.bot.send_message(
                 chat_id=chat_id,
                 text=response_msg,
-                parse_mode=ParseMode.MARKDOWN,
+                # parse_mode=ParseMode.MARKDOWN,
             )
 
 # 小功能
