@@ -33,7 +33,6 @@ def reset(update, context):
 
 def process_message(update, context):
     # if str.startswith("javis") or str.startswith("Javis"):
-        context.bot.send_typing_action(chat_id=update.effective_chat.id)
         chat_id = update.message.chat_id
         chat_text = update.message.text
         try:
