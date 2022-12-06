@@ -31,6 +31,7 @@ def reset(update, context):
         chat_id=update.message.chat_id, text="Conversation has been reset!"
     )
 
+@send_typing_action
 def process_message(update, context):
     # if str.startswith("javis") or str.startswith("Javis"):
         chat_id = update.message.chat_id
