@@ -1,6 +1,5 @@
 beautifulsoup4==4.11.1
 bs4==0.0.1
-certifi @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_4d2o0arbv6/croot/certifi_1665076671099/work/certifi
 charset-normalizer==2.1.1
 idna==3.4
 lxml==4.9.1
