@@ -36,6 +36,7 @@ def process_message(update, context):
     if chat_text.startswith("贴贴"):
         chat_id = update.message.chat_id
         chat_text = chat_text.split("贴贴")[0].strip()
+        print(chat_text)
         try:
             response_msg = getresult(chat_text)
         except Exception:
