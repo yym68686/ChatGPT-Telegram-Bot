@@ -49,7 +49,7 @@ docker exec -it $(docker run -p 8080:8080 -dit \
 -e session_token="token" \
 -e URL="https://test.com/" \
 -e MODE="prod" \
-ChatGPT:1.0) bash
+chatgpt:1.0) bash
 ```
 
 - 添加 telegram bot token 作为 BOT_TOKEN 变量
