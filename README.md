@@ -4,7 +4,7 @@
 
 拉取镜像
 
-```
+```bash
 docker pull yym68686/chatgpt:1.0
 ```
 
@@ -62,6 +62,12 @@ chatgpt:1.0) bash
 - URL 是 bot 的 webhook 地址
 - MODE 设置生产环境 prod
 - session_token 是 ChatGPT 的 cookie 中 `__Secure-next-auth.session-token` 的值
+
+进入容器后查看日志
+
+```bash
+tail -f /home/log
+```
 
 关闭所有容器
 
