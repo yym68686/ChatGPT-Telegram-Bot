@@ -3,7 +3,7 @@ import sys
 import time
 import asyncio
 import logging, datetime, pytz
-from chat import getresult
+from chat import getresult, resetChat
 from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, Update, Bot
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, filters
 from config import admin, MODE
@@ -34,6 +34,12 @@ def start(update, context): # 当用户输入/start时，返回文本
         "我是人见人爱的 ChatGPT\~"
     )
     update.message.reply_text(message, parse_mode='MarkdownV2')
+
+def reset(update, context):
+    resetChat()
+    context.bot.send_message(
+        chat_id=update.message.chat_id, text="Conversation has been reset!"
+    )
 
 def process_message(update, context):
     chat_id = update.message.chat_id
@@ -86,6 +92,7 @@ def setup(token):
 
 
     dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("reset", reset))
     dispatcher.add_handler(MessageHandler(Filters.text, process_message))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     # dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
