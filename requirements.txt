@@ -8,3 +8,5 @@ revChatGPT==0.0.23.6
 soupsieve==2.3.2.post1
 tls-client==0.1.5
 urllib3==1.26.13
+python-telegram-bot==12.4.2
+flask==2.0.3
