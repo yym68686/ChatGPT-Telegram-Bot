@@ -2,7 +2,7 @@
 git clone --depth 1 https://github.com/yym68686/ChatGPT-Telegram-Bot.git > /dev/null
 echo "code downloaded..." >> /home/log 2>&1
 cd ChatGPT-Telegram-Bot
-pip install -r /home/ChatGPT-Telegram-Bot/requirements.txt > /dev/null\
+pip install -r /home/ChatGPT-Telegram-Bot/requirements.txt > /dev/null
 echo "python env downloaded..." >> /home/log 2>&1
 touch /home/log
 nohup python -u /home/ChatGPT-Telegram-Bot/webhook.py >> /home/log 2>&1 &
