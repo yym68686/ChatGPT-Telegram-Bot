@@ -2,6 +2,12 @@
 
 ## Docker
 
+拉取镜像
+
+```
+docker pull yym68686/chatgpt:1.0
+```
+
 导出环境
 
 ```bash
