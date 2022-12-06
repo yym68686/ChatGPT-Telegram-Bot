@@ -44,7 +44,7 @@ ENTRYPOINT ["/setup.sh"]
 构建
 
 ```bash
-docker build -t chatgpt:1.0 --platform linux/amd64 .
+docker build --no-cache -t chatgpt:1.0 --platform linux/amd64 .
 ```
 
 运行
