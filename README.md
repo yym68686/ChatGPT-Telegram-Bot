@@ -122,6 +122,12 @@ flyctl secrets list
 flyctl secrets unset MY_SECRET DATABASE_URL
 ```
 
+查看 webhook url 是否正确
+
+```
+https://api.telegram.org/bot<token>/getWebhookInfo
+```
+
 ## Reference
 
 参考项目：https://github.com/acheong08/ChatGPT
