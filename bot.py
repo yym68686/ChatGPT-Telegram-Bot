@@ -32,9 +32,10 @@ def reset(update, context):
     )
 
 def process_message(update, context):
-    # if str.startswith("javis") or str.startswith("Javis"):
+    chat_text = update.message.text
+    if chat_text.startswith("javis"):
         chat_id = update.message.chat_id
-        chat_text = update.message.text
+        chat_text = chat_text.split("javis")[0].strip()
         try:
             response_msg = getresult(chat_text)
         except Exception:
