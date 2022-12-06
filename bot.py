@@ -53,10 +53,9 @@ def process_message(update, context):
 # 小功能
 def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
-    if ("timeout" in str(context.error) or "TIMED_OUT" in str(context.error)):
+    if ("can't" in str(context.error)):
         message = (
-            f"用户名或密码错误！请重试\n\n"
-            f"若无法申请成功，请联系 @yym68686\n\n"
+            f"出错啦！请重试。\n\n"
         )
         context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode='MarkdownV2')
 
