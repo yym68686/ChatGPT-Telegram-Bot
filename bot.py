@@ -11,16 +11,6 @@ from config import admin, MODE
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 
-def toUTC(t):
-    t2 = int(t[:2])
-    if t2 - 8 < 0:
-        t2 += 24
-    t2 -= 8
-    t = str(t2) + t[2:]
-    if len(t) == 4:
-        t = "0" + t
-    return t
-
 # In all other places characters
 # _ * [ ] ( ) ~ ` > # + - = | { } . ! 
 # must be escaped with the preceding character '\'.
@@ -42,23 +32,23 @@ def reset(update, context):
     )
 
 def process_message(update, context):
-    chat_id = update.message.chat_id
-    chat_text = update.message.text
-
-    try:
-        response_msg = getresult(chat_text)
-    except Exception:
-        context.bot.send_message(
-            chat_id=chat_id,
-            text="There was an exception handling your message :(",
-            parse_mode=ParseMode.MARKDOWN,
-        )
-    else:
-        context.bot.send_message(
-            chat_id=chat_id,
-            text=response_msg,
-            parse_mode=ParseMode.MARKDOWN,
-        )
+    # if str.startswith("javis") or str.startswith("Javis"):
+        chat_id = update.message.chat_id
+        chat_text = update.message.text
+        try:
+            response_msg = getresult(chat_text)
+        except Exception:
+            context.bot.send_message(
+                chat_id=chat_id,
+                text="There was an exception handling your message :(",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        else:
+            context.bot.send_message(
+                chat_id=chat_id,
+                text=response_msg,
+                parse_mode=ParseMode.MARKDOWN,
+            )
 
 # 小功能
 def error(update, context):
