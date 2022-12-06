@@ -1,14 +1,12 @@
-参考项目：https://github.com/acheong08/ChatGPT
+# ChatGPT Telegram Bot
 
-
+## Docker
 
 导出环境
 
 ```bash
 pip freeze > requirements.txt
 ```
-
-## Docker
 
 setup.sh
 
@@ -64,3 +62,7 @@ chatgpt:1.0) bash
 ```bash
 docker rm -f $(docker ps -aq)
 ```
+
+## Reference
+
+参考项目：https://github.com/acheong08/ChatGPT
