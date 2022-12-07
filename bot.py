@@ -36,8 +36,7 @@ def reset(update, context):
 def escaped(str):
     return str.replace("_", "\\_")\
               .replace("*", "\\*")\
-              .replace("[", "\\[")\
-              .replace("`", "\\`")
+              .replace("[", "\\[")
     # return str.replace("_", '\\_')\
     #           .replace("*", '\\*')\
     #           .replace("[", '\\[')\
