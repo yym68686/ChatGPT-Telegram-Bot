@@ -43,7 +43,7 @@ def process_message(update, context):
         try:
             response_msg = getresult(chat_text)
         except Exception:
-            print(response_msg)
+            print(len(response_msg))
             if "expired" in response_msg:
                 context.bot.send_message(
                     chat_id=chat_id,
@@ -61,6 +61,10 @@ def process_message(update, context):
                     chat_id=chat_id,
                     text="抱歉，我现在忙不过来啦，您等会儿再问问…… :(",
                     parse_mode=ParseMode.MARKDOWN,
+                )
+                resetChat()
+                context.bot.send_message(
+                    chat_id=update.message.chat_id, text="Conversation has been reset!"
                 )
             else:
                 context.bot.send_message(
