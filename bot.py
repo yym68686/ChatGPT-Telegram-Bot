@@ -34,24 +34,28 @@ def reset(update, context):
     )
 
 def escaped(str):
-    return str.replace("_", '\\_')\
-              .replace("*", '\\*')\
-              .replace("[", '\\[')\
-              .replace("]", '\\]')\
-              .replace("(", '\\(')\
-              .replace(")", '\\)')\
-              .replace("~", '\\~')\
-              .replace("`", '\\`')\
-              .replace(">", '\\>')\
-              .replace("#", '\\#')\
-              .replace("+", '\\+')\
-              .replace("-", '\\-')\
-              .replace("=", '\\=')\
-              .replace("|", '\\|')\
-              .replace("{", '\\{')\
-              .replace("}", '\\}')\
-              .replace(".", '\\.')\
-              .replace("!", '\\!')
+    return str.replace("_", "\\_")\
+              .replace("*", "\\*")\
+              .replace("[", "\\[")\
+              .replace("`", "\\`")
+    # return str.replace("_", '\\_')\
+    #           .replace("*", '\\*')\
+    #           .replace("[", '\\[')\
+    #           .replace("]", '\\]')\
+    #           .replace("(", '\\(')\
+    #           .replace(")", '\\)')\
+    #           .replace("~", '\\~')\
+    #           .replace("`", '\\`')\
+    #           .replace(">", '\\>')\
+    #           .replace("#", '\\#')\
+    #           .replace("+", '\\+')\
+    #           .replace("-", '\\-')\
+    #           .replace("=", '\\=')\
+    #           .replace("|", '\\|')\
+    #           .replace("{", '\\{')\
+    #           .replace("}", '\\}')\
+    #           .replace(".", '\\.')\
+    #           .replace("!", '\\!')
 
 def process_message(update, context):
     chat_text = update.message.text
