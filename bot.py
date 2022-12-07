@@ -40,9 +40,9 @@ def process_message(update, context):
         chat_text = chat_text.split("javis")[1].strip()
         print(chat_text)
         try:
+            global response_msg
             response_msg = getresult(chat_text)
         except Exception:
-            global response_msg
             if "expired" in response_msg:
                 context.bot.send_message(
                     chat_id=chat_id,
