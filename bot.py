@@ -102,7 +102,7 @@ def process_message(update, context):
         else:
             context.bot.send_message(
                 chat_id=chat_id,
-                text=escaped(response_msg),
+                text=response_msg,
 
                 # text=telegram.utils.helpers.escape_markdown(response_msg, 2),
                 # parse_mode="MarkdownV2",
