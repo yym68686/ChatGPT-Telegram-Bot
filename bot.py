@@ -39,6 +39,7 @@ def process_message(update, context):
         chat_id = update.message.chat_id
         chat_text = chat_text.split("javis")[1].strip()
         print(chat_text)
+        response_msg = ''
         try:
             global response_msg
             response_msg = getresult(chat_text)
