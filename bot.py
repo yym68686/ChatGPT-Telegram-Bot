@@ -33,6 +33,26 @@ def reset(update, context):
         chat_id=update.message.chat_id, text="Conversation has been reset!"
     )
 
+def escaped(str):
+    return str.replace("_", '\\_')\
+              .replace("*", '\\*')\
+              .replace("[", '\\[')\
+              .replace("]", '\\]')\
+              .replace("(", '\\(')\
+              .replace(")", '\\)')\
+              .replace("~", '\\~')\
+              .replace("`", '\\`')\
+              .replace(">", '\\>')\
+              .replace("#", '\\#')\
+              .replace("+", '\\+')\
+              .replace("-", '\\-')\
+              .replace("=", '\\=')\
+              .replace("|", '\\|')\
+              .replace("{", '\\{')\
+              .replace("}", '\\}')\
+              .replace(".", '\\.')\
+              .replace("!", '\\!')
+
 def process_message(update, context):
     chat_text = update.message.text
     if chat_text.startswith("javis"):
@@ -75,8 +95,9 @@ def process_message(update, context):
         else:
             context.bot.send_message(
                 chat_id=chat_id,
-                text=response_msg,
-                # parse_mode=ParseMode.MARKDOWN,
+                text=escaped(response_msg),
+                parse_mode=ParseMode.MARKDOWN,
+                # parse_mode="MarkdownV2",
             )
 
 # 小功能
