@@ -36,9 +36,9 @@ def reset(update, context):
 def process_message(update, context):
     chat_text = update.message.text
     if chat_text.startswith("javis"):
-        chat_id = update.message.chat_id
+        chat_id = update.effective_chat.id
         chat_text = chat_text.split("javis")[1].strip()
-        print(chat_text)
+        print(update.effective_user.mention_html(), chat_text)
         response_msg = ''
         try:
             response_msg = getresult(chat_text)
@@ -53,7 +53,7 @@ def process_message(update, context):
             elif "available" in str(e):
                 context.bot.send_message(
                     chat_id=chat_id,
-                    text="抱歉，openai 官网g啦，您等会儿再问问…… :(",
+                    text="抱歉，openai 官网 g 啦，您等会儿再问问…… :(",
                     parse_mode=ParseMode.MARKDOWN,
                 )
             elif "many" in str(e):
