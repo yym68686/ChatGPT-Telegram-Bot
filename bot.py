@@ -38,7 +38,7 @@ def process_message(update, context):
     if chat_text.startswith("javis"):
         chat_id = update.effective_chat.id
         chat_text = chat_text.split("javis")[1].strip()
-        print(update.effective_user.username, chat_text)
+        print(update.effective_user.username, update.effective_user.id, chat_text)
         response_msg = ''
         try:
             response_msg = getresult(chat_text)
