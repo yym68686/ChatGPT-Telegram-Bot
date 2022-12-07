@@ -42,6 +42,7 @@ def process_message(update, context):
         try:
             response_msg = getresult(chat_text)
         except Exception:
+            global response_msg
             if "expired" in response_msg:
                 context.bot.send_message(
                     chat_id=chat_id,
