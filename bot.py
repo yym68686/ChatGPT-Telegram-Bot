@@ -34,10 +34,13 @@ def reset(update, context):
     )
 
 def escaped(str):
+    # Markdown
     return str.replace("_", "\\_")\
               .replace("*", "\\*")\
-              .replace("[", "\\[")
-            #   .replace("`", "\\`")
+              .replace("[", "\\[")\
+              .replace("`", "\\`")
+    
+    # MarkdownV2
     # return str.replace("_", '\\_')\
     #           .replace("*", '\\*')\
     #           .replace("[", '\\[')\
@@ -99,10 +102,12 @@ def process_message(update, context):
         else:
             context.bot.send_message(
                 chat_id=chat_id,
+                text=escaped(response_msg),
+
                 # text=telegram.utils.helpers.escape_markdown(response_msg, 2),
                 # parse_mode="MarkdownV2",
-                text=escaped(response_msg),
-                parse_mode="Markdown",
+                # text=escaped(response_msg),
+                # parse_mode="Markdown",
             )
 
 # 小功能
