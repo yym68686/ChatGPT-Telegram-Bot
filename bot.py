@@ -41,7 +41,6 @@ def process_message(update, context):
         print(chat_text)
         response_msg = ''
         try:
-            global response_msg
             response_msg = getresult(chat_text)
         except Exception:
             if "expired" in response_msg:
