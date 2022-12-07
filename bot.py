@@ -21,7 +21,9 @@ def start(update, context): # 当用户输入/start时，返回文本
         # reply_markup=ForceReply(selective=True),
     )
     message = (
-        "我是人见人爱的 ChatGPT\~"
+        "我是人见人爱的 ChatGPT\~\n\n"
+        "欢迎访问 https://github\.com/yym68686/ChatGPT\-Telegram\-Bot 查看源码\n\n"
+        "有 bug 可以联系 @yym68686"
     )
     update.message.reply_text(message, parse_mode='MarkdownV2')
 
