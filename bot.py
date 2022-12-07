@@ -43,8 +43,8 @@ def process_message(update, context):
         try:
             response_msg = getresult(chat_text)
         except Exception:
-            print(response_msg["detail"]["message"])
-            if "expired" in response_msg["detail"]["message"]:
+            print(response_msg)
+            if "expired" in response_msg:
                 context.bot.send_message(
                     chat_id=chat_id,
                     text="token 已过期 :(",
@@ -56,7 +56,7 @@ def process_message(update, context):
                     text="抱歉，openai 官网g啦，您等会儿再问问…… :(",
                     parse_mode=ParseMode.MARKDOWN,
                 )
-            elif "many" in response_msg["detail"]["message"]:
+            elif "many" in response_msg:
                 context.bot.send_message(
                     chat_id=chat_id,
                     text="抱歉，我现在忙不过来啦，您等会儿再问问…… :(",
@@ -65,7 +65,7 @@ def process_message(update, context):
             else:
                 context.bot.send_message(
                     chat_id=chat_id,
-                    text="抱歉，遇到未知错误 :(" + response_msg["detail"]["message"],
+                    text="抱歉，遇到未知错误 :(" + response_msg,
                     parse_mode=ParseMode.MARKDOWN,
                 )
         else:
