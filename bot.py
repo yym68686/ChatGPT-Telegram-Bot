@@ -42,7 +42,7 @@ def process_message(update, context):
         except Exception:
             context.bot.send_message(
                 chat_id=chat_id,
-                text="There was an exception handling your message :(",
+                text="抱歉，我现在忙不过来啦，您等会儿再问问…… :(",
                 parse_mode=ParseMode.MARKDOWN,
             )
         else:
