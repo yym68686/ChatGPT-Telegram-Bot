@@ -50,7 +50,7 @@ def process_message(update, context):
                     text="token 已过期 :(",
                     parse_mode=ParseMode.MARKDOWN,
                 )
-            elif "available" in response_msg["detail"]["message"]: 
+            elif "available" in response_msg: 
                 context.bot.send_message(
                     chat_id=chat_id,
                     text="抱歉，openai 官网g啦，您等会儿再问问…… :(",
