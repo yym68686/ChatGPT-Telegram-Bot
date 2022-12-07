@@ -93,6 +93,8 @@ def process_message(update, context):
                 context.bot.send_message(
                     chat_id=update.message.chat_id, text="Conversation has been reset!"
                 )
+            elif "Incorrect response from OpenAI API" in str(e):
+                pass
             else:
                 context.bot.send_message(
                     chat_id=chat_id,
