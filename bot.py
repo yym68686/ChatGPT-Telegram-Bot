@@ -70,7 +70,9 @@ def process_message(update, context):
         try:
             response_msg = getresult(chat_text)
         except Exception as e:
-            print("Exception", str(e))
+            print("response_msg", response_msg)
+            print("Exception", e)
+            print("Exception str", str(e))
             if "expired" in str(e):
                 context.bot.send_message(
                     chat_id=chat_id,
