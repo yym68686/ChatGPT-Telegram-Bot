@@ -108,7 +108,6 @@ flyctl launch --image yym68686/chatgpt:1.0
 flyctl secrets set URL=https://*****.fly.dev/
 flyctl secrets set BOT_TOKEN=bottoken
 flyctl secrets set session_token=****
-flyctl secrets set MODE=prod
 ```
 
 查看所有环境变量
