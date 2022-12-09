@@ -92,14 +92,8 @@ def process_message(update, context):
         context.bot.send_message(
             chat_id=chat_id,
             text=response_msg,
-
-            # text=telegram.utils.helpers.escape_markdown(response_msg, 2),
-            # parse_mode="MarkdownV2",
-            # text=escaped(response_msg),
-            # parse_mode="Markdown",
         )
 
-# 小功能
 def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
     if ("can't" in str(context.error)):
@@ -138,15 +132,3 @@ def setup(token):
     dispatcher.add_error_handler(error)
 
     return updater, dispatcher
-
-    # if MODE == "dev": # 本地调试
-    #     updater.start_polling()
-    # elif MODE == "prod": # HeroKu 远程生产环境
-    #     updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
-    #     updater.bot.set_webhook("https://{}.herokuapp.com/{}".format(HEROKU_APP_NAME, TOKEN))
-
-    # schedule.every().day.at(toUTC(checktime)).do(dailysign)
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(1)
-    # updater.idle()

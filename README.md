@@ -21,6 +21,7 @@ chatgpt:1.0) bash
 - 添加 telegram bot token 作为 BOT_TOKEN 变量
 - URL 是 bot 的 webhook 地址，注意 url 后面跟一个斜杠。
 - MODE 可选，设置生产环境 默认 prod
+- NICK，可选，NICK 是机器人的名字，当用户输入消息以 NICK 开头，机器人才会回答。否则机器人会回答任何消息，尤其在群聊里，没有 NICK，机器人会对所有消息进行回复。
 - session_token 是 ChatGPT 的 cookie 中 `__Secure-next-auth.session-token` 的值
 
 进入容器后查看日志
@@ -120,6 +121,15 @@ flyctl secrets list
 
 ```bash
 flyctl secrets unset MY_SECRET DATABASE_URL
+```
+
+ssh 连接 fly.io 容器
+
+```bash
+# 生成密钥
+flyctl ssh issue --agent
+# ssh 连接
+flyctl ssh establish
 ```
 
 查看 webhook url 是否正确
