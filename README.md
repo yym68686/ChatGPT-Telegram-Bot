@@ -21,6 +21,8 @@ setup.sh
 git clone --depth 1 https://github.com/yym68686/ChatGPT-Telegram-Bot.git > /dev/null
 echo "code downloaded..." >> /home/log 2>&1
 cd ChatGPT-Telegram-Bot
+pip install -r /home/ChatGPT-Telegram-Bot/requirements.txt > /dev/null
+echo "python env downloaded..." >> /home/log 2>&1
 touch /home/log
 nohup python -u /home/ChatGPT-Telegram-Bot/webhook.py >> /home/log 2>&1 &
 echo "web is starting..." >> /home/log 2>&1
@@ -34,10 +36,8 @@ FROM python:3.9.15-slim-bullseye
 WORKDIR /home
 EXPOSE 8080
 COPY ./setup.sh /
-COPY ./requirements.txt /
 RUN apt-get update && apt -y install git \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip install -r /requirements.txt
+    && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/setup.sh"]
 ```
 

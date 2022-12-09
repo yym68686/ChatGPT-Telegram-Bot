@@ -6,7 +6,7 @@ import logging, datetime, pytz
 from chat import getresult, resetChat
 from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, Update, Bot
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, filters
-from config import admin, MODE
+from config import MODE
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
@@ -124,10 +124,6 @@ def error(update, context):
             f"出错啦！请重试。\n\n"
         )
         context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode='MarkdownV2')
-
-def echo(update, context):
-    updater.bot.send_message(chat_id = admin, text= str(update.effective_chat.id) + " " + update.message.text)
-    # update.message.reply_text(update.message.text)
 
 def unknown(update: Update, context: CallbackContext): # 当用户输入未知命令时，返回文本
     context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
