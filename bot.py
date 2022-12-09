@@ -35,7 +35,7 @@ def reset(update, context):
 
 def process_message(update, context):
     chat_text = update.message.text
-    print("get a message from flask", chat_text)
+    print("bot: get a message from flask,", chat_text)
     if chat_text[:5].lower() == "javis":
         chat_id = update.effective_chat.id
         chat_text = chat_text[5:].strip()
