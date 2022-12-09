@@ -1,10 +1,18 @@
 import telegram
 from bot import setup
-from config import BOT_TOKEN, URL, PORT
 from flask import Flask, request
+from flask_apscheduler import APScheduler
+from config import BOT_TOKEN, URL, PORT
+from chat import refreshSession
 
 app = Flask(__name__)
 updater, dispatcher = setup(BOT_TOKEN)
+scheduler = APScheduler()
+
+@app.before_first_request
+def setup_scheduler():
+    # 在应用初始化时添加定时任务
+    scheduler.add_job(func=refreshSession, trigger="interval", hours=1)
 
 @app.route('/', methods=['GET'])
 def hello():
@@ -26,6 +34,7 @@ def set_webhook():
         return "webhook failed"
 
 if __name__ == '__main__':
+    scheduler.start()
     print(set_webhook())
     from waitress import serve
     serve(app, host="0.0.0.0", port=8080)

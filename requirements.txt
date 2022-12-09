@@ -12,3 +12,4 @@ python-telegram-bot==12.4.2
 flask==2.0.3
 pytz
 waitress
+Flask-APScheduler
