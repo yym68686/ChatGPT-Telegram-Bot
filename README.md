@@ -1,6 +1,6 @@
 # ChatGPT Telegram Bot in fly.io
 
-## Docker
+## Docker 使用
 
 拉取镜像
 
@@ -8,10 +8,39 @@
 docker pull yym68686/chatgpt:1.0
 ```
 
-导出环境
+运行
 
 ```bash
-pip freeze > requirements.txt
+docker exec -it $(docker run -p 8080:8080 -dit \
+-e BOT_TOKEN="5569***********FybvZJOmGrST_w" \
+-e session_token="token" \
+-e URL="https://test.com/" \
+chatgpt:1.0) bash
+```
+
+- 添加 telegram bot token 作为 BOT_TOKEN 变量
+- URL 是 bot 的 webhook 地址，注意 url 后面跟一个斜杠。
+- MODE 可选，设置生产环境 默认 prod
+- session_token 是 ChatGPT 的 cookie 中 `__Secure-next-auth.session-token` 的值
+
+进入容器后查看日志
+
+```bash
+tail -f /home/log
+```
+
+关闭所有容器
+
+```bash
+docker rm -f $(docker ps -aq)
+```
+
+## docker 构建
+
+在项目目录下构建
+
+```bash
+docker build --no-cache -t chatgpt:1.0 --platform linux/amd64 .
 ```
 
 setup.sh
@@ -41,38 +70,10 @@ RUN apt-get update && apt -y install git \
 ENTRYPOINT ["/setup.sh"]
 ```
 
-构建
+导出环境
 
 ```bash
-docker build --no-cache -t chatgpt:1.0 --platform linux/amd64 .
-```
-
-运行
-
-```bash
-docker exec -it $(docker run -p 8080:8080 -dit \
--e BOT_TOKEN="5569***********FybvZJOmGrST_w" \
--e session_token="token" \
--e URL="https://test.com/" \
--e MODE="prod" \
-chatgpt:1.0) bash
-```
-
-- 添加 telegram bot token 作为 BOT_TOKEN 变量
-- URL 是 bot 的 webhook 地址，注意 url 后面跟一个斜杠。
-- MODE 设置生产环境 prod
-- session_token 是 ChatGPT 的 cookie 中 `__Secure-next-auth.session-token` 的值
-
-进入容器后查看日志
-
-```bash
-tail -f /home/log
-```
-
-关闭所有容器
-
-```bash
-docker rm -f $(docker ps -aq)
+pip freeze > requirements.txt
 ```
 
 ## 部署到 fly.io
