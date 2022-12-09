@@ -12,7 +12,7 @@ scheduler = APScheduler()
 @app.before_first_request
 def setup_scheduler():
     # 在应用初始化时添加定时任务
-    scheduler.add_job(func=refreshSession, trigger="interval", hours=1)
+    scheduler.add_job(func=refreshSession, trigger="interval", hours=1, id="myscheduler")
 
 @app.route('/', methods=['GET'])
 def hello():
