@@ -1,15 +1,17 @@
 import telegram
 from bot import setup
+from urllib import parse
+from waitress import serve
+from chat import refreshSession
 from flask import Flask, request, jsonify
 from flask_apscheduler import APScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from config import BOT_TOKEN, WEB_HOOK, PORT
-from chat import refreshSession
-from waitress import serve
-from urllib import parse
+
 
 app = Flask(__name__)
 updater, dispatcher = setup(BOT_TOKEN)
-scheduler = APScheduler()
+scheduler = APScheduler(scheduler=BackgroundScheduler(timezone='Asia/Shanghai'))
 
 @app.before_first_request
 def setup_scheduler():
