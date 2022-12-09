@@ -1,97 +1,42 @@
-# ChatGPT Telegram Bot in fly.io
+# ChatGPT Telegram Bot
 
-## Docker 使用
-
-拉取镜像
+## 部署 - Docker
 
 ```bash
-docker pull yym68686/chatgpt:1.0
+docker run -p 80:8080 -dit \
+    -e BOT_TOKEN="5569***********FybvZJOmGrST_w" \
+    -e WEB_HOOK="https://your_host.com/" \
+    -e session_token="openai-chatgpt-token" \
+    chatgpt:1.0
 ```
 
-运行
+- MODE: 可选，设置生产环境/开发环境， 默认生产环境。可选值：'dev'|'prod'。
+- BOT_TOKEN: 你需要在 [BotFather](https://t.me/BotFather) 创建一个 bot 以获取 BOT_TOKEN 。
+- WEB_HOOK: 参考 [webhook](https://core.telegram.org/bots/api#setwebhook)，不包含 BOT_TOKEN 。（例如：```https://chatgptbot.fly.dev/```）
+- NICK: 可选，NICK 是机器人的名字。当用户输入消息以 NICK 开头，机器人才会回答，否则机器人会回答任何消息。尤其在群聊里，没有 NICK，机器人会对所有消息进行回复。
+- session_token: ChatGPT 的 cookie 中 `__Secure-next-auth.session-token` 的值
 
-```bash
-docker exec -it $(docker run -p 8080:8080 -dit \
--e BOT_TOKEN="5569***********FybvZJOmGrST_w" \
--e session_token="token" \
--e URL="https://test.com/" \
-chatgpt:1.0) bash
+或者你想使用 Docker Compose，下面是 docker-compose.yml 示例:
+```yaml
+version: "3.5"
+services:
+  chatgptbot:
+    container_name: chatgptbot
+    image: yym68686/chatgpt:1.0
+    environment:
+      # telegram
+      # - NICK=
+      - BOT_TOKEN=
+      - WEB_HOOK=
+      # openai session
+      - session_token=
+    ports:
+      - 80:8080
 ```
 
-- 添加 telegram bot token 作为 BOT_TOKEN 变量
-- URL 是 bot 的 webhook 地址，注意 url 后面跟一个斜杠。
-- MODE 可选，设置生产环境 默认 prod
-- NICK，可选，NICK 是机器人的名字，当用户输入消息以 NICK 开头，机器人才会回答。否则机器人会回答任何消息，尤其在群聊里，没有 NICK，机器人会对所有消息进行回复。
-- session_token 是 ChatGPT 的 cookie 中 `__Secure-next-auth.session-token` 的值
-
-进入容器后查看日志
-
-```bash
-tail -f /home/log
-```
-
-关闭所有容器
-
-```bash
-docker rm -f $(docker ps -aq)
-```
-
-## docker 构建
-
-在项目目录下构建
-
-```bash
-docker build --no-cache -t chatgpt:1.0 --platform linux/amd64 .
-```
-
-setup.sh
-
-```bash
-#!/bin/bash
-git clone --depth 1 https://github.com/yym68686/ChatGPT-Telegram-Bot.git > /dev/null
-echo "code downloaded..." >> /home/log 2>&1
-cd ChatGPT-Telegram-Bot
-pip install -r /home/ChatGPT-Telegram-Bot/requirements.txt > /dev/null
-echo "python env downloaded..." >> /home/log 2>&1
-touch /home/log
-nohup python -u /home/ChatGPT-Telegram-Bot/webhook.py >> /home/log 2>&1 &
-echo "web is starting..." >> /home/log 2>&1
-tail -f /home/log
-```
-
-dockerfile
-
-```dockerfile
-FROM python:3.9.15-slim-bullseye
-WORKDIR /home
-EXPOSE 8080
-COPY ./setup.sh /
-RUN apt-get update && apt -y install git \
-    && rm -rf /var/lib/apt/lists/*
-ENTRYPOINT ["/setup.sh"]
-```
-
-导出环境
-
-```bash
-pip freeze > requirements.txt
-```
-
-## 部署到 fly.io
+## 部署 - fly.io
 
 官方文档：https://fly.io/docs/
-
-mac 安装 flyctl
-
-```bash
-brew install flyctl
-```
-
-登陆 fly.io，提示输入信用卡，绑定信用卡后有免费服务器提供。
-
-```bash
-flyctl auth login
-```
 
 使用 Docker 镜像部署 fly.io 应用
 
@@ -99,16 +44,18 @@ flyctl auth login
 flyctl launch --image yym68686/chatgpt:1.0
 ```
 
-输入应用的名字。
+输入应用的名字，若提示初始化 Postgresql 或 Redis，一律选择否。
 
 按照提示部署。在官网控制面板会提供一个二级域名，可以使用这个二级域名访问到服务。
 
 设置环境变量
 
 ```bash
-flyctl secrets set URL=https://*****.fly.dev/
+flyctl secrets set WEB_HOOK=https://*****.fly.dev/
 flyctl secrets set BOT_TOKEN=bottoken
 flyctl secrets set session_token=****
+# 可选
+flyctl secrets set NICK=javis
 ```
 
 查看所有环境变量
@@ -140,6 +87,6 @@ https://api.telegram.org/bot<token>/getWebhookInfo
 
 ## Reference
 
-参考项目：https://github.com/acheong08/ChatGPT
-
-https://github.com/franalgaba/chatgpt-telegram-bot-serverless
+参考项目：  
+https://github.com/acheong08/ChatGPT  
+https://github.com/franalgaba/chatgpt-telegram-bot-serverless  

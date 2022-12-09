@@ -2,7 +2,7 @@ import telegram
 from bot import setup
 from flask import Flask, request, jsonify
 from flask_apscheduler import APScheduler
-from config import BOT_TOKEN, URL, PORT
+from config import BOT_TOKEN, WEB_HOOK, PORT
 from chat import refreshSession
 from waitress import serve
 from urllib import parse
@@ -30,7 +30,7 @@ def respond():
 
 @app.route('/setwebhook', methods=['GET', 'POST'])
 def configure_webhook():
-    webhookUrl = parse.urljoin(URL,rf"/{BOT_TOKEN}")
+    webhookUrl = parse.urljoin(WEB_HOOK,rf"/{BOT_TOKEN}")
     result = updater.bot.setWebhook(webhookUrl)
     if result:
         print(rf"webhook configured: {webhookUrl}")
