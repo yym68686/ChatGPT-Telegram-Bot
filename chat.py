@@ -2,7 +2,7 @@ import sys
 from config import config
 from revChatGPT.revChatGPT import Chatbot
 
-chatbot = Chatbot(config, conversation_id=None)
+chatbot = Chatbot(config, debug=True, conversation_id=None)
 
 def resetChat():
     chatbot.reset_chat() # Forgets conversation
