@@ -98,7 +98,11 @@ def process_message(update, context):
             elif "Incorrect response from OpenAI API" in str(e):
                 pass
             elif "Not a JSON response" in str(e):
-                pass
+                context.bot.send_message(
+                    chat_id=chat_id,
+                    text="token 已过期 :(",
+                    parse_mode=ParseMode.MARKDOWN,
+                )
             elif "Wrong response code" in str(e):
                 pass
             else:
