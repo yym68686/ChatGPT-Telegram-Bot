@@ -6,10 +6,13 @@ import logging, datetime, pytz
 from chat import getResult, resetChat
 from telegram import BotCommand, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, Update, Bot
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, filters
-from config import MODE
+from config import MODE, NICK
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
+
+botNick = NICK.lower() if NICK is not None else None
+botNicKLength = len(botNick) if botNick is not None else 0
 
 # In all other places characters
 # _ * [ ] ( ) ~ ` > # + - = | { } . ! 
@@ -36,63 +39,65 @@ def reset(update, context):
     )
 
 def process_message(update, context):
-    chat_text = update.message.text
-    print("bot: get a message from flask,", chat_text)
-    if chat_text[:5].lower() == "javis":
-        chat_id = update.effective_chat.id
-        chat_text = chat_text[5:].strip()
-        print(update.effective_user.username, update.effective_user.id, chat_text)
-        response_msg = ''
-        try:
-            response_msg = getResult(chat_text)
-        except Exception as e:
-            print("response_msg", response_msg)
-            print("Exception", e)
-            print("Exception str", str(e))
-            if "expired" in str(e):
-                context.bot.send_message(
-                    chat_id=chat_id,
-                    text="token 已过期 :(",
-                    parse_mode=ParseMode.MARKDOWN,
-                )
-            elif "available" in str(e):
-                context.bot.send_message(
-                    chat_id=chat_id,
-                    text="抱歉，openai 官网 g 啦，您等会儿再问问…… :(",
-                    parse_mode=ParseMode.MARKDOWN,
-                )
-            elif "many" in str(e):
-                context.bot.send_message(
-                    chat_id=chat_id,
-                    text="抱歉，我现在忙不过来啦，您等会儿再问问…… :(",
-                    parse_mode=ParseMode.MARKDOWN,
-                )
-                resetChat()
-                context.bot.send_message(
-                    chat_id=update.message.chat_id, text="Conversation has been reset!"
-                )
-            elif "Incorrect response from OpenAI API" in str(e):
-                pass
-            elif "Not a JSON response" in str(e):
-                pass
-            elif "Wrong response code" in str(e):
-                pass
-            else:
-                context.bot.send_message(
-                    chat_id=chat_id,
-                    text="抱歉，遇到未知错误 :( \n\n" + str(e),
-                    parse_mode=ParseMode.MARKDOWN,
-                )
+    print(update.effective_user.username, update.effective_user.id, update.message.text)
+    if NICK is None:
+        chat_content = update.message.text
+    else:
+        if update.message.text[:botNicKLength].lower() != botNick: return
+        chat_content = update.message.text[botNicKLength:].strip()
+
+    chat_id = update.effective_chat.id
+    response_msg = ''
+    try:
+        response_msg = getResult(chat_content)
+    except Exception as e:
+        print("response_msg", response_msg)
+        print("Exception", e)
+        print("Exception str", str(e))
+        if "expired" in str(e):
+            context.bot.send_message(
+                chat_id=chat_id,
+                text="token 已过期 :(",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        elif "available" in str(e):
+            context.bot.send_message(
+                chat_id=chat_id,
+                text="抱歉，openai 官网 g 啦，您等会儿再问问…… :(",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        elif "many" in str(e):
+            context.bot.send_message(
+                chat_id=chat_id,
+                text="抱歉，我现在忙不过来啦，您等会儿再问问…… :(",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+            resetChat()
+            context.bot.send_message(
+                chat_id=update.message.chat_id, text="Conversation has been reset!"
+            )
+        elif "Incorrect response from OpenAI API" in str(e):
+            pass
+        elif "Not a JSON response" in str(e):
+            pass
+        elif "Wrong response code" in str(e):
+            pass
         else:
             context.bot.send_message(
                 chat_id=chat_id,
-                text=response_msg,
-
-                # text=telegram.utils.helpers.escape_markdown(response_msg, 2),
-                # parse_mode="MarkdownV2",
-                # text=escaped(response_msg),
-                # parse_mode="Markdown",
+                text="抱歉，遇到未知错误 :( \n\n" + str(e),
+                parse_mode=ParseMode.MARKDOWN,
             )
+    else:
+        context.bot.send_message(
+            chat_id=chat_id,
+            text=response_msg,
+
+            # text=telegram.utils.helpers.escape_markdown(response_msg, 2),
+            # parse_mode="MarkdownV2",
+            # text=escaped(response_msg),
+            # parse_mode="Markdown",
+        )
 
 # 小功能
 def error(update, context):
