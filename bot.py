@@ -99,6 +99,8 @@ def process_message(update, context):
                 pass
             elif "Not a JSON response" in str(e):
                 pass
+            elif "Wrong response code" in str(e):
+                pass
             else:
                 context.bot.send_message(
                     chat_id=chat_id,
