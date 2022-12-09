@@ -4,7 +4,7 @@
 
 ```bash
 docker run -p 80:8080 -dit \
-    -e BOT_TOKEN="5569***********FybvZJOmGrST_w" \
+    -e BOT_TOKEN="telegram bot token" \
     -e WEB_HOOK="https://your_host.com/" \
     -e session_token="openai-chatgpt-token" \
     chatgpt:1.0
@@ -12,11 +12,12 @@ docker run -p 80:8080 -dit \
 
 - MODE: 可选，设置生产环境/开发环境， 默认生产环境。可选值：'dev'|'prod'。
 - BOT_TOKEN: 你需要在 [BotFather](https://t.me/BotFather) 创建一个 bot 以获取 BOT_TOKEN 。
-- WEB_HOOK: 参考 [webhook](https://core.telegram.org/bots/api#setwebhook)，不包含 BOT_TOKEN 。（例如：```https://chatgptbot.fly.dev/```）
+- WEB_HOOK: 参考 [webhook](https://core.telegram.org/bots/api#setwebhook)，不包含 BOT_TOKEN 。（例如：``https://chatgptbot.fly.dev/``）
 - NICK: 可选，NICK 是机器人的名字。当用户输入消息以 NICK 开头，机器人才会回答，否则机器人会回答任何消息。尤其在群聊里，没有 NICK，机器人会对所有消息进行回复。
 - session_token: ChatGPT 的 cookie 中 `__Secure-next-auth.session-token` 的值
 
 或者你想使用 Docker Compose，下面是 docker-compose.yml 示例:
+
 ```yaml
 version: "3.5"
 services:
@@ -87,6 +88,6 @@ https://api.telegram.org/bot<token>/getWebhookInfo
 
 ## Reference
 
-参考项目：  
-https://github.com/acheong08/ChatGPT  
-https://github.com/franalgaba/chatgpt-telegram-bot-serverless  
+参考项目：
+https://github.com/acheong08/ChatGPT
+https://github.com/franalgaba/chatgpt-telegram-bot-serverless
