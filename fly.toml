@@ -1,6 +1,4 @@
-# fly.toml file generated for chatgptbot123 on 2022-12-06T21:12:58+08:00
-
-app = "chatgptbot123"
+app = "chatgpt-telegram-bot"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
