@@ -1,6 +1,6 @@
 import telegram
 from bot import setup
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_apscheduler import APScheduler
 from config import BOT_TOKEN, URL, PORT
 from chat import refreshSession
@@ -26,7 +26,7 @@ def respond():
     print("flask: Get a POST, send to bot.")
     update = telegram.Update.de_json(request.get_json(force=True), updater.bot)
     dispatcher.process_update(update)
-    return 'ok'
+    return jsonify({"status": "ok"})
 
 @app.route('/setwebhook', methods=['GET', 'POST'])
 def configure_webhook():
