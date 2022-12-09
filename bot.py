@@ -33,34 +33,8 @@ def reset(update, context):
         chat_id=update.message.chat_id, text="Conversation has been reset!"
     )
 
-def escaped(str):
-    # Markdown
-    return str.replace("_", "\\_")\
-              .replace("*", "\\*")\
-              .replace("[", "\\[")\
-              .replace("`", "\\`")
-    
-    # MarkdownV2
-    # return str.replace("_", '\\_')\
-    #           .replace("*", '\\*')\
-    #           .replace("[", '\\[')\
-    #           .replace("]", '\\]')\
-    #           .replace("(", '\\(')\
-    #           .replace(")", '\\)')\
-    #           .replace("~", '\\~')\
-    #           .replace("`", '\\`')\
-    #           .replace(">", '\\>')\
-    #           .replace("#", '\\#')\
-    #           .replace("+", '\\+')\
-    #           .replace("-", '\\-')\
-    #           .replace("=", '\\=')\
-    #           .replace("|", '\\|')\
-    #           .replace("{", '\\{')\
-    #           .replace("}", '\\}')\
-    #           .replace(".", '\\.')\
-    #           .replace("!", '\\!')
-
 def process_message(update, context):
+    print("get a message from flask", chat_text)
     chat_text = update.message.text
     if chat_text[:5].lower() == "javis":
         chat_id = update.effective_chat.id
@@ -148,7 +122,6 @@ def setup(token):
     dispatcher.add_handler(CommandHandler("reset", reset))
     dispatcher.add_handler(MessageHandler(Filters.text, process_message))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
-    # dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
     dispatcher.add_error_handler(error)
 
     return updater, dispatcher

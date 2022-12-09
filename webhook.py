@@ -21,6 +21,7 @@ def hello():
 @app.route('/{}'.format(BOT_TOKEN), methods=['POST'])
 def respond():
     # retrieve the message in JSON and then transform it to Telegram object
+    print("Get a POST, send to bot.")
     update = telegram.Update.de_json(request.get_json(force=True), updater.bot)
     dispatcher.process_update(update)
     return 'ok'
