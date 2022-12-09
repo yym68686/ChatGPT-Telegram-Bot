@@ -62,9 +62,9 @@ def escaped(str):
 
 def process_message(update, context):
     chat_text = update.message.text
-    if chat_text.startswith("javis"):
+    if chat_text[:5].lower() == "javis":
         chat_id = update.effective_chat.id
-        chat_text = chat_text.split("javis")[1].strip()
+        chat_text = chat_text[5:].strip()
         print(update.effective_user.username, update.effective_user.id, chat_text)
         response_msg = ''
         try:
