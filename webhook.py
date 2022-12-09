@@ -4,6 +4,8 @@ from flask import Flask, request
 from flask_apscheduler import APScheduler
 from config import BOT_TOKEN, URL, PORT
 from chat import refreshSession
+from waitress import serve
+from urllib import parse
 
 app = Flask(__name__)
 updater, dispatcher = setup(BOT_TOKEN)
@@ -18,7 +20,7 @@ def setup_scheduler():
 def hello():
     return 'hello world!'
 
-@app.route('/{}'.format(BOT_TOKEN), methods=['POST'])
+@app.route(rf'/{BOT_TOKEN}'.format(), methods=['POST'])
 def respond():
     # retrieve the message in JSON and then transform it to Telegram object
     print("flask: Get a POST, send to bot.")
@@ -27,16 +29,18 @@ def respond():
     return 'ok'
 
 @app.route('/setwebhook', methods=['GET', 'POST'])
-def set_webhook():
-    s = updater.bot.setWebhook('{URL}{HOOK}'.format(URL=URL, HOOK=BOT_TOKEN))
-    if s:
-        return "webhook ok"
+def configure_webhook():
+    webhookUrl = parse.urljoin(URL,rf"/{BOT_TOKEN}")
+    result = updater.bot.setWebhook(webhookUrl)
+    if result:
+        print(rf"webhook configured: {webhookUrl}")
+        return rf"webhook configured: {webhookUrl}"
     else:
-        return "webhook failed"
+        print(rf"webhook setup failed")
+        return rf"webhook setup failed"
 
 if __name__ == '__main__':
     scheduler.start()
-    print(set_webhook())
-    from waitress import serve
+    configure_webhook()
     serve(app, host="0.0.0.0", port=8080)
     # app.run(host='127.0.0.1', port=PORT, debug=False)

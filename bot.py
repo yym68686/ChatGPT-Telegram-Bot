@@ -3,8 +3,8 @@ import sys
 import time
 import asyncio
 import logging, datetime, pytz
-from chat import getresult, resetChat
-from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, Update, Bot
+from chat import getResult, resetChat
+from telegram import BotCommand, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, Update, Bot
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, filters
 from config import MODE
 
@@ -17,9 +17,11 @@ logger = logging.getLogger()
 def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
     update.message.reply_html(
-        rf"Hi {user.mention_html()} 欢迎使用 🎉",
+        rf"Hi {user.mention_html()} ! I am Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",
         # reply_markup=ForceReply(selective=True),
     )
+
+def help(update, context):
     message = (
         "我是人见人爱的 ChatGPT\~\n\n"
         "欢迎访问 https://github\.com/yym68686/ChatGPT\-Telegram\-Bot 查看源码\n\n"
@@ -42,7 +44,7 @@ def process_message(update, context):
         print(update.effective_user.username, update.effective_user.id, chat_text)
         response_msg = ''
         try:
-            response_msg = getresult(chat_text)
+            response_msg = getResult(chat_text)
         except Exception as e:
             print("response_msg", response_msg)
             print("Exception", e)
@@ -115,11 +117,17 @@ def setup(token):
         logger.error("需要设置 MODE!")
         sys.exit(1)
 
+    # set commands
+    updater.bot.set_my_commands([
+        BotCommand('start', 'Start the bot'),
+        BotCommand('reset', 'Reset the conversation'),
+        BotCommand('help', 'Help'),
+    ])
+
     dispatcher = updater.dispatcher
-
-
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("reset", reset))
+    dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(MessageHandler(Filters.text, process_message))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     dispatcher.add_error_handler(error)
