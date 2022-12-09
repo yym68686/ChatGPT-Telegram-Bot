@@ -117,6 +117,7 @@ def setup(token):
         logger.error("需要设置 MODE!")
         sys.exit(1)
 
+    updater.idle()
     # set commands
     updater.bot.set_my_commands([
         BotCommand('start', 'Start the bot'),
