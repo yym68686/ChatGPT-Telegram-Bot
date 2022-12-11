@@ -5,6 +5,8 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 PORT = int(os.environ.get('PORT', '8080'))
 NICK = os.environ.get('NICK', None)
 config = {
-    "Authorization": "",
-    "session_token": os.environ["session_token"]
+    "email": os.environ["EMAIL"],
+    "password": os.environ["PASSWORD"]
+    # "Authorization": "",
+    # "session_token": os.environ["session_token"]
 }

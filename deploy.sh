@@ -73,7 +73,9 @@ printf '\e[33mNext, set app secrets and regions.\n\e[0m'
 
 flyctl secrets set WEB_HOOK=${WEB_HOOK}
 flyctl secrets set BOT_TOKEN=${BOT_TOKEN}
-flyctl secrets set session_token=${CHATGPT_SESSION_TOKEN}
+# flyctl secrets set session_token=${CHATGPT_SESSION_TOKEN}
+flyctl secrets set EMAIL=${EMAIL}
+flyctl secrets set PASSWORD=${PASSWORD}
 flyctl secrets set NICK=${NICK}
 flyctl regions set ${REGION}
 printf '\e[32mApp secrets and regions set success. Next, deploy the app.\n\e[0m'
