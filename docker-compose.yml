@@ -10,8 +10,8 @@ services:
       - WEB_HOOK=
       # openai session
       - session_token=
-      # - user_agent=
-      # - cf_clearance=
+      - user_agent=
+      - cf_clearance=
       # - EMAIL=
       # - PASSWORD=
     ports:
