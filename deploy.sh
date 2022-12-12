@@ -77,6 +77,7 @@ flyctl secrets set NICK=${NICK}
 flyctl secrets set cf_clearance=${cf_clearance}
 flyctl secrets set user_agent="${user_agent}"
 flyctl secrets set session_token=${session_token}
+
 # flyctl secrets set WEB_HOOK=${WEB_HOOK} \
 #                    BOT_TOKEN=${BOT_TOKEN} \
 #                    NICK=${NICK} \
