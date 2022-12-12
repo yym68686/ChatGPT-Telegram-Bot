@@ -10,10 +10,10 @@ urllib3==1.26.13
 python-telegram-bot==13.15
 
 # desktop environments
-# revChatGPT==0.0.a42
+revChatGPT==0.0.a42
 
 # on server
-revChatGPT==0.0.38.8
+# revChatGPT==0.0.38.8
 flask
 pytz
 waitress
