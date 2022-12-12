@@ -75,8 +75,11 @@ flyctl secrets set WEB_HOOK=${WEB_HOOK}
 flyctl secrets set BOT_TOKEN=${BOT_TOKEN}
 flyctl secrets set NICK=${NICK}
 flyctl secrets set cf_clearance=${cf_clearance}
+printf '\e[32madd cf_clearance success.\n\e[0m'
 flyctl secrets set user_agent="${user_agent}"
+printf '\e[32madd user_agent success.\n\e[0m'
 flyctl secrets set session_token=${session_token}
+printf '\e[32madd session_token success.\n\e[0m'
 
 # flyctl secrets set WEB_HOOK=${WEB_HOOK} \
 #                    BOT_TOKEN=${BOT_TOKEN} \
