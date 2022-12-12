@@ -79,6 +79,7 @@ flyctl secrets set WEB_HOOK=${WEB_HOOK} \
                    session_token=${session_token}
                   #  EMAIL=${EMAIL} \
                   #  PASSWORD=${PASSWORD} \
+                  
 flyctl regions set ${REGION}
 # flyctl secrets set session_token=${CHATGPT_SESSION_TOKEN}
 printf '\e[32mApp secrets and regions set success. Next, deploy the app.\n\e[0m'
