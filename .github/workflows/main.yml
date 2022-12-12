@@ -10,9 +10,12 @@ env:
   APP_NAME: ${{ secrets.APP_NAME }}
   WEB_HOOK: ${{ secrets.WEB_HOOK }}
   BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+  cf_clearance: ${{ secrets.cf_clearance }}
+  user_agent: ${{ secrets.user_agent }}
+  session_token: ${{ secrets.session_token }}
   # CHATGPT_SESSION_TOKEN: ${{ secrets.CHATGPT_SESSION_TOKEN }}
-  EMAIL: ${{ secrets.EMAIL }}
-  PASSWORD: ${{ secrets.PASSWORD }}
+  # EMAIL: ${{ secrets.EMAIL }}
+  # PASSWORD: ${{ secrets.PASSWORD }}
 jobs:
   deploy:
     name: Deploy app
