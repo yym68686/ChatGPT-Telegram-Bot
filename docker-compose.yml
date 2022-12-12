@@ -9,6 +9,8 @@ services:
       - BOT_TOKEN=
       - WEB_HOOK=
       # openai session
-      - session_token=
+      # - session_token=
+      - EMAIL=
+      - PASSWORD=
     ports:
       - 80:8080

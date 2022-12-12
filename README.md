@@ -33,8 +33,8 @@ services:
       - WEB_HOOK=
       # openai session
       # - session_token=
-      - email=
-      - password=
+      - EMAIL=
+      - PASSWORD=
     ports:
       - 80:8080
 ```
