@@ -10,8 +10,8 @@ env:
   APP_NAME: ${{ secrets.APP_NAME }}
   WEB_HOOK: ${{ secrets.WEB_HOOK }}
   BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-  cf_clearance: ${{ secrets.CF_CLEARANCE }}
-  user_agent: ${{ secrets.USER_AGENT }}
+  # cf_clearance: ${{ secrets.CF_CLEARANCE }}
+  # user_agent: ${{ secrets.USER_AGENT }}
   session_token: ${{ secrets.SESSION_TOKEN }}
   # CHATGPT_SESSION_TOKEN: ${{ secrets.CHATGPT_SESSION_TOKEN }}
   # EMAIL: ${{ secrets.EMAIL }}

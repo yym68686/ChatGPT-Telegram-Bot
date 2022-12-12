@@ -8,8 +8,8 @@ config = {
     # "email": os.environ["EMAIL"],
     # "password": os.environ["PASSWORD"]
     # "Authorization": "",
-    "cf_clearance": os.environ["cf_clearance"],
-    "user_agent": os.environ["user_agent"],
+    # "cf_clearance": os.environ["cf_clearance"],
+    # "user_agent": os.environ["user_agent"],
     "session_token": os.environ["session_token"]
 }
 # deploy.sh config.py main.yml README.md docker-compose.yml github-action-secrets
