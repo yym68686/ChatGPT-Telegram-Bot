@@ -71,14 +71,20 @@ EOF
 printf '\e[32mCreate app config file success.\n\e[0m'
 printf '\e[33mNext, set app secrets and regions.\n\e[0m'
 
-flyctl secrets set WEB_HOOK=${WEB_HOOK} \
-                   BOT_TOKEN=${BOT_TOKEN} \
-                   NICK=${NICK} \
-                   cf_clearance=${cf_clearance} \
-                   user_agent="${user_agent}" \
-                   session_token=${session_token}
-                  #  EMAIL=${EMAIL} \
-                  #  PASSWORD=${PASSWORD} \
+flyctl secrets set WEB_HOOK=${WEB_HOOK}
+flyctl secrets set BOT_TOKEN=${BOT_TOKEN}
+flyctl secrets set NICK=${NICK}
+flyctl secrets set cf_clearance=${cf_clearance}
+flyctl secrets set user_agent="${user_agent}"
+flyctl secrets set session_token=${session_token}
+# flyctl secrets set WEB_HOOK=${WEB_HOOK} \
+#                    BOT_TOKEN=${BOT_TOKEN} \
+#                    NICK=${NICK} \
+#                    cf_clearance=${cf_clearance} \
+#                    user_agent="${user_agent}" \
+#                    session_token=${session_token}
+#                   #  EMAIL=${EMAIL} \
+#                   #  PASSWORD=${PASSWORD} \
 
 flyctl regions set ${REGION}
 # flyctl secrets set session_token=${CHATGPT_SESSION_TOKEN}
