@@ -1,8 +1,8 @@
 import sys
 from config import config
-from revChatGPT.revChatGPT import Chatbot
+from revChatGPT.revChatGPT import AsyncChatbot
 
-chatbot = Chatbot(config, conversation_id=None)
+chatbot = AsyncChatbot(config, conversation_id=None)
 
 def resetChat():
     chatbot.reset_chat() # Forgets conversation
