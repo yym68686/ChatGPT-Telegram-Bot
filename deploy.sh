@@ -81,6 +81,7 @@ flyctl secrets set NICK=${NICK}
 flyctl secrets set session_token=${session_token}
 printf '\e[32madd session_token success.\n\e[0m'
 
+
 # flyctl secrets set WEB_HOOK=${WEB_HOOK} \
 #                    BOT_TOKEN=${BOT_TOKEN} \
 #                    NICK=${NICK} \

@@ -1,4 +1,4 @@
-# fly.toml file generated for chatgptbot on 2022-12-09T23:38:23+08:00
+# fly.toml file generated for chatgptbot on 2022-12-14T20:09:02+08:00
 
 app = "chatgptbot"
 kill_signal = "SIGINT"
