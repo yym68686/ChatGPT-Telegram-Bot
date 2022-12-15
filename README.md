@@ -1,5 +1,7 @@
 # ChatGPT Telegram Bot
 
+> 由于 ChatGPT 套上了 Cloudflare 代理，本项目已停止维护。
+
 ## 部署 - Docker
 
 ```bash
