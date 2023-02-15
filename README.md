@@ -8,9 +8,9 @@
 docker run -p 80:8080 -dit \
     -e BOT_TOKEN="telegram bot token" \
     -e WEB_HOOK="https://your_host.com/" \
-    -e session_token="123" \
-#    -e email="openai-chatgpt-email" \
-#    -e password="openai-chatgpt-password" \
+#    -e session_token="123" \
+    -e email="openai-chatgpt-email" \
+    -e password="openai-chatgpt-password" \
     chatgpt:1.0
 ```
 

@@ -3,7 +3,8 @@ import sys
 import time
 import asyncio
 import logging, datetime, pytz
-from chat import getResult, resetChat
+from chat import getResult
+# from chat import getResult, resetChat
 from telegram import BotCommand, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, Update, Bot
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, filters
 from config import MODE, NICK
@@ -32,11 +33,11 @@ def help(update, context):
     )
     update.message.reply_text(message, parse_mode='MarkdownV2')
 
-def reset(update, context):
-    resetChat()
-    context.bot.send_message(
-        chat_id=update.message.chat_id, text="Conversation has been reset!"
-    )
+# def reset(update, context):
+#     resetChat()
+#     context.bot.send_message(
+#         chat_id=update.message.chat_id, text="Conversation has been reset!"
+#     )
 
 def process_message(update, context):
     print(update.effective_user.username, update.effective_user.id, update.message.text)
@@ -119,13 +120,13 @@ def setup(token):
     # set commands
     updater.bot.set_my_commands([
         BotCommand('start', 'Start the bot'),
-        BotCommand('reset', 'Reset the conversation'),
+        # BotCommand('reset', 'Reset the conversation'),
         BotCommand('help', 'Help'),
     ])
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("reset", reset))
+    # dispatcher.add_handler(CommandHandler("reset", reset))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(MessageHandler(Filters.text, process_message))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))

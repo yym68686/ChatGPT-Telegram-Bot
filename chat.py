@@ -1,21 +1,23 @@
 import sys
 from config import config
-from revChatGPT.revChatGPT import AsyncChatbot
+# from revChatGPT.revChatGPT import AsyncChatbot
+from revChatGPT.V1 import Chatbot
 
-chatbot = AsyncChatbot(config, conversation_id=None)
+# chatbot = AsyncChatbot(config, conversation_id=None)
+chatbot = Chatbot(config)
 
-def resetChat():
-    chatbot.reset_chat() # Forgets conversation
+# def resetChat():
+#     chatbot.reset_chat() # Forgets conversation
 
-def refreshSession():
-    chatbot.refresh_session() # Uses the session_token to get a new bearer token
-    print("refresh session Success!")
+# def refreshSession():
+#     chatbot.refresh_session() # Uses the session_token to get a new bearer token
+#     print("refresh session Success!")
 
 def getResult(prompt):
-    chatbot.refresh_session() # Uses the session_token to get a new bearer token
-    resp = chatbot.get_chat_response(prompt, output="text") # Sends a request to the API and returns the response by OpenAI
+    for data in chatbot.ask(prompt):
+        response = data["message"]
     print("getresult", resp['message'])
-    return resp['message']
+    return response
 
 if __name__ == '__main__':
     getResult(sys.argv[1])
