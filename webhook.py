@@ -2,16 +2,16 @@ import telegram
 from bot import setup
 from urllib import parse
 from waitress import serve
-# from chat import refreshSession
 from flask import Flask, request, jsonify
-from flask_apscheduler import APScheduler
-from apscheduler.schedulers.background import BackgroundScheduler
 from config import BOT_TOKEN, WEB_HOOK, PORT
+# from chat import refreshSession
+# from flask_apscheduler import APScheduler
+# from apscheduler.schedulers.background import BackgroundScheduler
 
 
 app = Flask(__name__)
 updater, dispatcher = setup(BOT_TOKEN)
-scheduler = APScheduler(scheduler=BackgroundScheduler(timezone='Asia/Shanghai'))
+# scheduler = APScheduler(scheduler=BackgroundScheduler(timezone='Asia/Shanghai'))
 
 # @app.before_first_request
 # def setup_scheduler():
@@ -42,7 +42,7 @@ def configure_webhook():
         return rf"webhook setup failed"
 
 if __name__ == '__main__':
-    scheduler.start()
+    # scheduler.start()
     configure_webhook()
     serve(app, host="0.0.0.0", port=8080)
     # app.run(host='127.0.0.1', port=PORT, debug=False)
