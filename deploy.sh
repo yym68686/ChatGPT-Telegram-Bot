@@ -87,9 +87,9 @@ flyctl secrets set WEB_HOOK=${WEB_HOOK} \
                    NICK=${NICK} \
                   #  cf_clearance=${cf_clearance} \
                   #  user_agent="${user_agent}" \
-                   session_token=${session_token}
-                  #  EMAIL=${EMAIL} \
-                  #  PASSWORD=${PASSWORD} \
+                  #  session_token=${session_token}
+                   EMAIL=${EMAIL} \
+                   PASSWORD=${PASSWORD}
 
 flyctl regions set ${REGION}
 # flyctl secrets set session_token=${CHATGPT_SESSION_TOKEN}
