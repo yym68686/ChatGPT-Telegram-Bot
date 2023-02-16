@@ -1,4 +1,4 @@
-# fly.toml file generated for chatgptbot on 2022-12-14T20:09:02+08:00
+# fly.toml file generated for chatgptbot on 2023-02-16T20:57:35+08:00
 
 app = "chatgptbot"
 kill_signal = "SIGINT"
@@ -11,7 +11,6 @@ processes = []
 [env]
 
 [experimental]
-  allowed_public_ports = []
   auto_rollback = true
 
 [[services]]
