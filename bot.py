@@ -14,6 +14,7 @@ logger = logging.getLogger()
 
 botNick = NICK.lower() if NICK is not None else None
 botNicKLength = len(botNick) if botNick is not None else 0
+print("nick:", botNick)
 
 # In all other places characters
 # _ * [ ] ( ) ~ ` > # + - = | { } . ! 
@@ -76,6 +77,12 @@ def process_message(update, context):
             resetChat()
             context.bot.send_message(
                 chat_id=update.message.chat_id, text="Conversation has been reset!"
+            )
+        elif "502 Bad Gateway" in str(e):
+            context.bot.send_message(
+                chat_id=chat_id,
+                text="抱歉，官网服务器过载，我现在忙不过来啦，您等会儿再问问…… :(",
+                parse_mode=ParseMode.MARKDOWN,
             )
         elif "Incorrect response from OpenAI API" in str(e):
             pass
