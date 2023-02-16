@@ -1,7 +1,5 @@
 # ChatGPT Telegram Bot
 
-> 由于 ChatGPT 套上了 Cloudflare 代理，本项目已停止维护。
-
 ## 部署 - Docker
 
 ```bash
@@ -62,11 +60,11 @@ flyctl launch --image yym68686/chatgpt:1.0
 ```bash
 flyctl secrets set WEB_HOOK=https://*****.fly.dev/
 flyctl secrets set BOT_TOKEN=bottoken
-flyctl secrets set session_token=
-flyctl secrets set user_agent=
-flyctl secrets set cf_clearance=
-# flyctl secrets set EMAIL=
-# flyctl secrets set PASSWORD=
+# flyctl secrets set session_token=
+# flyctl secrets set user_agent=
+# flyctl secrets set cf_clearance=
+flyctl secrets set EMAIL=
+flyctl secrets set PASSWORD=
 # 可选
 flyctl secrets set NICK=javis
 ```

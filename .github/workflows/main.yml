@@ -12,10 +12,10 @@ env:
   BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
   # cf_clearance: ${{ secrets.CF_CLEARANCE }}
   # user_agent: ${{ secrets.USER_AGENT }}
-  session_token: ${{ secrets.SESSION_TOKEN }}
+  # session_token: ${{ secrets.SESSION_TOKEN }}
   # CHATGPT_SESSION_TOKEN: ${{ secrets.CHATGPT_SESSION_TOKEN }}
-  # EMAIL: ${{ secrets.EMAIL }}
-  # PASSWORD: ${{ secrets.PASSWORD }}
+  EMAIL: ${{ secrets.EMAIL }}
+  PASSWORD: ${{ secrets.PASSWORD }}
 jobs:
   deploy:
     name: Deploy app
