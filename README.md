@@ -1,6 +1,6 @@
 # ChatGPT Telegram Bot
 
-## 部署 - Docker
+## Docker 本地部署
 
 ```bash
 docker run -p 80:8080 -dit \
@@ -40,7 +40,7 @@ services:
       - 80:8080
 ```
 
-## 部署 - fly.io
+## fly.io 远程部署
 
 官方文档：https://fly.io/docs/
 
@@ -57,15 +57,16 @@ flyctl launch --image yym68686/chatgpt:1.0
 设置环境变量
 
 ```bash
-flyctl secrets set WEB_HOOK=https://*****.fly.dev/
+flyctl secrets set WEB_HOOK=https://flyio-app-name.fly.dev/
 flyctl secrets set BOT_TOKEN=bottoken
-# flyctl secrets set session_token=
-# flyctl secrets set user_agent=
-# flyctl secrets set cf_clearance=
 flyctl secrets set EMAIL=
 flyctl secrets set PASSWORD=
 # 可选
 flyctl secrets set NICK=javis
+
+# flyctl secrets set session_token=
+# flyctl secrets set user_agent=
+# flyctl secrets set cf_clearance=
 ```
 
 查看所有环境变量
