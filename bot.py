@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-import asyncio
+# import asyncio
 import logging, datetime, pytz
 from chat import getResult
 # from chat import getResult, resetChat
@@ -87,9 +87,14 @@ def process_message(update, context):
         else:
             context.bot.send_message(
                 chat_id=chat_id,
-                text="抱歉，遇到未知错误 :( \n\n" + str(e),
+                text="抱歉，官网服务器过载，我现在忙不过来啦，您等会儿再问问…… :( \n\n" + str(e),
                 parse_mode=ParseMode.MARKDOWN,
             )
+            # context.bot.send_message(
+            #     chat_id=chat_id,
+            #     text="抱歉，遇到未知错误 :( \n\n" + str(e),
+            #     parse_mode=ParseMode.MARKDOWN,
+            # )
     else:
         context.bot.send_message(
             chat_id=chat_id,
