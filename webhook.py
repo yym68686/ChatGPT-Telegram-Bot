@@ -16,7 +16,7 @@ def hello():
 @app.route(rf'/{BOT_TOKEN}'.format(), methods=['POST'])
 def respond():
     # retrieve the message in JSON and then transform it to Telegram object
-    print("flask: Get a POST, send to bot.")
+    print("Telegram Bot API send a POST to flask, and now flask send to bot.py.")
     update = telegram.Update.de_json(request.get_json(force=True), updater.bot)
     dispatcher.process_update(update)
     return jsonify({'status': 'success', 'message': 'Received message successfully.'})
