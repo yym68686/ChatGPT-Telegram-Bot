@@ -61,6 +61,12 @@ def process_message(update, context):
                 text="抱歉，openai 官网 g 啦，您等会儿再问问…… :(",
                 parse_mode=ParseMode.MARKDOWN,
             )
+        elif "referenced before assignment" in str(e):
+            context.bot.send_message(
+                chat_id=chat_id,
+                text="抱歉，1 小时太多请求啦，您等会儿再问问…… :(",
+                parse_mode=ParseMode.MARKDOWN,
+            )
         elif "many" in str(e):
             context.bot.send_message(
                 chat_id=chat_id,
