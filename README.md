@@ -28,13 +28,11 @@ services:
     container_name: chatgptbot
     image: yym68686/chatgpt:1.0
     environment:
-      # telegram
       - NICK=
       - BOT_TOKEN=
       - WEB_HOOK=
       - EMAIL=
       - PASSWORD=
-      # openai session
       # - session_token=
     ports:
       - 80:8080
@@ -61,12 +59,10 @@ flyctl secrets set WEB_HOOK=https://flyio-app-name.fly.dev/
 flyctl secrets set BOT_TOKEN=bottoken
 flyctl secrets set EMAIL=
 flyctl secrets set PASSWORD=
+# flyctl secrets set session_token=
+
 # 可选
 flyctl secrets set NICK=javis
-
-# flyctl secrets set session_token=
-# flyctl secrets set user_agent=
-# flyctl secrets set cf_clearance=
 ```
 
 查看所有环境变量

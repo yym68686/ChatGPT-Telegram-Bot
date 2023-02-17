@@ -23,7 +23,6 @@ def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
     update.message.reply_html(
         rf"Hi {user.mention_html()} ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",
-        # reply_markup=ForceReply(selective=True),
     )
 
 def help(update, context):
@@ -33,12 +32,6 @@ def help(update, context):
         "有 bug 可以联系 @yym68686"
     )
     update.message.reply_text(message, parse_mode='MarkdownV2')
-
-# def reset(update, context):
-#     resetChat()
-#     context.bot.send_message(
-#         chat_id=update.message.chat_id, text="Conversation has been reset!"
-#     )
 
 def process_message(update, context):
     print(update.effective_user.username, update.effective_user.id, update.message.text)
@@ -126,13 +119,11 @@ def setup(token):
     # set commands
     updater.bot.set_my_commands([
         BotCommand('start', 'Start the bot'),
-        # BotCommand('reset', 'Reset the conversation'),
         BotCommand('help', 'Help'),
     ])
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
-    # dispatcher.add_handler(CommandHandler("reset", reset))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(MessageHandler(Filters.text, process_message))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
