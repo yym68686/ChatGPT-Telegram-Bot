@@ -19,7 +19,7 @@ def respond():
     print("flask: Get a POST, send to bot.")
     update = telegram.Update.de_json(request.get_json(force=True), updater.bot)
     dispatcher.process_update(update)
-    return jsonify({"status": "ok"})
+    return jsonify({'status': 'success', 'message': 'Received message successfully.'})
 
 @app.route('/setwebhook', methods=['GET', 'POST'])
 def configure_webhook():
