@@ -22,7 +22,7 @@ print("nick:", botNick)
 def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
     update.message.reply_html(
-        rf"Hi {user.mention_html()} ! I am Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",
+        rf"Hi {user.mention_html()} ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",
         # reply_markup=ForceReply(selective=True),
     )
 
@@ -77,12 +77,6 @@ def process_message(update, context):
             resetChat()
             context.bot.send_message(
                 chat_id=update.message.chat_id, text="Conversation has been reset!"
-            )
-        elif "502 Bad Gateway" in str(e):
-            context.bot.send_message(
-                chat_id=chat_id,
-                text="抱歉，官网服务器过载，我现在忙不过来啦，您等会儿再问问…… :(",
-                parse_mode=ParseMode.MARKDOWN,
             )
         elif "Incorrect response from OpenAI API" in str(e):
             pass

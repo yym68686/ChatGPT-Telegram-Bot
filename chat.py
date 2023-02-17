@@ -16,7 +16,7 @@ chatbot = Chatbot(config)
 def getResult(prompt):
     for data in chatbot.ask(prompt):
         response = data["message"]
-    print("getresult", data['message'])
+    print("getresult", response)
     return response
 
 if __name__ == '__main__':
