@@ -2,6 +2,14 @@
 
 ## Docker 本地部署
 
+下载镜像
+
+```bash
+docker pull yym68686/chatgpt:1.0
+```
+
+启动容器
+
 ```bash
 docker run -p 80:8080 -dit \
     -e BOT_TOKEN="telegram bot token" \
