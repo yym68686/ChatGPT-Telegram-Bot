@@ -21,7 +21,6 @@ def respond():
     update = telegram.Update.de_json(request.get_json(force=True), updater.bot)
     thread = Thread(target=dispatcher.process_update, args=(update,))
     thread.start()
-    # dispatcher.process_update(update)
     return jsonify({'status': 'success', 'message': 'Received message successfully.'})
 
 @app.route('/setwebhook', methods=['GET', 'POST'])

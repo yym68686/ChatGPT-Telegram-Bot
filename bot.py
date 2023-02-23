@@ -1,10 +1,8 @@
 import os
 import sys
 import time
-# import asyncio
 import logging, datetime, pytz
-from chat import getResult
-# from chat import getResult, resetChat
+from chat import getResult, resetChat
 from telegram import BotCommand, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, Update, Bot
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, filters
 from config import MODE, NICK
@@ -33,6 +31,9 @@ def help(update, context):
     )
     update.message.reply_text(message, parse_mode='MarkdownV2')
 
+def reset(update, context):
+    resetChat()
+
 def process_message(update, context):
     print(update.effective_user.username, update.effective_user.id, update.message.text)
     if NICK is None:
@@ -49,46 +50,46 @@ def process_message(update, context):
         print("response_msg", response_msg)
         print("Exception", e)
         print("Exception str", str(e))
-        if "expired" in str(e):
-            context.bot.send_message(
-                chat_id=chat_id,
-                text="token 已过期 :(",
-                parse_mode=ParseMode.MARKDOWN,
-            )
-        elif "available" in str(e):
-            context.bot.send_message(
-                chat_id=chat_id,
-                text="抱歉，openai 官网 g 啦，您等会儿再问问…… :(",
-                parse_mode=ParseMode.MARKDOWN,
-            )
-        elif "referenced before assignment" in str(e):
-            context.bot.send_message(
-                chat_id=chat_id,
-                text="抱歉，1 小时太多请求啦，您等会儿再问问…… :(",
-                parse_mode=ParseMode.MARKDOWN,
-            )
-        elif "many" in str(e):
-            context.bot.send_message(
-                chat_id=chat_id,
-                text="抱歉，我现在忙不过来啦，您等会儿再问问…… :(",
-                parse_mode=ParseMode.MARKDOWN,
-            )
-            resetChat()
-            context.bot.send_message(
-                chat_id=update.message.chat_id, text="Conversation has been reset!"
-            )
-        elif "Incorrect response from OpenAI API" in str(e):
-            pass
-        elif "Not a JSON response" in str(e):
-            pass
-        elif "Wrong response code" in str(e):
-            pass
-        else:
-            context.bot.send_message(
-                chat_id=chat_id,
-                text="抱歉，官网服务器过载，我现在忙不过来啦，您等会儿再问问…… :( \n\n" + str(e),
-                parse_mode=ParseMode.MARKDOWN,
-            )
+        # if "expired" in str(e):
+        #     context.bot.send_message(
+        #         chat_id=chat_id,
+        #         text="token 已过期 :(",
+        #         parse_mode=ParseMode.MARKDOWN,
+        #     )
+        # elif "available" in str(e):
+        #     context.bot.send_message(
+        #         chat_id=chat_id,
+        #         text="抱歉，openai 官网 g 啦，您等会儿再问问…… :(",
+        #         parse_mode=ParseMode.MARKDOWN,
+        #     )
+        # elif "referenced before assignment" in str(e):
+        #     context.bot.send_message(
+        #         chat_id=chat_id,
+        #         text="抱歉，1 小时太多请求啦，您等会儿再问问…… :(",
+        #         parse_mode=ParseMode.MARKDOWN,
+        #     )
+        # elif "many" in str(e):
+        #     context.bot.send_message(
+        #         chat_id=chat_id,
+        #         text="抱歉，我现在忙不过来啦，您等会儿再问问…… :(",
+        #         parse_mode=ParseMode.MARKDOWN,
+        #     )
+        #     resetChat()
+        #     context.bot.send_message(
+        #         chat_id=update.message.chat_id, text="Conversation has been reset!"
+        #     )
+        # elif "Incorrect response from OpenAI API" in str(e):
+        #     pass
+        # elif "Not a JSON response" in str(e):
+        #     pass
+        # elif "Wrong response code" in str(e):
+        #     pass
+        # else:
+        #     context.bot.send_message(
+        #         chat_id=chat_id,
+        #         text="抱歉，官网服务器过载，我现在忙不过来啦，您等会儿再问问…… :( \n\n" + str(e),
+        #         parse_mode=ParseMode.MARKDOWN,
+        #     )
             # context.bot.send_message(
             #     chat_id=chat_id,
             #     text="抱歉，遇到未知错误 :( \n\n" + str(e),
@@ -125,11 +126,13 @@ def setup(token):
     # set commands
     updater.bot.set_my_commands([
         BotCommand('start', 'Start the bot'),
+        BotCommand('reset', 'reset the chat'),
         BotCommand('help', 'Help'),
     ])
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("reset", reset))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(MessageHandler(Filters.text, process_message))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
