@@ -2,10 +2,12 @@ import os
 import sys
 import time
 import logging, datetime, pytz
-from chat import getResult, resetChat
+from revChatGPT.V1 import Chatbot
 from telegram import BotCommand, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, Update, Bot
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, filters
-from config import MODE, NICK
+from config import MODE, NICK, config
+
+chatbot = Chatbot(config)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
@@ -32,8 +34,9 @@ def help(update, context):
     update.message.reply_text(message, parse_mode='MarkdownV2')
 
 def reset(update, context):
-    resetChat()
+    chatbot.reset_chat()
 
+LastMessage_id = ''
 def process_message(update, context):
     print(update.effective_user.username, update.effective_user.id, update.message.text)
     if NICK is None:
@@ -43,62 +46,39 @@ def process_message(update, context):
         chat_content = update.message.text[botNicKLength:].strip()
 
     chat_id = update.effective_chat.id
-    response_msg = ''
+    response = ''
     try:
-        response_msg = getResult(chat_content)
+        for data in chatbot.ask(chat_content):
+            try:
+                response = data["message"]
+                if LastMessage_id == '':
+                    context.bot.send_message(
+                        chat_id=chat_id,
+                        text=response,
+                    )
+                    continue
+                # 获取最新一条消息
+                updates = updater.bot.get_updates()
+                LastMessage = updates[-1].message
+                # 获取消息的唯一标识符
+                LastMessage_id = LastMessage.message_id
+                # 调用 edit_message_text 方法修改消息
+                context.bot.edit_message_text(chat_id=chat_id, message_id=LastMessage_id, text=response)
+            except:
+                print("response", data)
+                if "reloading the conversation" in data:
+                    resetChat()
+                    return "对话已超过上限，已重置聊天，请重试！"
+                return "未知错误：" + str(data)
+        print("getresult", response)
     except Exception as e:
-        print("response_msg", response_msg)
+        print("response_msg", response)
         print("Exception", e)
         print("Exception str", str(e))
-        # if "expired" in str(e):
-        #     context.bot.send_message(
-        #         chat_id=chat_id,
-        #         text="token 已过期 :(",
-        #         parse_mode=ParseMode.MARKDOWN,
-        #     )
-        # elif "available" in str(e):
-        #     context.bot.send_message(
-        #         chat_id=chat_id,
-        #         text="抱歉，openai 官网 g 啦，您等会儿再问问…… :(",
-        #         parse_mode=ParseMode.MARKDOWN,
-        #     )
-        # elif "referenced before assignment" in str(e):
-        #     context.bot.send_message(
-        #         chat_id=chat_id,
-        #         text="抱歉，1 小时太多请求啦，您等会儿再问问…… :(",
-        #         parse_mode=ParseMode.MARKDOWN,
-        #     )
-        # elif "many" in str(e):
-        #     context.bot.send_message(
-        #         chat_id=chat_id,
-        #         text="抱歉，我现在忙不过来啦，您等会儿再问问…… :(",
-        #         parse_mode=ParseMode.MARKDOWN,
-        #     )
-        #     resetChat()
-        #     context.bot.send_message(
-        #         chat_id=update.message.chat_id, text="Conversation has been reset!"
-        #     )
-        # elif "Incorrect response from OpenAI API" in str(e):
-        #     pass
-        # elif "Not a JSON response" in str(e):
-        #     pass
-        # elif "Wrong response code" in str(e):
-        #     pass
-        # else:
-        #     context.bot.send_message(
-        #         chat_id=chat_id,
-        #         text="抱歉，官网服务器过载，我现在忙不过来啦，您等会儿再问问…… :( \n\n" + str(e),
-        #         parse_mode=ParseMode.MARKDOWN,
-        #     )
-            # context.bot.send_message(
-            #     chat_id=chat_id,
-            #     text="抱歉，遇到未知错误 :( \n\n" + str(e),
-            #     parse_mode=ParseMode.MARKDOWN,
-            # )
-    else:
         context.bot.send_message(
             chat_id=chat_id,
-            text=response_msg,
+            text="出错啦 :(",
+            parse_mode=ParseMode.MARKDOWN,
         )
 
 def error(update, context):
