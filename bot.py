@@ -36,7 +36,6 @@ def help(update, context):
 def reset(update, context):
     chatbot.reset_chat()
 
-LastMessage_id = ''
 def process_message(update, context):
     print(update.effective_user.username, update.effective_user.id, update.message.text)
     if NICK is None:
@@ -47,28 +46,28 @@ def process_message(update, context):
 
     chat_id = update.effective_chat.id
     response = ''
+    LastMessage_id = ''
     try:
         for data in chatbot.ask(chat_content):
+            print("***")
             try:
+                print("LastMessage_id", LastMessage_id)
                 response = data["message"]
                 if LastMessage_id == '':
-                    context.bot.send_message(
+                    message = context.bot.send_message(
                         chat_id=chat_id,
                         text=response,
                     )
+                    LastMessage_id = message.message_id
                     continue
-                # 获取最新一条消息
-                updates = updater.bot.get_updates()
-                LastMessage = updates[-1].message
-                # 获取消息的唯一标识符
-                LastMessage_id = LastMessage.message_id
-                # 调用 edit_message_text 方法修改消息
                 context.bot.edit_message_text(chat_id=chat_id, message_id=LastMessage_id, text=response)
             except:
                 print("response", data)
                 if "reloading the conversation" in data:
                     resetChat()
                     return "对话已超过上限，已重置聊天，请重试！"
+                if "conversation_id" in data:
+                    continue
                 return "未知错误：" + str(data)
         print("getresult", response)
     except Exception as e:
