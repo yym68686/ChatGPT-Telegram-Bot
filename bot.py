@@ -61,7 +61,7 @@ def process_message(update, context):
                     continue
                 context.bot.edit_message_text(chat_id=chat_id, message_id=LastMessage_id, text=response)
             except:
-                print("response", data)
+                # print("response", data)
                 if "reloading the conversation" in data:
                     resetChat()
                     return "对话已超过上限，已重置聊天，请重试！"
