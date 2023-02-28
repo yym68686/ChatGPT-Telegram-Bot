@@ -64,10 +64,18 @@ def process_message(update, context):
                 # print("response", data)
                 if "reloading the conversation" in data:
                     resetChat()
-                    return "对话已超过上限，已重置聊天，请重试！"
+                    message = context.bot.send_message(
+                        chat_id=chat_id,
+                        text="对话已超过上限，已重置聊天，请重试！",
+                    )
+                    return
                 if "conversation_id" in data:
                     continue
-                return "未知错误：" + str(data)
+                message = context.bot.send_message(
+                    chat_id=chat_id,
+                    text="未知错误：" + str(data),
+                )
+                return 
         print("getresult", response)
     except Exception as e:
         print("response_msg", response)
