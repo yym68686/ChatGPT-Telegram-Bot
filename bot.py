@@ -49,9 +49,7 @@ def process_message(update, context):
     LastMessage_id = ''
     try:
         for data in chatbot.ask(chat_content):
-            print("***")
             try:
-                print("LastMessage_id", LastMessage_id)
                 response = data["message"]
                 if LastMessage_id == '':
                     message = context.bot.send_message(
@@ -59,6 +57,7 @@ def process_message(update, context):
                         text=response,
                     )
                     LastMessage_id = message.message_id
+                    print("LastMessage_id", LastMessage_id)
                     continue
                 context.bot.edit_message_text(chat_id=chat_id, message_id=LastMessage_id, text=response)
             except:
