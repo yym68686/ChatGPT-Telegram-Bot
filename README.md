@@ -75,7 +75,7 @@ pip install -r requirements.txt
 - EMAIL，PASSWORD: openai 的账号密码.
 - NICK: 可选，默认为空，NICK 是机器人的名字。当用户输入消息以 NICK 开头，机器人才会回答，否则机器人会回答任何消息。尤其在群聊里，没有 NICK，机器人会对所有消息进行回复。
 
-点击屏幕上方的 run，即可运行机器人。
+点击屏幕上方的 run，即可运行机器人。记得打开 Always On。
 
 ## Docker 本地部署
 
