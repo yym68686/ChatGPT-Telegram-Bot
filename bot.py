@@ -51,15 +51,15 @@ def process_message(update, context):
         for data in chatbot.ask(chat_content):
             try:
                 response = data["message"]
-                if LastMessage_id == '':
-                    message = context.bot.send_message(
-                        chat_id=chat_id,
-                        text=response,
-                    )
-                    LastMessage_id = message.message_id
-                    print("LastMessage_id", LastMessage_id)
-                    continue
-                context.bot.edit_message_text(chat_id=chat_id, message_id=LastMessage_id, text=response)
+            #     if LastMessage_id == '':
+            #         message = context.bot.send_message(
+            #             chat_id=chat_id,
+            #             text=response,
+            #         )
+            #         LastMessage_id = message.message_id
+            #         print("LastMessage_id", LastMessage_id)
+            #         continue
+            #     context.bot.edit_message_text(chat_id=chat_id, message_id=LastMessage_id, text=response)
             except:
                 # print("response", data)
                 if "reloading the conversation" in data:
@@ -76,6 +76,12 @@ def process_message(update, context):
                     text="未知错误：" + str(data),
                 )
                 return
+        context.bot.send_message(
+            chat_id=chat_id,
+            text=response,
+            parse_mode=ParseMode.MARKDOWN,
+            reply_to_message_id=update.message.message_id,
+        )
         print("getresult", response)
     except Exception as e:
         print("response_msg", response)
