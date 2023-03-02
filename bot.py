@@ -79,7 +79,6 @@ def process_message(update, context):
         context.bot.send_message(
             chat_id=chat_id,
             text=response,
-            parse_mode=ParseMode.MARKDOWN,
             reply_to_message_id=update.message.message_id,
         )
         print("getresult", response)
