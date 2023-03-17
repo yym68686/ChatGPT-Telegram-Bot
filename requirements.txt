@@ -12,4 +12,3 @@ revChatGPT
 flask
 pytz
 waitress
-# Flask-APScheduler

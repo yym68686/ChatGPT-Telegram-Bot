@@ -2,12 +2,12 @@ import os
 import sys
 import time
 import logging, datetime, pytz
-from revChatGPT.V1 import Chatbot
+from revChatGPT.V3 import Chatbot
 from telegram import BotCommand, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, Update, Bot
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, filters
-from config import MODE, NICK, config
+from config import MODE, NICK, API
 
-chatbot = Chatbot(config)
+chatbot = Chatbot(api_key=f"{API}")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()

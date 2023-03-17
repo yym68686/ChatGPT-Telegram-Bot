@@ -11,9 +11,7 @@ env:
   WEB_HOOK: ${{ secrets.WEB_HOOK }}
   BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
   NICK: ${{ secrets.NICK }}
-  EMAIL: ${{ secrets.EMAIL }}
-  PASSWORD: ${{ secrets.PASSWORD }}
-  # session_token: ${{ secrets.SESSION_TOKEN }}
+  API: ${{ secrets.API }}
 jobs:
   deploy:
     name: Deploy app
