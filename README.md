@@ -1,5 +1,7 @@
 # ChatGPT Telegram Bot
 
+⚠️此方式容易被封号，已停止维护。
+
 ## fly.io 远程部署
 
 官方文档：https://fly.io/docs/
