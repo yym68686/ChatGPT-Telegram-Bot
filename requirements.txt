@@ -8,7 +8,7 @@ soupsieve==2.3.2.post1
 tls-client==0.1.5
 urllib3==1.26.13
 python-telegram-bot==13.15
-revChatGPT==4.0.6.1
+revChatGPT
 flask
 pytz
 waitress
