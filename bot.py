@@ -50,7 +50,7 @@ def process_message(update, context):
     try:
         for data in chatbot.ask(chat_content):
             try:
-                response = data["message"]
+                response += data
             #     if LastMessage_id == '':
             #         message = context.bot.send_message(
             #             chat_id=chat_id,
