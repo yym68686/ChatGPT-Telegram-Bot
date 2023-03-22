@@ -34,13 +34,13 @@ def reset(update, context):
 
 def balance(update, context):
     openai.api_key = f"{API}"
-    balance = openai.Account.list()
+    balance = openai.api_resources.Balance.retrieve()
     context.bot.send_message(
         chat_id= update.effective_chat.id,
-        text=balance['data'][0]['balance'],
+        text=str(balance.remaining),
         reply_to_message_id=update.message.message_id,
     )
-    print("balance:", balance['data'][0]['balance'])
+    print("balance:", balance.remaining)
 
 def process_message(update, context):
     print(update.effective_user.username, update.effective_user.id, update.message.text)
