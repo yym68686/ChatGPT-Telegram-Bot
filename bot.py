@@ -32,16 +32,6 @@ def start(update, context): # 当用户输入/start时，返回文本
 def reset(update, context):
     chatbot.reset_chat()
 
-def balance(update, context):
-    openai.api_key = f"{API}"
-    balance = openai.Organization.retrieve().get("balance")
-    context.bot.send_message(
-        chat_id= update.effective_chat.id,
-        text=str(balance.remaining),
-        reply_to_message_id=update.message.message_id,
-    )
-    print("balance:", balance.remaining)
-
 def process_message(update, context):
     print(update.effective_user.username, update.effective_user.id, update.message.text)
     if NICK is None:
@@ -90,14 +80,12 @@ def setup(token):
     # set commands
     updater.bot.set_my_commands([
         BotCommand('start', 'Start the bot'),
-        BotCommand('balance', 'Query openai api balance'),
         BotCommand('reset', 'Reset the chat'),
     ])
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("reset", reset))
-    dispatcher.add_handler(CommandHandler("balance", balance))
     dispatcher.add_handler(MessageHandler(Filters.text, process_message))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     dispatcher.add_error_handler(error)
