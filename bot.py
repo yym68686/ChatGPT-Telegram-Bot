@@ -34,7 +34,7 @@ def reset(update, context):
 
 def balance(update, context):
     openai.api_key = f"{API}"
-    balance = openai.Balance.retrieve()
+    balance = openai.Organization.retrieve().get("balance")
     context.bot.send_message(
         chat_id= update.effective_chat.id,
         text=str(balance.remaining),
