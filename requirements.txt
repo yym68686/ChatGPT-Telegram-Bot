@@ -13,4 +13,3 @@ EdgeGPT
 flask
 pytz
 waitress
-openai
