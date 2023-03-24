@@ -115,4 +115,6 @@ services:
 
 https://github.com/acheong08/ChatGPT
 
+[acheong08/EdgeGPT: Reverse engineered API of Microsoft&#39;s Bing Chat AI (github.com)](https://github.com/acheong08/EdgeGPT)
+
 https://github.com/franalgaba/chatgpt-telegram-bot-serverless
