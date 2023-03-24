@@ -7,7 +7,7 @@
 导入 Github 仓库后，设置运行命令
 
 ```bash
-pip install -r requirements.txt && python -m pip install --upgrade revChatGPT && python3 webhook.py
+pip install -r requirements.txt && python -m pip install --upgrade revChatGPT EdgeGPT && python3 webhook.py
 ```
 
 在左边栏 Tools 里面选择 Secrets，添加机器人需要的环境变量，一共四个：
@@ -15,6 +15,7 @@ pip install -r requirements.txt && python -m pip install --upgrade revChatGPT &&
 - BOT_TOKEN: 你需要在 [BotFather](https://t.me/BotFather) 创建一个 bot 以获取 BOT_TOKEN
 - WEB_HOOK: 在 Replit 会自动分配一个域名给你，填入 `https://appname.username.repl.co`
 - API: openai 的 api key.
+- COOKIES: bing.com 的 cookies。可以用cookies editor 导出。
 - NICK: 可选，默认为空，NICK 是机器人的名字。当用户输入消息以 NICK 开头，机器人才会回答，否则机器人会回答任何消息。尤其在群聊里，没有 NICK，机器人会对所有消息进行回复。
 
 点击屏幕上方的 run，即可运行机器人。记得打开 Always On。

@@ -1,12 +1,11 @@
 import logging
+import asyncio
 from revChatGPT.V3 import Chatbot
 from telegram import BotCommand, ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from config import MODE, NICK, API, COOKIES
-from EdgeGPT import Chatbot as BingAI, ConversationStyle
+from config import MODE, NICK, API
+from bing import getBing
 
-
-Bingbot = BingAI(cookies=COOKIES)
 ChatGPTbot = Chatbot(api_key=f"{API}")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -36,12 +35,13 @@ def reset(update, context):
 
 def bing(update, context):
     chat_content = context.args[0] if NICK is None else context.args[0][botNicKLength:].strip() if context.args[0][:botNicKLength].lower() == botNick else None
-    # creative balanced precise
-    message = Bingbot.ask(prompt=chat_content, conversation_style=ConversationStyle.balanced)
+    print("Bing", update.effective_user.username, update.effective_user.id, update.message.text)
+    message = asyncio.run(getBing(chat_content))
     context.bot.send_message(
         chat_id=update.effective_user.id,
         text=message,
         parse_mode=ParseMode.MARKDOWN,
+        reply_to_message_id=update.message.message_id,
     )
 
 def process_message(update, context):
@@ -93,8 +93,8 @@ def setup(token):
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("reset", reset))
+    dispatcher.add_handler(CommandHandler("bing", bing))
     dispatcher.add_handler(MessageHandler(Filters.text, process_message))
-    dispatcher.add_handler(MessageHandler("bing", bing))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     dispatcher.add_error_handler(error)
 
