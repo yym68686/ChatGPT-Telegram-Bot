@@ -9,6 +9,7 @@ async def getBing(message):
     try:
         # creative balanced precise
         result = await bot.ask(prompt=message, conversation_style=ConversationStyle.creative)
+        await asyncio.sleep(0.1)
         numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
         maxNumMessages = result["item"]["throttling"]["maxNumUserMessagesInConversation"]
         print(numMessages, "/", maxNumMessages, end="")
