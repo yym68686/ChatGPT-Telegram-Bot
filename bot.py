@@ -1,11 +1,13 @@
-import openai
 import logging
 from revChatGPT.V3 import Chatbot
 from telegram import BotCommand, ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from config import MODE, NICK, API
+from config import MODE, NICK, API, COOKIES
+from EdgeGPT import Chatbot as BingAI, ConversationStyle
 
-chatbot = Chatbot(api_key=f"{API}")
+
+Bingbot = BingAI(cookies=COOKIES)
+ChatGPTbot = Chatbot(api_key=f"{API}")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
@@ -30,20 +32,25 @@ def start(update, context): # 当用户输入/start时，返回文本
     update.message.reply_text(message, parse_mode='MarkdownV2')
 
 def reset(update, context):
-    chatbot.reset_chat()
+    ChatGPTbot.reset_chat()
+
+def bing(update, context):
+    chat_content = context.args[0] if NICK is None else context.args[0][botNicKLength:].strip() if context.args[0][:botNicKLength].lower() == botNick else None
+    # creative balanced precise
+    message = Bingbot.ask(prompt=chat_content, conversation_style=ConversationStyle.balanced)
+    context.bot.send_message(
+        chat_id=update.effective_user.id,
+        text=message,
+        parse_mode=ParseMode.MARKDOWN,
+    )
 
 def process_message(update, context):
     print(update.effective_user.username, update.effective_user.id, update.message.text)
-    if NICK is None:
-        chat_content = update.message.text
-    else:
-        if update.message.text[:botNicKLength].lower() != botNick: return
-        chat_content = update.message.text[botNicKLength:].strip()
-
+    chat_content = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
     chat_id = update.effective_chat.id
     response = ''
     try:
-        for data in chatbot.ask(chat_content):
+        for data in ChatGPTbot.ask(chat_content):
             response += data
         context.bot.send_message(
             chat_id=chat_id,
@@ -87,6 +94,7 @@ def setup(token):
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("reset", reset))
     dispatcher.add_handler(MessageHandler(Filters.text, process_message))
+    dispatcher.add_handler(MessageHandler("bing", bing))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     dispatcher.add_error_handler(error)
 
