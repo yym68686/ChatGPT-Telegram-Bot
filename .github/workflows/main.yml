@@ -12,6 +12,7 @@ env:
   BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
   NICK: ${{ secrets.NICK }}
   API: ${{ secrets.API }}
+  COOKIES: ${{ secrets.COOKIES }}
 jobs:
   deploy:
     name: Deploy app

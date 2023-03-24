@@ -39,6 +39,7 @@ flyctl launch --image yym68686/chatgpt:1.0
 flyctl secrets set WEB_HOOK=https://flyio-app-name.fly.dev/
 flyctl secrets set BOT_TOKEN=bottoken
 flyctl secrets set API=
+flyctl secrets set COOKIES=
 # 可选
 flyctl secrets set NICK=javis
 ```
@@ -85,6 +86,7 @@ docker run -p 80:8080 -dit \
     -e BOT_TOKEN="telegram bot token" \
     -e WEB_HOOK="https://your_host.com/" \
     -e API="" \
+    -e COOKIES= \
     chatgpt:1.0
 ```
 
@@ -101,6 +103,7 @@ services:
       - BOT_TOKEN=
       - WEB_HOOK=
       - API=
+      - COOKIES=
     ports:
       - 80:8080
 ```
