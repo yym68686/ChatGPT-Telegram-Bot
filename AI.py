@@ -2,13 +2,19 @@ import asyncio
 
 import json
 from config import COOKIES
+from telegram import ChatAction
+async def typing(update, context):
+    context.bot.send_chat_action(chat_id=update.effective_user.id, action=ChatAction.TYPING)
 from EdgeGPT import Chatbot as BingAI, ConversationStyle
 Bingbot = BingAI(cookies=json.loads(COOKIES))
 async def getBing(message, update, context):
+    result = ''
     try:
+        await typing(update, context)
         # creative balanced precise
         result = await Bingbot.ask(prompt=message, conversation_style=ConversationStyle.creative)
         await asyncio.sleep(0.1)
+        await typing(update, context)
         numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
         maxNumMessages = result["item"]["throttling"]["maxNumUserMessagesInConversation"]
         print(numMessages, "/", maxNumMessages, end="")
@@ -21,6 +27,7 @@ async def getBing(message, update, context):
         print("Exception str", str(e))
         result = "Bing 出错啦。"
     print(" BingAI", result)
+    await typing(update, context)
     context.bot.send_message(
         chat_id=update.effective_user.id,
         text="Bing:\n" + result,
