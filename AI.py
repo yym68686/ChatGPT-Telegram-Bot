@@ -4,7 +4,7 @@ import json
 from config import COOKIES
 from EdgeGPT import Chatbot as BingAI, ConversationStyle
 Bingbot = BingAI(cookies=json.loads(COOKIES))
-async def getBing(message):
+async def getBing(message, update, context):
     try:
         # creative balanced precise
         result = await Bingbot.ask(prompt=message, conversation_style=ConversationStyle.creative)
@@ -21,13 +21,18 @@ async def getBing(message):
         print("Exception str", str(e))
         result = "Bing 出错啦。"
     print(" BingAI", result)
-    return result
+    context.bot.send_message(
+        chat_id=update.effective_user.id,
+        text="Bing:\n" + result,
+        # parse_mode=ParseMode.MARKDOWN,
+        reply_to_message_id=update.message.message_id,
+    )
 
 
 from config import API
 from revChatGPT.V3 import Chatbot as GPT
 ChatGPTbot = GPT(api_key=f"{API}")
-def getChatGPT(message):
+def getChatGPT(message, update, context):
     result = ''
     try:
         for data in ChatGPTbot.ask(message):
@@ -39,7 +44,11 @@ def getChatGPT(message):
         print("Exception str", str(e))
         result = "ChatGPT 出错啦。"
     print("ChatGPT", result)
-    return result
+    context.bot.send_message(
+        chat_id=update.effective_user.id,
+        text="ChatGPT3.5:\n" + result,
+        reply_to_message_id=update.message.message_id,
+    )
 
 
 if __name__ == "__main__":

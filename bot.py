@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import threading
 from telegram import BotCommand
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from config import MODE, NICK
@@ -30,19 +31,9 @@ def start(update, context): # 当用户输入/start时，返回文本
 def getResult(update, context):
     print(update.effective_user.username, update.effective_user.id, update.message.text)
     chat_content = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-    message = getChatGPT(chat_content)
-    context.bot.send_message(
-        chat_id=update.effective_user.id,
-        text="ChatGPT3.5:\n" + message,
-        reply_to_message_id=update.message.message_id,
-    )
-    message = asyncio.run(getBing(chat_content))
-    context.bot.send_message(
-        chat_id=update.effective_user.id,
-        text="Bing:\n" + message,
-        # parse_mode=ParseMode.MARKDOWN,
-        reply_to_message_id=update.message.message_id,
-    )
+    _thread = threading.Thread(target=asyncio.run, args=(getBing(chat_content, update, context),))
+    _thread.start()
+    getChatGPT(chat_content, update, context)
 
 def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
