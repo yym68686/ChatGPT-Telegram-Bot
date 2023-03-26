@@ -1,12 +1,9 @@
 import logging
 import asyncio
-from revChatGPT.V3 import Chatbot
-from telegram import BotCommand, ParseMode
+from telegram import BotCommand
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from config import MODE, NICK, API
-from bing import getBing
-
-ChatGPTbot = Chatbot(api_key=f"{API}")
+from config import MODE, NICK
+from AI import getBing, getChatGPT
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
@@ -30,43 +27,22 @@ def start(update, context): # 当用户输入/start时，返回文本
     )
     update.message.reply_text(message, parse_mode='MarkdownV2')
 
-def reset(update, context):
-    ChatGPTbot.reset_chat()
-
-def bing(update, context):
-    chat_content = context.args[0] if NICK is None else context.args[0][botNicKLength:].strip() if context.args[0][:botNicKLength].lower() == botNick else None
-    print("Bing", update.effective_user.username, update.effective_user.id, update.message.text)
+def getResult(update, context):
+    print(update.effective_user.username, update.effective_user.id, update.message.text)
+    chat_content = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+    message = getChatGPT(chat_content)
+    context.bot.send_message(
+        chat_id=update.effective_user.id,
+        text="ChatGPT3.5:\n" + message,
+        reply_to_message_id=update.message.message_id,
+    )
     message = asyncio.run(getBing(chat_content))
     context.bot.send_message(
         chat_id=update.effective_user.id,
-        text=message,
-        parse_mode=ParseMode.MARKDOWN,
+        text="Bing:\n" + message,
+        # parse_mode=ParseMode.MARKDOWN,
         reply_to_message_id=update.message.message_id,
     )
-
-def process_message(update, context):
-    print(update.effective_user.username, update.effective_user.id, update.message.text)
-    chat_content = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-    chat_id = update.effective_chat.id
-    response = ''
-    try:
-        for data in ChatGPTbot.ask(chat_content):
-            response += data
-        context.bot.send_message(
-            chat_id=chat_id,
-            text=response,
-            reply_to_message_id=update.message.message_id,
-        )
-        print("getresult", response)
-    except Exception as e:
-        print("response_msg", response)
-        print("Exception", e)
-        print("Exception str", str(e))
-        context.bot.send_message(
-            chat_id=chat_id,
-            text="出错啦 :(",
-            parse_mode=ParseMode.MARKDOWN,
-        )
 
 def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
@@ -87,14 +63,11 @@ def setup(token):
     # set commands
     updater.bot.set_my_commands([
         BotCommand('start', 'Start the bot'),
-        BotCommand('reset', 'Reset the chat'),
     ])
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("reset", reset))
-    dispatcher.add_handler(CommandHandler("bing", bing))
-    dispatcher.add_handler(MessageHandler(Filters.text, process_message))
+    dispatcher.add_handler(MessageHandler(Filters.text, getResult))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     dispatcher.add_error_handler(error)
 
