@@ -44,7 +44,6 @@ def getChatGPT(message, update, context):
     try:
         for data in ChatGPTbot.ask(message):
             result += data
-        print("getresult", result)
     except Exception as e:
         print("response_msg", result)
         print("Exception", e)
