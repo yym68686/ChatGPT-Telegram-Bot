@@ -1,4 +1,6 @@
 import asyncio
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 
 import re
 import json
@@ -61,10 +63,9 @@ def getChatGPT(message, update, context):
         reply_to_message_id=update.message.message_id,
     )
 
-
 def reset_chat(update, context):
     ChatGPTbot.reset()
-    asyncio.run(resetBing())
+    loop.run_until_complete(resetBing())
     context.bot.send_message(
         chat_id=update.effective_user.id,
         text="重置成功！",
