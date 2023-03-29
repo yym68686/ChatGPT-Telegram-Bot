@@ -9,7 +9,7 @@ from EdgeGPT import Chatbot as BingAI, ConversationStyle
 Bingbot = BingAI(cookies=json.loads(COOKIES))
 async def getBing(message, update, context):
     result = ''
-    prompt = "Use English and Chinese to search respectively, and finally answer my questions with Chinese. Please do a recursive search of at least 4 searches before you answer."
+    prompt = "If you are asked to translate, you don't need to search. Otherwise use English and Chinese to search respectively, and finally answer my questions with Chinese. Please do a recursive search of at least 4 searches before you answer."
     try:
         await typing(update, context)
         # creative balanced precise
