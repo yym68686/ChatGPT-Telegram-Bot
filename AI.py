@@ -21,8 +21,8 @@ async def getBing(message, update, context):
         maxNumMessages = result["item"]["throttling"]["maxNumUserMessagesInConversation"]
         print(numMessages, "/", maxNumMessages, end="")
         result = result["item"]["messages"][1]["text"]
-        if numMessages == maxNumMessages - 1:
-            Bingbot.reset()
+        if numMessages == maxNumMessages:
+            await Bingbot.reset()
     except Exception as e:
         print('\033[31m')
         print("response_msg", result)
