@@ -38,6 +38,8 @@ async def getBing(message, update, context):
         reply_to_message_id=update.message.message_id,
     )
 
+async def resetBing():
+    await Bingbot.reset()
 
 from config import API
 from revChatGPT.V3 import Chatbot as GPT
@@ -59,6 +61,14 @@ def getChatGPT(message, update, context):
         reply_to_message_id=update.message.message_id,
     )
 
+
+def reset_chat(update, context):
+    ChatGPTbot.reset()
+    asyncio.run(resetBing())
+    context.bot.send_message(
+        chat_id=update.effective_user.id,
+        text="重置成功！",
+    )
 
 if __name__ == "__main__":
     pass

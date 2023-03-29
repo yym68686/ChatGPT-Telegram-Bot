@@ -8,7 +8,7 @@ asyncio.set_event_loop(loop)
 from telegram import BotCommand
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from config import MODE, NICK
-from AI import getBing, getChatGPT
+from AI import getBing, getChatGPT, reset_chat
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
@@ -58,10 +58,12 @@ def setup(token):
     # set commands
     updater.bot.set_my_commands([
         BotCommand('start', 'Start the bot'),
+        BotCommand('reset', 'Reset the bot'),
     ])
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("reset", reset_chat))
     dispatcher.add_handler(MessageHandler(Filters.text, getResult))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     dispatcher.add_error_handler(error)
