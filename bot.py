@@ -1,6 +1,10 @@
 import logging
+
 import asyncio
 import threading
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
 from telegram import BotCommand
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from config import MODE, NICK
@@ -31,7 +35,7 @@ def start(update, context): # 当用户输入/start时，返回文本
 def getResult(update, context):
     print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
     chat_content = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-    _thread = threading.Thread(target=asyncio.run, args=(getBing(chat_content, update, context),))
+    _thread = threading.Thread(target=loop.run_until_complete, args=(getBing(chat_content, update, context),))
     _thread.start()
     getChatGPT(chat_content, update, context)
 
