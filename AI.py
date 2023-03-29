@@ -9,10 +9,11 @@ from EdgeGPT import Chatbot as BingAI, ConversationStyle
 Bingbot = BingAI(cookies=json.loads(COOKIES))
 async def getBing(message, update, context):
     result = ''
+    prompt = "Use English and Chinese to search respectively, and finally answer my questions with Chinese. Please do a recursive search of at least 4 searches before you answer."
     try:
         await typing(update, context)
         # creative balanced precise
-        result = await Bingbot.ask(prompt=message, conversation_style=ConversationStyle.creative)
+        result = await Bingbot.ask(prompt=prompt + message, conversation_style=ConversationStyle.creative)
         await asyncio.sleep(0.1)
         await typing(update, context)
         numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
