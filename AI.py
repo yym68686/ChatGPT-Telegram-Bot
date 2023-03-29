@@ -35,7 +35,7 @@ async def getBing(message, update, context):
     await typing(update, context)
     context.bot.send_message(
         chat_id=update.effective_user.id,
-        text="▎Bing\n\n" + result,
+        text="\n▎Bing\n\n" + result,
         # parse_mode=ParseMode.MARKDOWN,
         reply_to_message_id=update.message.message_id,
     )
@@ -59,7 +59,7 @@ def getChatGPT(message, update, context):
     print("ChatGPT", result)
     context.bot.send_message(
         chat_id=update.effective_user.id,
-        text="▎ChatGPT3.5\n\n" + result,
+        text="\n▎ChatGPT3.5\n\n" + result,
         reply_to_message_id=update.message.message_id,
     )
 
