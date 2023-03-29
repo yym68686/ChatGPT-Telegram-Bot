@@ -27,6 +27,7 @@ async def getBing(message, update, context):
         print("Exception", e)
         print("Exception str", str(e))
         result = "Bing 出错啦。"
+    result = re.sub(re.sub(r"\[\^\d+\^\]"), '', result)
     print(" BingAI", result)
     await typing(update, context)
     context.bot.send_message(
