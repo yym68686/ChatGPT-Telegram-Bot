@@ -29,7 +29,7 @@ def start(update, context): # 当用户输入/start时，返回文本
     update.message.reply_text(message, parse_mode='MarkdownV2')
 
 def getResult(update, context):
-    print(update.effective_user.username, update.effective_user.id, update.message.text)
+    print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
     chat_content = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
     _thread = threading.Thread(target=asyncio.run, args=(getBing(chat_content, update, context),))
     _thread.start()
