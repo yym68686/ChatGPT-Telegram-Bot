@@ -1,21 +1,12 @@
 import logging
-
-import asyncio
-import threading
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-
+from AI import AIBot
+from config import MODE
 from telegram import BotCommand
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from config import MODE, NICK
-from AI import getBing, getChatGPT, reset_chat
+ai_bot = AIBot()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
-
-botNick = NICK.lower() if NICK else None
-botNicKLength = len(botNick) if botNick else 0
-print("nick:", botNick)
 
 # In all other places characters
 # _ * [ ] ( ) ~ ` > # + - = | { } . ! 
@@ -32,20 +23,9 @@ def start(update, context): # 当用户输入/start时，返回文本
     )
     update.message.reply_text(message, parse_mode='MarkdownV2')
 
-def getResult(update, context):
-    print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
-    chat_content = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-    _thread = threading.Thread(target=loop.run_until_complete, args=(getBing(chat_content, update, context),))
-    _thread.start()
-    getChatGPT(chat_content, update, context)
-
 def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
-    if ("can't" in str(context.error)):
-        message = (
-            f"出错啦！请重试。\n\n"
-        )
-        context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode='MarkdownV2')
+    context.bot.send_message(chat_id=update.effective_chat.id, text="出错啦！请重试。\n\n", parse_mode='MarkdownV2')
 
 def unknown(update, context): # 当用户输入未知命令时，返回文本
     context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
@@ -55,7 +35,6 @@ def setup(token):
         'proxy_url': 'http://127.0.0.1:6152' if MODE == "dev" else None
     })
 
-    # set commands
     updater.bot.set_my_commands([
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
@@ -63,8 +42,8 @@ def setup(token):
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("reset", reset_chat))
-    dispatcher.add_handler(MessageHandler(Filters.text, getResult))
+    dispatcher.add_handler(CommandHandler("reset", ai_bot.reset_chat))
+    dispatcher.add_handler(MessageHandler(Filters.text, ai_bot.getResult))
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     dispatcher.add_error_handler(error)
 
