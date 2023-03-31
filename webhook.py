@@ -12,12 +12,11 @@ updater, dispatcher = setup(BOT_TOKEN)
 
 @app.route('/', methods=['GET'])
 def hello():
-    return 'hello world!'
+    return 'Bot has connected!'
 
 @app.route(rf'/{BOT_TOKEN}'.format(), methods=['POST'])
 def respond():
     # retrieve the message in JSON and then transform it to Telegram object
-    print("Telegram Bot API send a POST to flask, and now flask send to bot.py.")
     update = telegram.Update.de_json(request.get_json(force=True), updater.bot)
     thread = Thread(target=dispatcher.process_update, args=(update,))
     thread.start()

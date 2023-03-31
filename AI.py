@@ -56,7 +56,7 @@ class AIBot:
             )
             self.mess = "▎Bing\n\n" + result + "\n\n"
             self.LastMessage_id = message.message_id
-            print("LastMessage_id", self.LastMessage_id)
+            # print("LastMessage_id", self.LastMessage_id)
         else:
             context.bot.edit_message_text(chat_id=update.effective_user.id, message_id=self.LastMessage_id, text=self.mess + "▎Bing\n\n" + result + "\n\n")
             self.LastMessage_id = ''
@@ -85,7 +85,7 @@ class AIBot:
             )
             self.LastMessage_id = message.message_id
             self.mess = "▎ChatGPT3.5\n\n" + result + "\n\n"
-            print("LastMessage_id", self.LastMessage_id)
+            # print("LastMessage_id", self.LastMessage_id)
         else:
             context.bot.edit_message_text(chat_id=update.effective_user.id, message_id=self.LastMessage_id, text=self.mess + "▎ChatGPT3.5\n\n" + result + "\n\n")
             self.LastMessage_id = ''
