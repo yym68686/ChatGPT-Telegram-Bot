@@ -13,3 +13,4 @@ EdgeGPT
 flask
 pytz
 waitress
+poetry==1.3.1

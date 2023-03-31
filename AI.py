@@ -28,7 +28,7 @@ class AIBot:
     async def getBing(self, message, update, context):
         await self.typing(update, context)
         result = ''
-        prompt = "Please provide a detailed answer as much as possible. If you are asked to translate, you don't need to search. Otherwise use English and Chinese to search respectively, and finally answer my questions with Chinese. Please do a recursive search of at least 4 searches before you answer. "
+        prompt = ""
         try:
             # creative balanced precise
             result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=ConversationStyle.balanced)
