@@ -10,6 +10,8 @@
 
 ✅ 全平台，随时随地，只要有 telegram 就可以打破知识壁垒
 
+✅ 支持 docker，fly.io 部署
+
 ## Replit 远程部署
 
 [![Run on Repl.it](https://replit.com/badge/github/yym68686/ChatGPT-Telegram-Bot)](https://replit.com/new/github/yym68686/ChatGPT-Telegram-Bot)
