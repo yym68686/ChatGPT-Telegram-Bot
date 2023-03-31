@@ -104,3 +104,5 @@ class AIBot:
             chat_id=update.effective_user.id,
             text="重置成功！",
         )
+        self.LastMessage_id = ''
+        self.mess = ''

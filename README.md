@@ -1,5 +1,15 @@
 # ChatGPT Telegram Bot
 
+## 特性
+
+✅ 同时集成 ChatGPT 和 New Bing
+
+✅ 多线程回答问题，可以对比 ChatGPT 和 New Bing 的消息
+
+✅ 增加 **Replit** 部署，真正的零成本，傻瓜式部署
+
+✅ 全平台，随时随地，只要有 telegram 就可以打破知识壁垒
+
 ## Replit 远程部署
 
 [![Run on Repl.it](https://replit.com/badge/github/yym68686/ChatGPT-Telegram-Bot)](https://replit.com/new/github/yym68686/ChatGPT-Telegram-Bot)
