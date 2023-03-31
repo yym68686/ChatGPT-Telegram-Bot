@@ -2,8 +2,7 @@ import re
 import json
 import asyncio
 import threading
-from config import API, NICK
-from config import COOKIES
+from config import API, NICK, COOKIES
 from telegram import ChatAction
 from revChatGPT.V3 import Chatbot as GPT
 from EdgeGPT import Chatbot as BingAI, ConversationStyle
@@ -14,9 +13,11 @@ class AIBot:
         asyncio.set_event_loop(self.loop)
         self.LastMessage_id = ''
         self.mess = ''
-        
-        self.Bingbot = BingAI(cookies=json.loads(COOKIES))
-        self.ChatGPTbot = GPT(api_key=f"{API}")
+
+        if COOKIES:
+            self.Bingbot = BingAI(cookies=json.loads(COOKIES))
+        if API:
+            self.ChatGPTbot = GPT(api_key=f"{API}")
 
         self.botNick = NICK.lower() if NICK else None
         self.botNicKLength = len(self.botNick) if self.botNick else 0
@@ -93,13 +94,17 @@ class AIBot:
     def getResult(self, update, context):
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         chat_content = update.message.text if NICK is None else update.message.text[self.botNicKLength:].strip() if update.message.text[:self.botNicKLength].lower() == self.botNick else None
-        _thread = threading.Thread(target=self.loop.run_until_complete, args=(self.getBing(chat_content, update, context),))
-        _thread.start()
-        self.getChatGPT(chat_content, update, context)
+        if COOKIES:
+            _thread = threading.Thread(target=self.loop.run_until_complete, args=(self.getBing(chat_content, update, context),))
+            _thread.start()
+        if API:
+            self.getChatGPT(chat_content, update, context)
     
     def reset_chat(self, update, context):
-        self.ChatGPTbot.reset()
-        self.loop.run_until_complete(self.resetBing())
+        if API:
+            self.ChatGPTbot.reset()
+        if COOKIES:
+            self.loop.run_until_complete(self.resetBing())
         context.bot.send_message(
             chat_id=update.effective_user.id,
             text="重置成功！",
