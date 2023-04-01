@@ -55,7 +55,8 @@ class AIBot:
                 reply_to_message_id=update.message.message_id,
             )
             self.mess = "▎Bing\n\n" + result + "\n\n"
-            self.LastMessage_id = message.message_id
+            if COOKIES and API:
+                self.LastMessage_id = message.message_id
             # print("LastMessage_id", self.LastMessage_id)
         else:
             context.bot.edit_message_text(chat_id=update.effective_user.id, message_id=self.LastMessage_id, text=self.mess + "▎Bing\n\n" + result + "\n\n")
@@ -83,7 +84,8 @@ class AIBot:
                 text="▎ChatGPT3.5\n\n" + result + "\n\n",
                 reply_to_message_id=update.message.message_id,
             )
-            self.LastMessage_id = message.message_id
+            if COOKIES and API:
+                self.LastMessage_id = message.message_id
             self.mess = "▎ChatGPT3.5\n\n" + result + "\n\n"
             # print("LastMessage_id", self.LastMessage_id)
         else:
