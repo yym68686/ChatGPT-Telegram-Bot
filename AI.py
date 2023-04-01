@@ -94,10 +94,10 @@ class AIBot:
     def getResult(self, update, context):
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         chat_content = update.message.text if NICK is None else update.message.text[self.botNicKLength:].strip() if update.message.text[:self.botNicKLength].lower() == self.botNick else None
-        if COOKIES:
+        if COOKIES and chat_content:
             _thread = threading.Thread(target=self.loop.run_until_complete, args=(self.getBing(chat_content, update, context),))
             _thread.start()
-        if API:
+        if API and chat_content:
             self.getChatGPT(chat_content, update, context)
     
     def reset_chat(self, update, context):

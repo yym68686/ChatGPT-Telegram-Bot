@@ -6,6 +6,8 @@
 
 ✅ 多线程回答问题，可以对比 ChatGPT 和 New Bing 的消息
 
+✅ 自动根据是否有 API 和 COOKIES 开关 ChatGPT 和 New Bing
+
 ✅ 增加 **Replit** 部署，真正的零成本，傻瓜式部署
 
 ✅ 全平台，随时随地，只要有 telegram 就可以打破知识壁垒
