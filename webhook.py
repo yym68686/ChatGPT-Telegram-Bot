@@ -5,7 +5,8 @@ from waitress import serve
 from threading import Thread
 from flask import Flask, request, jsonify
 from config import BOT_TOKEN, WEB_HOOK, PORT
-
+from flask import request
+import datetime
 
 app = Flask(__name__)
 updater, dispatcher = setup(BOT_TOKEN)
@@ -13,6 +14,12 @@ updater, dispatcher = setup(BOT_TOKEN)
 @app.route('/', methods=['GET'])
 def hello():
     return 'Bot has connected!'
+@app.before_request
+def log_request_info():
+    now = datetime.datetime.now()
+    ip_address = request.remote_addr
+    user_agent = request.headers.get('User-Agent')
+    print(f'访问ip: {ip_address}, 时间:{now}\n设备： {user_agent}')
 
 @app.route(rf'/{BOT_TOKEN}'.format(), methods=['POST'])
 def respond():
