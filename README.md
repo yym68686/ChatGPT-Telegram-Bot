@@ -1,4 +1,4 @@
-# ChatGPT Telegram Bot
+# ChatGPT & New Bing Telegram Bot
 
 ## 特性
 

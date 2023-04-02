@@ -12,7 +12,7 @@ updater, dispatcher = setup(BOT_TOKEN)
 
 @app.route('/', methods=['GET'])
 def hello():
-    print("")
+    print("", end="")
     return 'Bot has connected!'
 
 @app.route(rf'/{BOT_TOKEN}'.format(), methods=['POST'])
@@ -36,4 +36,4 @@ def configure_webhook():
 
 if __name__ == '__main__':
     configure_webhook()
-    serve(app, host="0.0.0.0", port=8080)
+    serve(app, host="0.0.0.0", port=PORT)
