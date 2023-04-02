@@ -24,7 +24,7 @@ class AIBot:
         print("nick:", self.botNick)
 
     async def typing(self, update, context):
-        context.bot.send_chat_action(chat_id=update.effective_user.id, action=ChatAction.TYPING, timeout=60)
+        context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING, timeout=60)
         
     async def getBing(self, message, update, context):
         await self.typing(update, context)
@@ -108,7 +108,7 @@ class AIBot:
         if COOKIES:
             self.loop.run_until_complete(self.resetBing())
         context.bot.send_message(
-            chat_id=update.effective_user.id,
+            chat_id=update.message.chat_id,
             text="重置成功！",
         )
         self.LastMessage_id = ''
