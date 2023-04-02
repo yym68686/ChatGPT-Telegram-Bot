@@ -32,7 +32,7 @@ class AIBot:
         prompt = ""
         try:
             # creative balanced precise
-            result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=ConversationStyle.precise)
+            result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=ConversationStyle.creative)
             numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
             maxNumMessages = result["item"]["throttling"]["maxNumUserMessagesInConversation"]
             print(numMessages, "/", maxNumMessages, end="")
