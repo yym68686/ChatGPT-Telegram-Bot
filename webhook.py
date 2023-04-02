@@ -12,6 +12,7 @@ updater, dispatcher = setup(BOT_TOKEN)
 
 @app.route('/', methods=['GET'])
 def hello():
+    print("")
     return 'Bot has connected!'
 
 @app.route(rf'/{BOT_TOKEN}'.format(), methods=['POST'])
