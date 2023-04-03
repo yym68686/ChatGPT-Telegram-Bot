@@ -4,11 +4,11 @@
 
 ✅ 同时集成 ChatGPT 和 New Bing
 
-✅ 多线程回答问题，可以对比 ChatGPT 和 New Bing 的消息
+✅ 异步处理消息，多线程回答问题
 
-✅ 自动根据是否有 API 和 COOKIES 开关 ChatGPT 和 New Bing
+✅ 在同一个消息气泡里对比 ChatGPT 和 New Bing 的消息
 
-✅ 增加 **Replit** 部署，真正的零成本，傻瓜式部署
+✅ 增加 Replit 部署，真正的零成本，傻瓜式部署，支持 kuma 防睡眠
 
 ✅ 全平台，随时随地，只要有 telegram 就可以打破知识壁垒
 
