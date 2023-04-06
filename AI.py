@@ -38,7 +38,7 @@ class AIBot:
             print(numMessages, "/", maxNumMessages, end="")
             result = result["item"]["messages"][1]["text"]
             if numMessages == maxNumMessages:
-                await Bingbot.reset()
+                await self.Bingbot.reset()
         except Exception as e:
             print('\033[31m')
             print("response_msg", result)
