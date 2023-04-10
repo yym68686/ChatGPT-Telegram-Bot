@@ -50,16 +50,16 @@ class AIBot:
         if self.LastMessage_id == '':
             message = context.bot.send_message(
                 chat_id=update.message.chat_id,
-                text="▎Bing\n\n" + result,
+                text=f"▎Bing {numMessages} / {maxNumMessages} \n\n" + result,
                 # parse_mode=ParseMode.MARKDOWN,
                 reply_to_message_id=update.message.message_id,
             )
-            self.mess = "▎Bing\n\n" + result
+            self.mess = f"▎Bing {numMessages} / {maxNumMessages} \n\n" + result
             if COOKIES and API:
                 self.LastMessage_id = message.message_id
             # print("LastMessage_id", self.LastMessage_id)
         else:
-            context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=self.LastMessage_id, text=self.mess + "\n\n\n▎Bing\n\n" + result)
+            context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=self.LastMessage_id, text=self.mess + f"\n\n\n▎Bing {numMessages} / {maxNumMessages} \n\n" + result)
             self.LastMessage_id = ''
             self.mess = ''
     
@@ -69,8 +69,7 @@ class AIBot:
     def getChatGPT(self, message, update, context):
         result = ''
         try:
-            for data in self.ChatGPTbot.ask(message):
-                result += data
+            result = self.ChatGPTbot.ask(message)
         except Exception as e:
             print('\033[31m')
             print("response_msg", result)
