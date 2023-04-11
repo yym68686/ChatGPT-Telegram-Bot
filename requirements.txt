@@ -1,3 +1,8 @@
+pytz
+EdgeGPT
+waitress
+flask[async]
+revChatGPT
 idna==3.4
 bs4==0.0.1
 lxml==4.9.1
@@ -8,9 +13,4 @@ tls-client==0.1.5
 soupsieve==2.3.2.post1
 beautifulsoup4==4.11.1
 charset-normalizer==2.1.1
-python-telegram-bot==13.15
-revChatGPT
-EdgeGPT
-flask
-pytz
-waitress
+python-telegram-bot==20.2

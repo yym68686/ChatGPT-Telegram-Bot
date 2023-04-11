@@ -1,4 +1,10 @@
-# ChatGPT & New Bing Telegram Bot
+# import os
+WEB_HOOK = os.environ["WEB_HOOK"]
+BOT_TOKEN = os.environ["BOT_TOKEN"]
+PORT = int(os.environ.get('PORT', '8080'))
+NICK = os.environ.get('NICK', None)
+API = os.environ.get('API', None)
+COOKIES = os.environ.get('COOKIES', None)ChatGPT & New Bing Telegram Bot
 
 ## 特性
 
@@ -132,3 +138,5 @@ https://github.com/acheong08/ChatGPT
 [acheong08/EdgeGPT: Reverse engineered API of Microsoft&#39;s Bing Chat AI (github.com)](https://github.com/acheong08/EdgeGPT)
 
 https://github.com/franalgaba/chatgpt-telegram-bot-serverless
+
+https://github.com/gpchelkin/scdlbot/blob/d64d14f6c6d357ba818e80b8a0a9291c2146d6fe/scdlbot/__main__.py#L8
