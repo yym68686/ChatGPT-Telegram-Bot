@@ -2,8 +2,8 @@ import re
 import json
 import asyncio
 import threading
-from config import API, NICK, COOKIES
 from telegram import ChatAction
+from config import API, NICK, COOKIES
 from revChatGPT.V3 import Chatbot as GPT
 from EdgeGPT import Chatbot as BingAI, ConversationStyle
 
@@ -44,7 +44,11 @@ class AIBot:
             print("response_msg", result)
             print("error", e)
             print('\033[0m')
+            self.LastMessage_id = ''
+            numMessages = 0
+            maxNumMessages = 0
             result = "Bing 出错啦。"
+            await self.Bingbot.reset()
         result = re.sub(r"\[\^\d+\^\]", '', result)
         print(" BingAI", result)
         if self.LastMessage_id == '':
@@ -75,6 +79,7 @@ class AIBot:
             print("response_msg", result)
             print("error", e)
             print('\033[0m')
+            self.LastMessage_id = ''
             result = "ChatGPT 出错啦。"
         print("ChatGPT", result)
         if self.LastMessage_id == '':
@@ -93,6 +98,7 @@ class AIBot:
             self.mess = ''
 
     def getResult(self, update, context):
+        self.LastMessage_id = ''
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         chat_content = update.message.text if NICK is None else update.message.text[self.botNicKLength:].strip() if update.message.text[:self.botNicKLength].lower() == self.botNick else None
         if COOKIES and chat_content:
