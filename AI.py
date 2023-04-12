@@ -2,9 +2,9 @@ import re
 import json
 import threading
 from runasync import run_async
-from telegram.constants import ChatAction
 from config import API, NICK, COOKIES
 from revChatGPT.V3 import Chatbot as GPT
+from telegram.constants import ChatAction
 from EdgeGPT import Chatbot as BingAI, ConversationStyle
 
 class AIBot:
@@ -40,7 +40,7 @@ class AIBot:
             print('\033[0m')
             numMessages = 0
             maxNumMessages = 0
-            result = "Bing 出错啦。"
+            result = "实在不好意思，我现在无法对此做出回应。 要不我们换个话题？"
             await self.Bingbot.reset()
         result = re.sub(r"\[\^\d+\^\]", '', result)
         print(" BingAI", result)
@@ -70,7 +70,11 @@ class AIBot:
             print("response_msg", result)
             print("error", e)
             print('\033[0m')
-            result = "ChatGPT 出错啦。"
+            if "overloaded" in str(e):
+                result = "OpenAI 服务器过载。"
+            else:
+                result = "ChatGPT 出错啦。"
+            self.ChatGPTbot.reset()
         print("ChatGPT", result)
         if self.LastMessage_id == '':
             message = await context.bot.send_message(
@@ -101,7 +105,7 @@ class AIBot:
         if API:
             self.ChatGPTbot.reset()
         if COOKIES:
-            self.loop.run_until_complete(self.resetBing())
+            await self.resetBing()
         await context.bot.send_message(
             chat_id=update.message.chat_id,
             text="重置成功！",
