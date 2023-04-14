@@ -1,5 +1,6 @@
 import re
 import json
+from md2tgmd import escape
 import threading
 from runasync import run_async
 from config import API, NICK, COOKIES
@@ -47,14 +48,15 @@ class AIBot:
         if self.LastMessage_id == '':
             message = await context.bot.send_message(
                 chat_id=update.message.chat_id,
-                text=f"▎Bing {numMessages} / {maxNumMessages} \n\n" + result,
+                text=escape(f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + result),
+                parse_mode='MarkdownV2',
                 reply_to_message_id=update.message.message_id,
             )
-            self.mess = f"▎Bing {numMessages} / {maxNumMessages} \n\n" + result
+            self.mess = f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + result
             if COOKIES and API:
                 self.LastMessage_id = message.message_id
         else:
-            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=self.LastMessage_id, text=self.mess + f"\n\n\n▎Bing {numMessages} / {maxNumMessages} \n\n" + result)
+            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=self.LastMessage_id, text=escape(self.mess + f"\n\n\n🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + result), parse_mode='MarkdownV2')
             self.LastMessage_id = ''
             self.mess = ''
     
@@ -79,14 +81,15 @@ class AIBot:
         if self.LastMessage_id == '':
             message = await context.bot.send_message(
                 chat_id=update.message.chat_id,
-                text="▎ChatGPT3.5\n\n" + result,
+                text=escape("🤖️ ChatGPT3.5\n\n" + result),
+                parse_mode='MarkdownV2',
                 reply_to_message_id=update.message.message_id,
             )
             if COOKIES and API:
                 self.LastMessage_id = message.message_id
-            self.mess = "▎ChatGPT3.5\n\n" + result
+            self.mess = "🤖️ ChatGPT3.5\n\n" + result
         else:
-            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=self.LastMessage_id, text=self.mess + "\n\n\n▎ChatGPT3.5\n\n" + result)
+            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=self.LastMessage_id, text=escape(self.mess + "\n\n\n🤖️ ChatGPT3.5\n\n" + result), parse_mode='MarkdownV2')
             self.LastMessage_id = ''
             self.mess = ''
 

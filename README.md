@@ -6,6 +6,8 @@
 
 ✅ 异步处理消息，多线程回答问题
 
+✅ 支持消息 Markdown 渲染
+
 ✅ 在同一个消息气泡里对比 ChatGPT 和 New Bing 的消息
 
 ✅ 增加 Replit 部署，真正的零成本，傻瓜式部署，支持 kuma 防睡眠
@@ -134,3 +136,5 @@ https://github.com/acheong08/ChatGPT
 https://github.com/franalgaba/chatgpt-telegram-bot-serverless
 
 https://github.com/gpchelkin/scdlbot/blob/d64d14f6c6d357ba818e80b8a0a9291c2146d6fe/scdlbot/__main__.py#L8
+
+消息的 markdown 渲染用的是我的另一个项目：https://github.com/yym68686/md2tgmd

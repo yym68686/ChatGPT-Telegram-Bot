@@ -1,4 +1,5 @@
 import logging
+from md2tgmd import escape
 from runasync import run_async
 from telegram import BotCommand
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters
@@ -14,12 +15,12 @@ logger = logging.getLogger()
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
     message = (
-        "我是人见人爱的 ChatGPT\~\n\n"
-        "欢迎访问 https://github\.com/yym68686/ChatGPT\-Telegram\-Bot 查看源码\n\n"
+        "我是人见人爱的 ChatGPT~\n\n"
+        "欢迎访问 https://github.com/yym68686/ChatGPT-Telegram-Bot 查看源码\n\n"
         "有 bug 可以联系 @yym68686"
     )
     await update.message.reply_html(rf"Hi {user.mention_html()} ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",)
-    await update.message.reply_text(message, parse_mode='MarkdownV2')
+    await update.message.reply_text(escape(message), parse_mode='MarkdownV2')
 
 async def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
