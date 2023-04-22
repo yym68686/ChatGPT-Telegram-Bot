@@ -35,10 +35,12 @@ def setup(token):
     run_async(application.bot.set_my_commands([
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
+        BotCommand('en2zh', 'translate English to Chinese'),
     ]))
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", ai_bot.reset_chat))
+    application.add_handler(CommandHandler("en2zh", ai_bot.en2zhtranslator))
     application.add_handler(MessageHandler(filters.TEXT, ai_bot.getResult))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
