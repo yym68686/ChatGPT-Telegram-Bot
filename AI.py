@@ -14,7 +14,7 @@ class AIBot:
         self.mess = ''
 
         self.bingcookie = COOKIES
-
+        self.conversationStyle = ConversationStyle.balanced
         if self.bingcookie:
             try:
                 self.Bingbot = BingAI(cookies=json.loads(self.bingcookie))
@@ -36,7 +36,7 @@ class AIBot:
         prompt = ""
         try:
             # creative balanced precise
-            result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=ConversationStyle.creative)
+            result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=self.conversationStyle)
             numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
             maxNumMessages = result["item"]["throttling"]["maxNumUserMessagesInConversation"]
             print(numMessages, "/", maxNumMessages, end="")
@@ -124,6 +124,18 @@ class AIBot:
         )
         self.LastMessage_id = ''
         self.mess = ''
+
+    async def creative_bing(self, update, context):
+        await self.reset_chat(update, context)
+        self.conversationStyle = ConversationStyle.creative
+
+    async def balanced_bing(self, update, context):
+        await self.reset_chat(update, context)
+        self.conversationStyle = ConversationStyle.balanced
+
+    async def precise_bing(self, update, context):
+        await self.reset_chat(update, context)
+        self.conversationStyle = ConversationStyle.precise
 
     async def en2zhtranslator(self, update, context):
         prompt = "I want you to act as a chinese translator. I will speak to you in any language and you will detect the language, translate it and answer in the corrected and improved version of my text, in Chinese. Keep the meaning same, but make them more literary. I want you to only reply the correction, the improvements and nothing else, do not write explanations. My first sentence is \""
