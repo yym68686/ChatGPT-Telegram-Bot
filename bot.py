@@ -36,11 +36,17 @@ def setup(token):
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
         BotCommand('en2zh', 'translate English to Chinese'),
+        BotCommand("creative_bing", "get a creative new Bing"),
+        BotCommand("balanced_bing", "get a balanced new Bing"),
+        BotCommand("precise_bing", "get a precise new Bing"),
     ]))
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", ai_bot.reset_chat))
     application.add_handler(CommandHandler("en2zh", ai_bot.en2zhtranslator))
+    application.add_handler(CommandHandler("creative_bing", ai_bot.creative_bing))
+    application.add_handler(CommandHandler("balanced_bing", ai_bot.balanced_bing))
+    application.add_handler(CommandHandler("precise_bing", ai_bot.precise_bing))
     application.add_handler(MessageHandler(filters.TEXT, ai_bot.getResult))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
