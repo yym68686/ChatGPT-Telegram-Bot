@@ -43,7 +43,7 @@ def escape(text):
     text = escapeshape(text)
     text = re.sub(r"#", '\#', text)
     text = re.sub(r"\+", '\+', text)
-    text = re.sub(r"\n-\s", '\n\n• ', text)
+    text = re.sub(r"\n(\s*)-\s", '\n\n\\1• ', text)
     text = re.sub(r"\-", '\-', text)
     text = re.sub(r"=", '\=', text)
     text = re.sub(r"\|", '\|', text)
@@ -73,6 +73,8 @@ ni1
 ![1.0.0](http://version.com)
 
 - item 1 -
+    - item 1 -
+    - item 1 -
 * item 2 #
 * item 3 ~
 
