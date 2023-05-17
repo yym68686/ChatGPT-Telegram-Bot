@@ -10,7 +10,7 @@
 
 ✅ 支持 New Bing 流式输出，实现打字机效果
 
-✅ 对比 ChatGPT 和 New Bing 的消息
+✅ 同时对比 ChatGPT 和 New Bing 的消息
 
 ✅ 增加 Replit 部署，真正的零成本，傻瓜式部署，支持 kuma 防睡眠
 
