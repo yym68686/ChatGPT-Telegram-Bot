@@ -4,7 +4,7 @@ def escapeshape(text):
     poslist = [0]
     strlist = []
     originstr = []
-    regex = r"(#+\s.+?$)|```[\D\d\s]+?```"
+    regex = r"(^#+\s.+?$)|```[\D\d\s]+?```"
     matches = re.finditer(regex, text, re.MULTILINE)
     for match in matches:
         start = match.start(1)
@@ -73,14 +73,16 @@ ni1
 ![1.0.0](http://version.com)
 
 - item 1 -
-* item 2
+* item 2 #
 * item 3 ~
+
+sudo apt install mesa-utils # 安装
 
 ```python
 print("1.1")_
 ```
 
-And simple text with + some - **symbols**.
+And simple text `with-ten` + some - **symbols**. # `with-ten`里面的`-`不会被转义
 
 
 ```

@@ -10,11 +10,9 @@ from EdgeGPT import Chatbot as BingAI, ConversationStyle
 
 class AIBot:
     def __init__(self):
-        self.LastMessage_id = ''
-        self.mess = ''
-
         self.bingcookie = COOKIES
         self.conversationStyle = ConversationStyle.balanced
+
         if self.bingcookie:
             try:
                 self.Bingbot = BingAI(cookies=json.loads(self.bingcookie))
@@ -32,15 +30,78 @@ class AIBot:
         print("nick:", self.botNick)
 
     async def getBing(self, message, update, context):
+        messageid = 0
         result = ''
         prompt = ""
+        modifytime = 0
         try:
             # creative balanced precise
-            result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=self.conversationStyle)
+            # result = self.Bingbot.ask_stream(prompt=prompt + message, conversation_style=self.conversationStyle)
+            async for result in self.Bingbot.ask_stream(prompt=prompt + message, conversation_style=self.conversationStyle):
+                if result[0] == True:
+                    break
+                if "[1]:" in result[1].split("\n\n")[0]:
+                    result = "\n\n".join(result[1].split("\n\n")[1:])
+                    result = re.sub(r"\[\^\d+\^\]", '', result)
+                else:
+                    result = result[1]
+                    result = re.sub(r"\[\^\d+\^\]", '', result)
+                print(str(modifytime) + " " + result, end="\r", flush=True)
+                result = f"🤖️ Bing\n\n" + result
+                if messageid == 0:
+                    message = await context.bot.send_message(
+                        chat_id=update.message.chat_id,
+                        text=escape(result),
+                        parse_mode='MarkdownV2',
+                        reply_to_message_id=update.message.message_id,
+                    )
+                    messageid = message.message_id
+                else:
+                    modifytime = modifytime + 1
+                    try:
+                        if modifytime < 128:
+                            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
+                        else:
+                            await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
+                            messageid = 0
+                            modifytime = 0
+                    except:
+                        pass
+            result = result[1]
             numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
             maxNumMessages = result["item"]["throttling"]["maxNumUserMessagesInConversation"]
-            print(numMessages, "/", maxNumMessages, end="")
-            result = result["item"]["messages"][1]["text"]
+            # print(numMessages, "/", maxNumMessages, end="")
+            message = result["item"]["messages"][1]["text"]
+            print(result["item"]["messages"][1]["text"])
+            try:
+                print("\n\n" + result["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"])
+                learnmoretext = result["item"]["messages"][1]["adaptiveCards"][0]["body"][1]["text"]
+            except:
+                learnmoretext = ""
+            result = f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + message + "\n\n" + learnmoretext
+            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
+
+            # # creative balanced precise
+            # result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=ConversationStyle.creative)
+            # # print(result)
+            # numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
+            # maxNumMessages = result["item"]["throttling"]["maxNumUserMessagesInConversation"]
+            # print(numMessages, "/", maxNumMessages, end="")
+            # message = result["item"]["messages"][1]["text"]
+            # print(result["item"]["messages"][1]["text"])
+            # try:
+            #     print("\n\n" + result["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"])
+            #     learnmoretext = result["item"]["messages"][1]["adaptiveCards"][0]["body"][1]["text"]
+            # except:
+            #     learnmoretext = ""
+            # result = message + "\n\n" + learnmoretext
+            # message = await context.bot.send_message(
+            #     chat_id=update.message.chat_id,
+            #     text=escape(f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + result),
+            #     parse_mode='MarkdownV2',
+            #     reply_to_message_id=update.message.message_id,
+            # )
+
             if numMessages == maxNumMessages:
                 await self.Bingbot.reset()
         except Exception as e:
@@ -54,20 +115,6 @@ class AIBot:
             await self.Bingbot.reset()
         result = re.sub(r"\[\^\d+\^\]", '', result)
         print(" BingAI", result)
-        if self.LastMessage_id == '':
-            message = await context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text=escape(f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + result),
-                parse_mode='MarkdownV2',
-                reply_to_message_id=update.message.message_id,
-            )
-            self.mess = f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + result
-            if self.bingcookie and API:
-                self.LastMessage_id = message.message_id
-        else:
-            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=self.LastMessage_id, text=escape(self.mess + f"\n\n\n🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + result), parse_mode='MarkdownV2')
-            self.LastMessage_id = ''
-            self.mess = ''
     
     async def resetBing(self):
         await self.Bingbot.reset()
@@ -76,6 +123,12 @@ class AIBot:
         result = ''
         try:
             result = self.ChatGPTbot.ask(message)
+            message = await context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text=escape("🤖️ ChatGPT3.5\n\n" + result),
+                parse_mode='MarkdownV2',
+                reply_to_message_id=update.message.message_id,
+            )
         except Exception as e:
             print('\033[31m')
             print("response_msg", result)
@@ -87,24 +140,10 @@ class AIBot:
                 result = "ChatGPT 出错啦。"
             self.ChatGPTbot.reset()
         print("ChatGPT", result)
-        if self.LastMessage_id == '':
-            message = await context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text=escape("🤖️ ChatGPT3.5\n\n" + result),
-                parse_mode='MarkdownV2',
-                reply_to_message_id=update.message.message_id,
-            )
-            if self.bingcookie and API:
-                self.LastMessage_id = message.message_id
-            self.mess = "🤖️ ChatGPT3.5\n\n" + result
-        else:
-            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=self.LastMessage_id, text=escape(self.mess + "\n\n\n🤖️ ChatGPT3.5\n\n" + result), parse_mode='MarkdownV2')
-            self.LastMessage_id = ''
-            self.mess = ''
 
     async def getResult(self, update, context):
         await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        self.LastMessage_id = ''
+        # self.LastMessage_id = ''
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         chat_content = update.message.text if NICK is None else update.message.text[self.botNicKLength:].strip() if update.message.text[:self.botNicKLength].lower() == self.botNick else None
         if self.bingcookie and chat_content:
@@ -122,8 +161,6 @@ class AIBot:
             chat_id=update.message.chat_id,
             text="重置成功！",
         )
-        self.LastMessage_id = ''
-        self.mess = ''
 
     async def creative_bing(self, update, context):
         await self.reset_chat(update, context)
@@ -142,11 +179,13 @@ class AIBot:
         if len(context.args) > 0:
             message = ' '.join(context.args)
             chat_content = prompt + message + '"'
+            print("\033[32m")
             print("en2zh", message)
+            print("\033[0m")
             if API and message:
                 await self.getChatGPT(chat_content, update, context)
-                self.LastMessage_id = ''
-                self.mess = ''
+                # self.LastMessage_id = ''
+                # self.mess = ''
         else:
             message = await context.bot.send_message(
                 chat_id=update.message.chat_id,
