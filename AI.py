@@ -11,7 +11,7 @@ from EdgeGPT import Chatbot as BingAI, ConversationStyle
 class AIBot:
     def __init__(self):
         self.bingcookie = COOKIES
-        self.conversationStyle = ConversationStyle.balanced
+        self.conversationStyle = ConversationStyle.creative
 
         if self.bingcookie:
             try:
@@ -30,51 +30,40 @@ class AIBot:
         print("nick:", self.botNick)
 
     async def getBing(self, message, update, context):
-        messageid = 0
+        text = message
         result = ''
         prompt = ""
         modifytime = 0
+        message = await context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="思考中💭",
+            parse_mode='MarkdownV2',
+            reply_to_message_id=update.message.message_id,
+        )
+        messageid = message.message_id
         try:
-            # creative balanced precise
-            # result = self.Bingbot.ask_stream(prompt=prompt + message, conversation_style=self.conversationStyle)
-            async for result in self.Bingbot.ask_stream(prompt=prompt + message, conversation_style=self.conversationStyle):
+            # 打字机效果 creative balanced precise
+            async for result in self.Bingbot.ask_stream(prompt=prompt + text, conversation_style=self.conversationStyle):
                 if result[0] == True:
                     break
                 if "[1]:" in result[1].split("\n\n")[0]:
                     result = "\n\n".join(result[1].split("\n\n")[1:])
-                    result = re.sub(r"\[\^\d+\^\]", '', result)
                 else:
                     result = result[1]
-                    result = re.sub(r"\[\^\d+\^\]", '', result)
-                print(str(modifytime) + " " + result, end="\r", flush=True)
+                result = re.sub(r"\[\^\d+\^\]", '', result)
                 if result.count("```") % 2 != 0:
                     result = result + "\n```"
+                text = result
                 result = f"🤖️ Bing\n\n" + result
-                if messageid == 0:
-                    message = await context.bot.send_message(
-                        chat_id=update.message.chat_id,
-                        text=escape(result),
-                        parse_mode='MarkdownV2',
-                        reply_to_message_id=update.message.message_id,
-                    )
-                    messageid = message.message_id
-                else:
-                    modifytime = modifytime + 1
-                    try:
-                        if modifytime < 128:
-                            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
-                        else:
-                            await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
-                            messageid = 0
-                            modifytime = 0
-                    except:
-                        pass
+                modifytime = modifytime + 1
+                if modifytime % 4 == 0:
+                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
+            
             result = result[1]
             numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
             maxNumMessages = result["item"]["throttling"]["maxNumUserMessagesInConversation"]
-            # print(numMessages, "/", maxNumMessages, end="")
-            message = result["item"]["messages"][1]["text"]
-            print(result["item"]["messages"][1]["text"])
+            message = text
+            print(modifytime, result["item"]["messages"][1]["text"])
             try:
                 print("\n\n" + result["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"])
                 learnmoretext = result["item"]["messages"][1]["adaptiveCards"][0]["body"][1]["text"]
@@ -83,7 +72,7 @@ class AIBot:
             result = f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + message + "\n\n" + learnmoretext
             await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
 
-            # # creative balanced precise
+            # # 整段 creative balanced precise
             # result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=ConversationStyle.creative)
             # # print(result)
             # numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
@@ -113,10 +102,10 @@ class AIBot:
             print('\033[0m')
             numMessages = 0
             maxNumMessages = 0
-            result = "实在不好意思，我现在无法对此做出回应。 要不我们换个话题？"
+            # result = "实在不好意思，我现在无法对此做出回应。 要不我们换个话题？"
             await self.Bingbot.reset()
-        result = re.sub(r"\[\^\d+\^\]", '', result)
-        print(" BingAI", result)
+        # result = re.sub(r"\[\^\d+\^\]", '', result)
+        # print("BingAI", result)
     
     async def resetBing(self):
         await self.Bingbot.reset()
