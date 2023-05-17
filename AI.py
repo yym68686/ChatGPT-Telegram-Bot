@@ -47,6 +47,8 @@ class AIBot:
                     result = result[1]
                     result = re.sub(r"\[\^\d+\^\]", '', result)
                 print(str(modifytime) + " " + result, end="\r", flush=True)
+                if result.count("```") % 2 != 0:
+                    result = result + "\n```"
                 result = f"🤖️ Bing\n\n" + result
                 if messageid == 0:
                     message = await context.bot.send_message(

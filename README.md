@@ -1,3 +1,4 @@
+
 # ChatGPT & New Bing Telegram Bot
 
 ## 特性
@@ -128,6 +129,8 @@ services:
 ## Reference
 
 参考项目：
+
+https://core.telegram.org/bots/api
 
 https://github.com/acheong08/ChatGPT
 
