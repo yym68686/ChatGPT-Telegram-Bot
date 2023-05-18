@@ -33,7 +33,7 @@ pip install -r requirements.txt --index-url https://pypi.python.org/simple/ > /d
 - BOT_TOKEN: 你需要在 [BotFather](https://t.me/BotFather) 创建一个 bot 以获取 BOT_TOKEN
 - WEB_HOOK: 在 Replit 会自动分配一个域名给你，填入 `https://appname.username.repl.co`
 - API: openai 的 api key.
-- COOKIES: bing.com 的 cookies。可以用 [Cookie-Editor](https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm) 点击链接安装插件，点导出会自动复制到剪贴板。
+- COOKIES: bing.com 的 cookies。可以用 [Cookie-Editor](https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm) 点击链接安装插件，点导出会自动复制到剪贴板。有效期两周，一个对话有 20 次提问，过期后每个对话提问次数限制在 5 次。
 - NICK: 可选，默认为空，NICK 是机器人的名字。当用户输入消息以 NICK 开头，机器人才会回答，否则机器人会回答任何消息。尤其在群聊里，没有 NICK，机器人会对所有消息进行回复。
 
 点击屏幕上方的 run，即可运行机器人。记得打开 Always On。
