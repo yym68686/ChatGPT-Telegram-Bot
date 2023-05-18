@@ -10,11 +10,11 @@
 
 ✅ 支持消息 Markdown 渲染
 
-✅ 支持 New Bing 流式输出，实现打字机效果
+✅ 同时支持 ChatGPT 和 New Bing 流式输出，实现打字机效果
 
 ✅ 同时对比 ChatGPT 和 New Bing 的消息
 
-✅ 增加 Replit 部署，真正的零成本，傻瓜式部署，支持 kuma 防睡眠
+✅ 增加一键 Replit 部署，真正的零成本，傻瓜式部署，支持 kuma 防睡眠
 
 ✅ 全平台，随时随地，只要有 telegram 就可以打破知识壁垒
 

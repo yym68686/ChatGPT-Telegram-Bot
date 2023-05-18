@@ -56,7 +56,7 @@ class AIBot:
                 text = result
                 result = f"🤖️ Bing\n\n" + result
                 modifytime = modifytime + 1
-                if modifytime % 4 == 0:
+                if modifytime % 6 == 0:
                     await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
             
             result = result[1]
@@ -102,24 +102,28 @@ class AIBot:
             print('\033[0m')
             numMessages = 0
             maxNumMessages = 0
-            # result = "实在不好意思，我现在无法对此做出回应。 要不我们换个话题？"
             await self.Bingbot.reset()
-        # result = re.sub(r"\[\^\d+\^\]", '', result)
-        # print("BingAI", result)
     
     async def resetBing(self):
         await self.Bingbot.reset()
     
     async def getChatGPT(self, message, update, context):
-        result = ''
+        result = "🤖️ ChatGPT3.5\n\n"
+        text = message
+        modifytime = 0
+        message = await context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="思考中💭",
+            parse_mode='MarkdownV2',
+            reply_to_message_id=update.message.message_id,
+        )
+        messageid = message.message_id
         try:
-            result = self.ChatGPTbot.ask(message)
-            message = await context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text=escape("🤖️ ChatGPT3.5\n\n" + result),
-                parse_mode='MarkdownV2',
-                reply_to_message_id=update.message.message_id,
-            )
+            for data in self.ChatGPTbot.ask_stream(text):
+                result = result + data
+                modifytime = modifytime + 1
+                if modifytime % 6 == 0:
+                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
         except Exception as e:
             print('\033[31m')
             print("response_msg", result)
@@ -131,6 +135,7 @@ class AIBot:
                 result = "ChatGPT 出错啦。"
             self.ChatGPTbot.reset()
         print("ChatGPT", result)
+        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
 
     async def getResult(self, update, context):
         await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
