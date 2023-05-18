@@ -32,6 +32,7 @@ class AIBot:
     async def getBing(self, message, update, context):
         text = message
         result = ''
+        lastresult = ''
         prompt = ""
         modifytime = 0
         message = await context.bot.send_message(
@@ -56,8 +57,9 @@ class AIBot:
                 text = result
                 result = f"🤖️ Bing\n\n" + result
                 modifytime = modifytime + 1
-                if modifytime % 6 == 0:
+                if modifytime % 6 == 0 and lastresult != result:
                     await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
+                lastresult = result
             
             result = result[1]
             numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
@@ -121,9 +123,14 @@ class AIBot:
         try:
             for data in self.ChatGPTbot.ask_stream(text):
                 result = result + data
+                tmpresult = result
                 modifytime = modifytime + 1
+                if re.sub(r"```", '', result).count("`") % 2 != 0:
+                    tmpresult = result + "`"
+                if result.count("```") % 2 != 0:
+                    tmpresult = result + "\n```"
                 if modifytime % 6 == 0:
-                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
+                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
         except Exception as e:
             print('\033[31m')
             print("response_msg", result)
@@ -139,7 +146,6 @@ class AIBot:
 
     async def getResult(self, update, context):
         await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        # self.LastMessage_id = ''
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         chat_content = update.message.text if NICK is None else update.message.text[self.botNicKLength:].strip() if update.message.text[:self.botNicKLength].lower() == self.botNick else None
         if self.bingcookie and chat_content:
@@ -180,8 +186,6 @@ class AIBot:
             print("\033[0m")
             if API and message:
                 await self.getChatGPT(chat_content, update, context)
-                # self.LastMessage_id = ''
-                # self.mess = ''
         else:
             message = await context.bot.send_message(
                 chat_id=update.message.chat_id,
