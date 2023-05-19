@@ -27,6 +27,7 @@ def escape(text):
     # In all other places characters
     # _ * [ ] ( ) ~ ` > # + - = | { } . !
     # must be escaped with the preceding character '\'.
+    text = re.sub(r"\\", r"\\\\", text)
     text = re.sub(r"_", '\_', text)
     text = re.sub(r"\*{2}(.*?)\*{2}", '@@@\\1@@@', text)
     text = re.sub(r"\n\*\s", '\n\n• ', text)
@@ -53,7 +54,7 @@ def escape(text):
     text = re.sub(r"!", '\!', text)
     return text
 
-text = '''
+text = r'''
 # title
 
 **bold**
@@ -81,7 +82,7 @@ ni1
 sudo apt install mesa-utils # 安装
 
 ```python
-print("1.1")_
+print("1.1\n")_
 ```
 
 And simple text `with-ten` + some - **symbols**. # `with-ten`里面的`-`不会被转义
