@@ -113,6 +113,7 @@ class AIBot:
         result = "🤖️ ChatGPT3.5\n\n"
         text = message
         modifytime = 0
+        lastresult = ''
         message = await context.bot.send_message(
             chat_id=update.message.chat_id,
             text="思考中💭",
@@ -129,8 +130,9 @@ class AIBot:
                     tmpresult = result + "`"
                 if result.count("```") % 2 != 0:
                     tmpresult = result + "\n```"
-                if modifytime % 10 == 0:
+                if modifytime % 10 == 0 and lastresult != result:
                     await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
+                lastresult = result
         except Exception as e:
             print('\033[31m')
             print("response_msg", result)
