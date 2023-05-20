@@ -59,7 +59,7 @@ class AIBot:
                 modifytime = modifytime + 1
                 if modifytime % 8 == 0 and lastresult != result:
                     await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
-                lastresult = result
+                    lastresult = result
             
             result = result[1]
             numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
@@ -132,7 +132,7 @@ class AIBot:
                     tmpresult = result + "\n```"
                 if modifytime % 10 == 0 and lastresult != result:
                     await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
-                lastresult = result
+                    lastresult = result
         except Exception as e:
             print('\033[31m')
             print("response_msg", result)
@@ -140,7 +140,8 @@ class AIBot:
             print('\033[0m')
             self.ChatGPTbot.reset()
         print("ChatGPT", result)
-        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
+        if lastresult != result:
+            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
 
     async def getResult(self, update, context):
         await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
