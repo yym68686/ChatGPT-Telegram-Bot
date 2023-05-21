@@ -57,7 +57,7 @@ class AIBot:
                 text = result
                 result = f"🤖️ Bing\n\n" + result
                 modifytime = modifytime + 1
-                if modifytime % 8 == 0 and lastresult != result:
+                if modifytime % 10 == 0 and lastresult != result:
                     await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
                     lastresult = result
             
@@ -130,7 +130,7 @@ class AIBot:
                     tmpresult = result + "`"
                 if result.count("```") % 2 != 0:
                     tmpresult = result + "\n```"
-                if modifytime % 10 == 0 and lastresult != result:
+                if modifytime % 12 == 0 and lastresult != result:
                     await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
                     lastresult = result
         except Exception as e:
