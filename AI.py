@@ -72,7 +72,8 @@ class AIBot:
             except:
                 learnmoretext = ""
             result = f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + message + "\n\n" + learnmoretext
-            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
+            if lastresult != result:
+                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
 
             # # 整段 creative balanced precise
             # result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=ConversationStyle.creative)
