@@ -27,7 +27,7 @@ def escape(text):
     # In all other places characters
     # _ * [ ] ( ) ~ ` > # + - = | { } . !
     # must be escaped with the preceding character '\'.
-    text = re.sub(r"\\", r"\\\\", text)
+    text = re.sub(r"\\n", r"\\\\n", text)
     text = re.sub(r"_", '\_', text)
     text = re.sub(r"\*{2}(.*?)\*{2}", '@@@\\1@@@', text)
     text = re.sub(r"\n\*\s", '\n\n• ', text)
@@ -43,9 +43,13 @@ def escape(text):
     text = re.sub(r">", '\>', text)
     text = escapeshape(text)
     text = re.sub(r"#", '\#', text)
+    text = re.sub(r"`(.*?)\+(.*?)`", '`\\1@@@\\2`', text)
     text = re.sub(r"\+", '\+', text)
+    text = re.sub(r"\@{3}", '+', text)
     text = re.sub(r"\n(\s*)-\s", '\n\n\\1• ', text)
+    text = re.sub(r"`(.*?)-(.*?)`", '`\\1@@@\\2`', text)
     text = re.sub(r"\-", '\-', text)
+    text = re.sub(r"\@{3}", '-', text)
     text = re.sub(r"=", '\=', text)
     text = re.sub(r"\|", '\|', text)
     text = re.sub(r"{", '\{', text)
@@ -83,9 +87,11 @@ sudo apt install mesa-utils # 安装
 
 ```python
 print("1.1\n")_
+\subsubsection{1.1}
 ```
+\subsubsection{1.1}
 
-And simple text `with-ten` + some - **symbols**. # `with-ten`里面的`-`不会被转义
+And simple text `with-ten`  `with+ten` + some - **symbols**. # `with-ten`里面的`-`不会被转义
 
 
 ```
@@ -96,5 +102,7 @@ Cxy = abs (Pxy)**2/ (Pxx*Pyy)
 '''
 
 if __name__ == '__main__':
+    import os
+    os.system('clear')
     text = escape(text)
     print(text)
