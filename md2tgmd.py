@@ -62,7 +62,7 @@ def escape(text):
 def bingescape(text):
     text = re.sub(r"\\\\", '@@@', text)
     text = re.sub(r"\\", r"\\\\", text)
-    text = re.sub(r"@@@", '\\\\', text)
+    text = re.sub(r"\@{3}", r"\\\\", text)
     text = re.sub(r"_", '\_', text)
     text = re.sub(r"\*{2}(.*?)\*{2}", '@@@\\1@@@', text)
     text = re.sub(r"\n\*\s", '\n\n• ', text)
@@ -134,10 +134,14 @@ print("Hello, World!")
 ```
 
 Cxy = abs (Pxy)**2/ (Pxx*Pyy)
+
+\\begin {equation}
+\pi
+\\end {equation*}
 '''
 
 if __name__ == '__main__':
     import os
     os.system('clear')
-    text = escape(text)
+    text = bingescape(text)
     print(text)
