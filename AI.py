@@ -67,8 +67,12 @@ class AIBot:
             message = text
             print(modifytime, result["item"]["messages"][1]["text"])
             try:
-                print("\n\n" + result["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"])
-                learnmoretext = result["item"]["messages"][1]["adaptiveCards"][0]["body"][1]["text"]
+                test_str = result["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"].split("\n\n")[0]
+                matches = re.findall(r":\s(.*?)\s|\"(.*?)\"", test_str)
+                learnmoretext = "Learn more: \n\n"
+                for index in range(0, len(matches), 2):
+                    learnmoretext += f"[{int(index / 2 + 1)}. {matches[index+1][1]}]({matches[index][0]})" + "\n\n"
+                print(learnmoretext)
             except:
                 learnmoretext = ""
             result = f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + message + "\n\n" + learnmoretext
