@@ -65,19 +65,19 @@ class AIBot:
             numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
             maxNumMessages = result["item"]["throttling"]["maxNumUserMessagesInConversation"]
             message = text
-            print(modifytime, result["item"]["messages"][1]["text"])
             try:
                 test_str = result["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"].split("\n\n")[0]
                 matches = re.findall(r":\s(.*?)\s|\"(.*?)\"", test_str)
-                learnmoretext = "Learn more: \n\n"
+                learnmoretext = "Learn more: "
                 for index in range(0, len(matches), 2):
-                    learnmoretext += f"[{int(index / 2 + 1)}. {matches[index+1][1]}]({matches[index][0]})" + "\n\n"
+                    learnmoretext += f"[{int(index / 2 + 1)}. {matches[index+1][1]}]({matches[index][0]})" + " "
                 print(learnmoretext)
             except:
                 learnmoretext = ""
             result = f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + message + "\n\n" + learnmoretext
             if lastresult != result:
                 await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=bingescape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+            print(modifytime, result)
 
             # # 整段 creative balanced precise
             # result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=ConversationStyle.creative)
@@ -144,7 +144,7 @@ class AIBot:
             print("error", e)
             print('\033[0m')
             self.ChatGPTbot.reset()
-        print("ChatGPT", result)
+        print(result)
         if lastresult != result:
             await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
 

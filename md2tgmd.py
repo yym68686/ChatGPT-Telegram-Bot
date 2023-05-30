@@ -60,6 +60,9 @@ def escape(text):
     return text
 
 def bingescape(text):
+    text = re.sub(r"\\\\", '@@@', text)
+    text = re.sub(r"\\", r"\\\\", text)
+    text = re.sub(r"@@@", '\\\\', text)
     text = re.sub(r"_", '\_', text)
     text = re.sub(r"\*{2}(.*?)\*{2}", '@@@\\1@@@', text)
     text = re.sub(r"\n\*\s", '\n\n• ', text)
