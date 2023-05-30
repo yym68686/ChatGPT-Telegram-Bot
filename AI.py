@@ -1,7 +1,7 @@
 import re
 import json
 import threading
-from md2tgmd import escape
+from md2tgmd import escape, bingescape
 from runasync import run_async
 from config import API, NICK, COOKIES
 from revChatGPT.V3 import Chatbot as GPT
@@ -57,9 +57,9 @@ class AIBot:
                 text = result
                 result = f"🤖️ Bing\n\n" + result
                 modifytime = modifytime + 1
-                if modifytime % 10 == 0 and lastresult != result:
-                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
-                    lastresult = result
+                if modifytime % 12 == 0 and lastresult != tmpresult:
+                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=bingescape(tmpresult), parse_mode='MarkdownV2')
+                    lastresult = tmpresult
             
             result = result[1]
             numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
@@ -73,7 +73,7 @@ class AIBot:
                 learnmoretext = ""
             result = f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + message + "\n\n" + learnmoretext
             if lastresult != result:
-                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=bingescape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
             # # 整段 creative balanced precise
             # result = await self.Bingbot.ask(prompt=prompt + message, conversation_style=ConversationStyle.creative)
