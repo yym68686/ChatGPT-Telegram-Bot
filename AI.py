@@ -70,7 +70,7 @@ class AIBot:
                 matches = re.findall(r":\s(.*?)\s|\"(.*?)\"", test_str)
                 learnmoretext = "Learn more: "
                 for index in range(0, len(matches), 2):
-                    learnmoretext += f"[{int(index / 2 + 1)}. {matches[index+1][1]}]({matches[index][0]})" + " "
+                    learnmoretext += f"[{int(index / 2 + 1)}. {matches[index+1][1]}]({matches[index][0]})" + "   "
                 print(learnmoretext)
             except:
                 learnmoretext = ""
