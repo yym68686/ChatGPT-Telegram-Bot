@@ -68,7 +68,9 @@ class AIBot:
             try:
                 test_str = result["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"].split("\n\n")[0]
                 matches = re.findall(r":\s(.*?)\s|\"(.*?)\"", test_str)
-                learnmoretext = "Learn more: "
+                learnmoretext = ""
+                if "[1]:" in test_str:
+                    learnmoretext = "Learn more: "
                 for index in range(0, len(matches), 2):
                     learnmoretext += f"[{int(index / 2 + 1)}. {matches[index+1][1]}]({matches[index][0]})" + "   "
                 print(learnmoretext)
