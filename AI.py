@@ -146,6 +146,9 @@ class AIBot:
             print("error", e)
             print('\033[0m')
             self.ChatGPTbot.reset()
+            if "You exceeded your current quota, please check your plan and billing details." in e:
+                print("OpenAI api 已过期！")
+                API = ''
         print(result)
         if lastresult != result:
             await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')

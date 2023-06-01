@@ -143,5 +143,5 @@ Cxy = abs (Pxy)**2/ (Pxx*Pyy)
 if __name__ == '__main__':
     import os
     os.system('clear')
-    text = bingescape(text)
+    text = escape(text)
     print(text)
