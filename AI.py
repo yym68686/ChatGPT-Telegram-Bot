@@ -22,8 +22,9 @@ class AIBot:
                 print("error", e)
                 print('\033[0m')
                 self.bingcookie = None
-        if API:
-            self.ChatGPTbot = GPT(api_key=f"{API}")
+        self.api = API
+        if self.api:
+            self.ChatGPTbot = GPT(api_key=f"{self.api}")
 
         self.botNick = NICK.lower() if NICK else None
         self.botNicKLength = len(self.botNick) if self.botNick else 0
@@ -137,20 +138,21 @@ class AIBot:
                     tmpresult = result + "`"
                 if result.count("```") % 2 != 0:
                     tmpresult = result + "\n```"
-                if modifytime % 12 == 0 and lastresult != result:
+                if modifytime % 12 == 0 and lastresult != tmpresult:
                     await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
-                    lastresult = result
+                    lastresult = tmpresult
         except Exception as e:
             print('\033[31m')
             print("response_msg", result)
             print("error", e)
             print('\033[0m')
-            self.ChatGPTbot.reset()
+            if self.api:
+                self.ChatGPTbot.reset()
             if "You exceeded your current quota, please check your plan and billing details." in str(e):
                 print("OpenAI api 已过期！")
                 await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
                 messageid = ''
-                API = ''
+                self.api = ''
         print(result)
         if lastresult != result and messageid:
             await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
@@ -162,11 +164,11 @@ class AIBot:
         if self.bingcookie and chat_content:
             _thread = threading.Thread(target=run_async, args=(self.getBing(chat_content, update, context),))
             _thread.start()
-        if API and chat_content:
+        if self.api and chat_content:
             await self.getChatGPT(chat_content, update, context)
 
     async def reset_chat(self, update, context):
-        if API:
+        if self.api:
             self.ChatGPTbot.reset()
         if self.bingcookie:
             await self.resetBing()
@@ -195,7 +197,7 @@ class AIBot:
             print("\033[32m")
             print("en2zh", message)
             print("\033[0m")
-            if API and message:
+            if self.api and message:
                 await self.getChatGPT(chat_content, update, context)
         else:
             message = await context.bot.send_message(
