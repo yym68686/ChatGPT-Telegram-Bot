@@ -1,7 +1,5 @@
 # ChatGPT & New Bing Telegram Bot
 
-本项目测试所用 openai api key 由🦄️[独角兽GPT](https://freeopenai.xyz/) “开发者扶持计划”免费提供。
-
 ## ✨ Features
 
 ✅ 同时集成 ChatGPT 和 New Bing
