@@ -189,20 +189,8 @@ class AIBot:
         await self.reset_chat(update, context)
         self.conversationStyle = ConversationStyle.precise
 
-    async def en2zhtranslator(self, update, context):
+    async def en2zhtranslator(self, message, update, context):
         prompt = "I want you to act as a chinese translator. I will speak to you in any language and you will detect the language, translate it and answer in the corrected and improved version of my text, in Chinese. Keep the meaning same, but make them more literary. I want you to only reply the correction, the improvements and nothing else, do not write explanations. My first sentence is \""
-        if len(context.args) > 0:
-            message = ' '.join(context.args)
-            chat_content = prompt + message + '"'
-            print("\033[32m")
-            print("en2zh", message)
-            print("\033[0m")
-            if self.api and message:
-                await self.getChatGPT(chat_content, update, context)
-        else:
-            message = await context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text="请在命令后面放入要翻译的文本。",
-                parse_mode='MarkdownV2',
-                reply_to_message_id=update.message.message_id,
-            )
+        chat_content = prompt + message + '"'
+        if self.api and message:
+            await self.getChatGPT(chat_content, update, context)

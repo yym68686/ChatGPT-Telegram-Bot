@@ -22,6 +22,21 @@ async def start(update, context): # 当用户输入/start时，返回文本
     await update.message.reply_html(rf"Hi {user.mention_html()} ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",)
     await update.message.reply_text(escape(message), parse_mode='MarkdownV2')
 
+async def en2zhtranslator(update, context):
+    if len(context.args) > 0:
+        message = ' '.join(context.args)
+        print("\033[32m")
+        print("en2zh", message)
+        print("\033[0m")
+        ai_bot.en2zhtranslator(message, update, context)
+    else:
+        message = await context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="请在命令后面放入要翻译的文本。",
+            parse_mode='MarkdownV2',
+            reply_to_message_id=update.message.message_id,
+        )
+
 async def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
     await context.bot.send_message(chat_id=update.message.chat_id, text="出错啦！请重试。", parse_mode='MarkdownV2')
