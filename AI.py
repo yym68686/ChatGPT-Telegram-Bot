@@ -6,7 +6,7 @@ from runasync import run_async
 from config import API, NICK, COOKIES
 from revChatGPT.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
-from EdgeGPT import Chatbot as BingAI, ConversationStyle
+from EdgeGPT.EdgeGPT import Chatbot as BingAI, ConversationStyle
 
 class AIBot:
     def __init__(self):
@@ -58,9 +58,9 @@ class AIBot:
                 text = result
                 result = f"🤖️ Bing\n\n" + result
                 modifytime = modifytime + 1
-                if modifytime % 12 == 0 and lastresult != tmpresult:
-                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=bingescape(tmpresult), parse_mode='MarkdownV2')
-                    lastresult = tmpresult
+                if modifytime % 12 == 0 and lastresult != result:
+                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=bingescape(result), parse_mode='MarkdownV2')
+                    lastresult = result
             
             result = result[1]
             numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
