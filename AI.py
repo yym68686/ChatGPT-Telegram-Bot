@@ -56,7 +56,7 @@ class AIBot:
                 if result.count("```") % 2 != 0:
                     result = result + "\n```"
                 text = result
-                result = f"🤖️ Bing\n\n" + result
+                result = f"`🤖️ Bing`\n\n" + result
                 modifytime = modifytime + 1
                 if modifytime % 12 == 0 and lastresult != result:
                     await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=bingescape(result), parse_mode='MarkdownV2')
@@ -77,7 +77,7 @@ class AIBot:
                 print(learnmoretext)
             except:
                 learnmoretext = ""
-            result = f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + message + "\n\n" + learnmoretext
+            result = f"`🤖️ Bing {numMessages} / {maxNumMessages} `\n\n" + message + "\n\n" + learnmoretext
             if lastresult != result:
                 await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=bingescape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
             print(modifytime, result)
@@ -98,7 +98,7 @@ class AIBot:
             # result = message + "\n\n" + learnmoretext
             # message = await context.bot.send_message(
             #     chat_id=update.message.chat_id,
-            #     text=escape(f"🤖️ Bing {numMessages} / {maxNumMessages} \n\n" + result),
+            #     text=escape(f"`🤖️ Bing {numMessages} / {maxNumMessages} `\n\n" + result),
             #     parse_mode='MarkdownV2',
             #     reply_to_message_id=update.message.message_id,
             # )
@@ -118,7 +118,7 @@ class AIBot:
         await self.Bingbot.reset()
     
     async def getChatGPT(self, message, update, context):
-        result = "🤖️ ChatGPT3.5\n\n"
+        result = "`🤖️ GPT3.5`\n\n"
         text = message
         modifytime = 0
         lastresult = ''
@@ -190,7 +190,7 @@ class AIBot:
         self.conversationStyle = ConversationStyle.precise
 
     async def en2zhtranslator(self, message, update, context):
-        prompt = "I want you to act as a chinese translator. I will speak to you in any language and you will detect the language, translate it and answer in the corrected and improved version of my text, in Chinese. Keep the meaning same, but make them more literary. I want you to only reply the correction, the improvements and nothing else, do not write explanations. My first sentence is \""
+        prompt = "I want you to act as a simplified chinese translator. I will speak to you in any language and you will detect the language, translate it and answer in the corrected and improved version of my text, in simplified Chinese. Keep the meaning same, but make them more literary. I want you to only reply the correction, the improvements and nothing else, do not write explanations. My first sentence is \""
         chat_content = prompt + message + '"'
         if self.api and message:
             await self.getChatGPT(chat_content, update, context)
