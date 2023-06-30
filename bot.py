@@ -8,6 +8,10 @@ ai_bot = AIBot()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
+# 获取 httpx 的 logger
+httpx_logger = logging.getLogger("httpx")
+# 设置 httpx 的日志级别为 WARNING
+httpx_logger.setLevel(logging.WARNING)
 
 # In all other places characters
 # _ * [ ] ( ) ~ ` > # + - = | { } . !
