@@ -53,6 +53,8 @@ class AIBot:
                 else:
                     result = result[1]
                 result = re.sub(r"\[\^\d+\^\]", '', result)
+                if re.sub(r"```", '', result).count("`") % 2 != 0:
+                    result = result + "`"
                 if result.count("```") % 2 != 0:
                     result = result + "\n```"
                 text = result
