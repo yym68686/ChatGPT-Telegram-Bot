@@ -114,7 +114,13 @@ class AIBot:
             print('\033[0m')
             numMessages = 0
             maxNumMessages = 0
-            await self.Bingbot.reset()
+            if "CAPTCHA" in str(e):
+                print("Bing AI 需要验证码")
+                await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
+                messageid = ''
+                self.bingcookie = ''
+            else:
+                await self.Bingbot.reset()
     
     async def resetBing(self):
         await self.Bingbot.reset()
