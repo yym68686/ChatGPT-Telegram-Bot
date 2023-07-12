@@ -1,18 +1,23 @@
 import re
 
-def escapeshape(text):
+def find_all_index(str, pattern):
+    index_list = [0]
+    for match in re.finditer(pattern, str, re.MULTILINE):
+        if match.group(1) != None:
+            start = match.start(1)
+            end = match.end(1)
+            index_list += [start, end]
+    index_list.append(len(str))
+    return index_list
+
+def replace_all(text, pattern, function):
     poslist = [0]
     strlist = []
     originstr = []
-    regex = r"(^#+\s.+?$)|```[\D\d\s]+?```"
-    matches = re.finditer(regex, text, re.MULTILINE)
-    for match in matches:
-        start = match.start(1)
-        end = match.end(1)
-        if match.group(1) != None:
-            poslist += [start, end]
-            strlist.append('▎*' + text[start:end].split()[1] + '*')
-    poslist.append(len(text))
+    poslist = find_all_index(text, pattern)
+    for i in range(1, len(poslist[:-1]), 2):
+        start, end = poslist[i:i+2]
+        strlist.append(function(text[start:end]))
     for i in range(0, len(poslist), 2):
         j, k = poslist[i:i+2]
         originstr.append(text[j:k])
@@ -23,11 +28,16 @@ def escapeshape(text):
     new_list = [item for pair in zip(originstr, strlist) for item in pair]
     return ''.join(new_list)
 
+def escapeshape(text):
+    return '▎*' + text.split()[1] + '*'
+
+def escapeminus(text):
+    return '\\' + text
+
 def escape(text):
     # In all other places characters
     # _ * [ ] ( ) ~ ` > # + - = | { } . !
     # must be escaped with the preceding character '\'.
-    # text = re.sub(r"\\n", r"\\\\n", text)
     text = re.sub(r"\\", r"\\\\", text)
     text = re.sub(r"_", '\_', text)
     text = re.sub(r"\*{2}(.*?)\*{2}", '@@@\\1@@@', text)
@@ -42,49 +52,14 @@ def escape(text):
     text = re.sub(r"\@{3}(.*?)\@{3}\^{3}(.*?)\^{3}", '[\\1](\\2)', text)
     text = re.sub(r"~", '\~', text)
     text = re.sub(r">", '\>', text)
-    text = escapeshape(text)
+    text = replace_all(text, r"(^#+\s.+?$)|```[\D\d\s]+?```", escapeshape)
     text = re.sub(r"#", '\#', text)
     text = re.sub(r"`(.*?)\+(.*?)`", '`\\1@@@\\2`', text)
     text = re.sub(r"\+", '\+', text)
     text = re.sub(r"\@{3}", '+', text)
     text = re.sub(r"\n(\s*)-\s", '\n\n\\1• ', text)
-    text = re.sub(r"`(.*?)-(.*?)`", '`\\1@@@\\2`', text)
-    text = re.sub(r"\-", '\-', text)
-    text = re.sub(r"\@{3}", '-', text)
-    text = re.sub(r"=", '\=', text)
-    text = re.sub(r"\|", '\|', text)
-    text = re.sub(r"{", '\{', text)
-    text = re.sub(r"}", '\}', text)
-    text = re.sub(r"\.", '\.', text)
-    text = re.sub(r"!", '\!', text)
-    return text
-
-def bingescape(text):
-    text = re.sub(r"\\\\", '@@@', text)
-    text = re.sub(r"\\", r"\\\\", text)
-    text = re.sub(r"\@{3}", r"\\\\", text)
-    text = re.sub(r"_", '\_', text)
-    text = re.sub(r"\*{2}(.*?)\*{2}", '@@@\\1@@@', text)
-    text = re.sub(r"\n\*\s", '\n\n• ', text)
-    text = re.sub(r"\*", '\*', text)
-    text = re.sub(r"\@{3}(.*?)\@{3}", '*\\1*', text)
-    text = re.sub(r"\!?\[(.*?)\]\((.*?)\)", '@@@\\1@@@^^^\\2^^^', text)
-    text = re.sub(r"\[", '\[', text)
-    text = re.sub(r"\]", '\]', text)
-    text = re.sub(r"\(", '\(', text)
-    text = re.sub(r"\)", '\)', text)
-    text = re.sub(r"\@{3}(.*?)\@{3}\^{3}(.*?)\^{3}", '[\\1](\\2)', text)
-    text = re.sub(r"~", '\~', text)
-    text = re.sub(r">", '\>', text)
-    text = escapeshape(text)
-    text = re.sub(r"#", '\#', text)
-    text = re.sub(r"`(.*?)\+(.*?)`", '`\\1@@@\\2`', text)
-    text = re.sub(r"\+", '\+', text)
-    text = re.sub(r"\@{3}", '+', text)
-    text = re.sub(r"\n(\s*)-\s", '\n\n\\1• ', text)
-    text = re.sub(r"`(.*?)-(.*?)`", '`\\1@@@\\2`', text)
-    text = re.sub(r"\-", '\-', text)
-    text = re.sub(r"\@{3}", '-', text)
+    text = re.sub(r"\n(\s*\d\.\s)", '\n\n\\1', text)
+    text = replace_all(text, r"(-)|\n[\s]*-\s|```[\D\d\s]+?```|`[\D\d\s]+?`", escapeminus)
     text = re.sub(r"=", '\=', text)
     text = re.sub(r"\|", '\|', text)
     text = re.sub(r"{", '\{', text)
@@ -118,9 +93,14 @@ ni1
 * item 2 #
 * item 3 ~
 
+1. item 1
+2. item 2
+
 sudo apt install mesa-utils # 安装
 
 ```python
+
+# comment
 print("1.1\n")_
 \subsubsection{1.1}
 ```
@@ -130,14 +110,14 @@ And simple text `with-ten`  `with+ten` + some - **symbols**. # `with-ten`里面�
 
 
 ```
-print("Hello, World!")
+print("Hello, World!") -
 ```
 
 Cxy = abs (Pxy)**2/ (Pxx*Pyy)
 
-\\begin {equation}
-\pi
-\\end {equation*}
+`a`a-b-c`n`
+
+`-a----`a-b-c`-n-`
 '''
 
 if __name__ == '__main__':
