@@ -40,11 +40,15 @@ def escapebackquote(text):
 def escapeplus(text):
     return '\\' + text
 
-def escape(text):
+def escape(text, flag=0):
     # In all other places characters
     # _ * [ ] ( ) ~ ` > # + - = | { } . !
     # must be escaped with the preceding character '\'.
+    if flag:
+        text = re.sub(r"\\\\", '@@@', text)
     text = re.sub(r"\\", r"\\\\", text)
+    if flag:
+        text = re.sub(r"\@{3}", r"\\\\", text)
     text = re.sub(r"_", '\_', text)
     text = re.sub(r"\*{2}(.*?)\*{2}", '@@@\\1@@@', text)
     text = re.sub(r"\n\*\s", '\n\n• ', text)
@@ -67,40 +71,6 @@ def escape(text):
     text = re.sub(r"```([\D\d\s]+?)```", '@@@\\1@@@', text)
     text = replace_all(text, r"(``)", escapebackquote)
     text = re.sub(r"\@{3}([\D\d\s]+?)\@{3}", '```\\1```', text)
-    text = re.sub(r"=", '\=', text)
-    text = re.sub(r"\|", '\|', text)
-    text = re.sub(r"{", '\{', text)
-    text = re.sub(r"}", '\}', text)
-    text = re.sub(r"\.", '\.', text)
-    text = re.sub(r"!", '\!', text)
-    return text
-
-def bingescape(text):
-    text = re.sub(r"\\\\", '@@@', text)
-    text = re.sub(r"\\", r"\\\\", text)
-    text = re.sub(r"\@{3}", r"\\\\", text)
-    text = re.sub(r"_", '\_', text)
-    text = re.sub(r"\*{2}(.*?)\*{2}", '@@@\\1@@@', text)
-    text = re.sub(r"\n\*\s", '\n\n• ', text)
-    text = re.sub(r"\*", '\*', text)
-    text = re.sub(r"\@{3}(.*?)\@{3}", '*\\1*', text)
-    text = re.sub(r"\!?\[(.*?)\]\((.*?)\)", '@@@\\1@@@^^^\\2^^^', text)
-    text = re.sub(r"\[", '\[', text)
-    text = re.sub(r"\]", '\]', text)
-    text = re.sub(r"\(", '\(', text)
-    text = re.sub(r"\)", '\)', text)
-    text = re.sub(r"\@{3}(.*?)\@{3}\^{3}(.*?)\^{3}", '[\\1](\\2)', text)
-    text = re.sub(r"~", '\~', text)
-    text = re.sub(r">", '\>', text)
-    text = replace_all(text, r"(^#+\s.+?$)|```[\D\d\s]+?```", escapeshape)
-    text = re.sub(r"#", '\#', text)
-    text = re.sub(r"`(.*?)\+(.*?)`", '`\\1@@@\\2`', text)
-    text = re.sub(r"\+", '\+', text)
-    text = re.sub(r"\@{3}", '+', text)
-    text = re.sub(r"\n(\s*)-\s", '\n\n\\1• ', text)
-    text = re.sub(r"`(.*?)-(.*?)`", '`\\1@@@\\2`', text)
-    text = re.sub(r"\-", '\-', text)
-    text = re.sub(r"\@{3}", '-', text)
     text = re.sub(r"=", '\=', text)
     text = re.sub(r"\|", '\|', text)
     text = re.sub(r"{", '\{', text)
