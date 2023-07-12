@@ -34,6 +34,12 @@ def escapeshape(text):
 def escapeminus(text):
     return '\\' + text
 
+def escapebackquote(text):
+    return r'\`\`'
+
+def escapeplus(text):
+    return '\\' + text
+
 def escape(text):
     # In all other places characters
     # _ * [ ] ( ) ~ ` > # + - = | { } . !
@@ -54,12 +60,16 @@ def escape(text):
     text = re.sub(r">", '\>', text)
     text = replace_all(text, r"(^#+\s.+?$)|```[\D\d\s]+?```", escapeshape)
     text = re.sub(r"#", '\#', text)
-    text = re.sub(r"`(.*?)\+(.*?)`", '`\\1@@@\\2`', text)
-    text = re.sub(r"\+", '\+', text)
-    text = re.sub(r"\@{3}", '+', text)
+    text = replace_all(text, r"(\+)|\n[\s]*-\s|```[\D\d\s]+?```|`[\D\d\s]*?`", escapeplus)
+    # text = re.sub(r"`(.*?)\+(.*?)`", '`\\1@@@\\2`', text)
+    # text = re.sub(r"\+", '\+', text)
+    # text = re.sub(r"\@{3}", '+', text)
     text = re.sub(r"\n(\s*)-\s", '\n\n\\1• ', text)
     text = re.sub(r"\n(\s*\d\.\s)", '\n\n\\1', text)
     text = replace_all(text, r"(-)|\n[\s]*-\s|```[\D\d\s]+?```|`[\D\d\s]*?`", escapeminus)
+    text = re.sub(r"```([\D\d\s]+?)```", '@@@\\1@@@', text)
+    text = replace_all(text, r"(``)", escapebackquote)
+    text = re.sub(r"\@{3}([\D\d\s]+?)\@{3}", '```\\1```', text)
     text = re.sub(r"=", '\=', text)
     text = re.sub(r"\|", '\|', text)
     text = re.sub(r"{", '\{', text)
@@ -151,7 +161,10 @@ Cxy = abs (Pxy)**2/ (Pxx*Pyy)
 
 `a`a-b-c`n`
 
-`-a----`a-b-c`-n-`
+`-a----++++`++a-b-c`-n-`
+`[^``]*`a``b-c``d``
+# pattern = r"`[^`]*`-([^`-]*)``
+w`-a----`ccccc`-n-`bbbb``a。
 '''
 
 if __name__ == '__main__':
