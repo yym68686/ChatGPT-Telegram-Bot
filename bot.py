@@ -41,6 +41,29 @@ async def en2zhtranslator(update, context):
             reply_to_message_id=update.message.message_id,
         )
 
+async def gpt4(update, context):
+    if len(context.args) > 0:
+        message = ' '.join(context.args)
+        print("\033[32m")
+        print("gpt4", message)
+        print("\033[0m")
+        if ai_bot.api4:
+            await ai_bot.getChatGPT("gpt-4", ai_bot.ChatGPT4bot, message, update, context)
+        else:
+            message = await context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text="没有传入 gpt4 api",
+                parse_mode='MarkdownV2',
+                reply_to_message_id=update.message.message_id,
+            )
+    else:
+        message = await context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="请在命令后面放入问题。",
+            parse_mode='MarkdownV2',
+            reply_to_message_id=update.message.message_id,
+        )
+
 async def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
     await context.bot.send_message(chat_id=update.message.chat_id, text="出错啦！请重试。", parse_mode='MarkdownV2')
@@ -52,6 +75,7 @@ def setup(token):
     application = ApplicationBuilder().read_timeout(10).connection_pool_size(50000).pool_timeout(1200.0).token(token).build()
     
     run_async(application.bot.set_my_commands([
+        BotCommand('gpt4', 'use gpt4'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
         BotCommand('en2zh', 'translate English to Chinese'),
@@ -62,6 +86,7 @@ def setup(token):
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", ai_bot.reset_chat))
+    application.add_handler(CommandHandler("gpt4", gpt4))
     application.add_handler(CommandHandler("en2zh", ai_bot.en2zhtranslator))
     application.add_handler(CommandHandler("creative_bing", ai_bot.creative_bing))
     application.add_handler(CommandHandler("balanced_bing", ai_bot.balanced_bing))

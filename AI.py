@@ -3,7 +3,7 @@ import json
 import threading
 from md2tgmd import escape
 from runasync import run_async
-from config import API, NICK, COOKIES
+from config import API, NICK, COOKIES, API4
 from revChatGPT.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
 from EdgeGPT.EdgeGPT import Chatbot as BingAI, ConversationStyle
@@ -22,9 +22,14 @@ class AIBot:
                 print("error", e)
                 print('\033[0m')
                 self.bingcookie = None
+        
+        self.systemprompt = "You are ChatGPT, a large language model trained by OpenAI. Knowledge cutoff: 2021-09. Current date: [ Current Date ]"
         self.api = API
+        self.api4 = API4
         if self.api:
             self.ChatGPTbot = GPT(api_key=f"{self.api}")
+        if self.api4:
+            self.ChatGPT4bot = GPT(api_key=f"{self.api4}", engine="gpt-4-0613")
 
         self.botNick = NICK.lower() if NICK else None
         self.botNicKLength = len(self.botNick) if self.botNick else 0
@@ -68,18 +73,19 @@ class AIBot:
             numMessages = result["item"]["throttling"]["numUserMessagesInConversation"]
             maxNumMessages = result["item"]["throttling"]["maxNumUserMessagesInConversation"]
             message = text
-            try:
-                test_str = result["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"].split("\n\n")[0]
-                matches = re.findall(r":\s(.*?)\s|\"(.*?)\"", test_str)
-                learnmoretext = ""
-                if "[1]:" in test_str:
-                    learnmoretext = "Learn more: "
-                for index in range(0, len(matches), 2):
-                    learnmoretext += f"[{int(index / 2 + 1)}. {matches[index+1][1]}]({matches[index][0]})" + "   "
-                print(learnmoretext)
-            except:
-                learnmoretext = ""
-            result = f"`🤖️ Bing {numMessages} / {maxNumMessages} `\n\n" + message + "\n\n" + learnmoretext
+            # try:
+            #     test_str = result["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"].split("\n\n")[0]
+            #     matches = re.findall(r":\s(.*?)\s|\"(.*?)\"", test_str)
+            #     learnmoretext = ""
+            #     if "[1]:" in test_str:
+            #         learnmoretext = "Learn more: "
+            #     for index in range(0, len(matches), 2):
+            #         learnmoretext += f"[{int(index / 2 + 1)}. {matches[index+1][1]}]({matches[index][0]})" + "   "
+            #     print(learnmoretext)
+            # except:
+            #     learnmoretext = ""
+            # result = f"`🤖️ Bing {numMessages} / {maxNumMessages} `\n\n" + message + "\n\n" + learnmoretext
+            result = f"`🤖️ Bing {numMessages} / {maxNumMessages} `\n\n" + message
             if lastresult != result:
                 await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result, 1), parse_mode='MarkdownV2', disable_web_page_preview=True)
             print(modifytime, result)
@@ -125,8 +131,8 @@ class AIBot:
     async def resetBing(self):
         await self.Bingbot.reset()
     
-    async def getChatGPT(self, message, update, context):
-        result = "`🤖️ GPT3.5`\n\n"
+    async def getChatGPT(self, title, robot, message, update, context):
+        result = f"`🤖️ {title}`\n\n"
         text = message
         modifytime = 0
         lastresult = ''
@@ -138,7 +144,7 @@ class AIBot:
         )
         messageid = message.message_id
         try:
-            for data in self.ChatGPTbot.ask_stream(text, convo_id=str(update.message.chat_id)):
+            for data in robot.ask_stream(text, convo_id=str(update.message.chat_id)):
                 result = result + data
                 tmpresult = result
                 modifytime = modifytime + 1
@@ -155,7 +161,7 @@ class AIBot:
             print("error", e)
             print('\033[0m')
             if self.api:
-                self.ChatGPTbot.reset()
+                robot.reset(convo_id=str(update.message.chat_id), system_prompt=self.systemprompt)
             if "You exceeded your current quota, please check your plan and billing details." in str(e):
                 print("OpenAI api 已过期！")
                 await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
@@ -174,11 +180,13 @@ class AIBot:
             _thread = threading.Thread(target=run_async, args=(self.getBing(chat_content, update, context),))
             _thread.start()
         if self.api and chat_content:
-            await self.getChatGPT(chat_content, update, context)
+            await self.getChatGPT("gpt-3.5", self.ChatGPTbot, chat_content, update, context)
 
     async def reset_chat(self, update, context):
         if self.api:
-            self.ChatGPTbot.reset()
+            self.ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=self.systemprompt)
+        if self.api4:
+            self.ChatGPT4bot.reset(convo_id=str(update.message.chat_id), system_prompt=self.systemprompt)
         if self.bingcookie:
             await self.resetBing()
         await context.bot.send_message(
@@ -202,4 +210,4 @@ class AIBot:
         prompt = "I want you to act as a simplified chinese translator. I will speak to you in any language and you will detect the language, translate it and answer in the corrected and improved version of my text, in simplified Chinese. Keep the meaning same, but make them more literary. I want you to only reply the correction, the improvements and nothing else, do not write explanations. My first sentence is \""
         chat_content = prompt + message + '"'
         if self.api and message:
-            await self.getChatGPT(chat_content, update, context)
+            await self.getChatGPT("gpt-3.5", self.ChatGPTbot, chat_content, update, context)
