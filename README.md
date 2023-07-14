@@ -32,7 +32,8 @@ pip install -r requirements.txt --index-url https://pypi.python.org/simple/ > /d
 
 - BOT_TOKEN: 你需要在 [BotFather](https://t.me/BotFather) 创建一个 bot 以获取 BOT_TOKEN
 - WEB_HOOK: 在 Replit 会自动分配一个域名给你，填入 `https://appname.username.repl.co`
-- API: openai 的 api key.
+- API: openai 的 api key。
+- API4: openai gpt4 的 api key。
 - API_URL: 调用 api 的地址，默认是：https://api.openai.com/v1/chat/completions
 - GPT_ENGINE：模型名字，默认是 `gpt-3.5-turbo`
 - COOKIES: bing.com 的 cookies。可以用 [Cookie-Editor](https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm) 点击链接安装插件，点导出会自动复制到剪贴板。有效期两周，一个对话有 20 次提问，过期后每个对话提问次数限制在 5 次。
