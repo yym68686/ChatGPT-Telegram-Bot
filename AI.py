@@ -138,7 +138,7 @@ class AIBot:
         )
         messageid = message.message_id
         try:
-            for data in self.ChatGPTbot.ask_stream(text):
+            for data in self.ChatGPTbot.ask_stream(text, convo_id=str(update.message.chat_id)):
                 result = result + data
                 tmpresult = result
                 modifytime = modifytime + 1
