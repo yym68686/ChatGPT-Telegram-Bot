@@ -4,9 +4,9 @@
 
 ✅ 同时集成 ChatGPT 和 New Bing
 
-✅ 异步处理消息，多线程回答问题
+✅ 异步处理消息，多线程回答问题，支持对话隔离，不同用户不同对话
 
-✅ 支持消息 Markdown 渲染
+✅ 支持精准的消息 Markdown 渲染，用的是我的另一个[项目](https://github.com/yym68686/md2tgmd)
 
 ✅ 同时支持 ChatGPT 和 New Bing 流式输出，实现打字机效果
 
