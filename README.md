@@ -25,7 +25,7 @@
 导入 Github 仓库后，设置运行命令
 
 ```bash
-pip install -r requirements.txt --index-url https://pypi.python.org/simple/ > /dev/null && python3 app/main.py
+pip install -r requirements.txt --index-url https://pypi.python.org/simple/ > /dev/null && python3 main.py
 ```
 
 在左边栏 Tools 里面选择 Secrets，添加机器人需要的环境变量，一共四个：
