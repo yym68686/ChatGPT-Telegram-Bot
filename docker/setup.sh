@@ -5,6 +5,6 @@ cd ChatGPT-Telegram-Bot
 pip install -r /home/ChatGPT-Telegram-Bot/requirements.txt > /dev/null
 echo "python env downloaded..." >> /home/log 2>&1
 touch /home/log
-nohup python -u /home/ChatGPT-Telegram-Bot/webhook.py >> /home/log 2>&1 &
+nohup python -u /home/ChatGPT-Telegram-Bot/app/main.py >> /home/log 2>&1 &
 echo "web is starting..." >> /home/log 2>&1
 tail -f /home/log
