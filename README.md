@@ -34,7 +34,6 @@ pip install -r requirements.txt --index-url https://pypi.python.org/simple/ > /d
 - API4: openai gpt4 的 api key。
 - API_URL: 调用 api 的地址，默认是：https://api.openai.com/v1/chat/completions
 - GPT_ENGINE：模型名字，默认是 `gpt-3.5-turbo`
-<!-- - COOKIES: bing.com 的 cookies。可以用 [Cookie-Editor](https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm) 点击链接安装插件，点导出会自动复制到剪贴板。有效期两周，一个对话有 20 次提问，过期后每个对话提问次数限制在 5 次。 -->
 - NICK: 可选，默认为空，NICK 是机器人的名字。当用户输入消息以 NICK 开头，机器人才会回答，否则机器人会回答任何消息。尤其在群聊里，没有 NICK，机器人会对所有消息进行回复。
 
 点击屏幕上方的 run，即可运行机器人。记得打开 Always On。
@@ -135,8 +134,6 @@ services:
 https://core.telegram.org/bots/api
 
 https://github.com/acheong08/ChatGPT
-
-<!-- [acheong08/EdgeGPT: Reverse engineered API of Microsoft&#39;s Bing Chat AI (github.com)](https://github.com/acheong08/EdgeGPT) -->
 
 https://github.com/franalgaba/chatgpt-telegram-bot-serverless
 
