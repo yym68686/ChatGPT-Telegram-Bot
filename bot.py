@@ -20,7 +20,7 @@ async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
     message = (
         "我是人见人爱的 ChatGPT~\n\n"
-        "欢迎访问 https://github.com/yym68686/ChatGPT-Telegram-Bot 查看源码\n\n"
+        "欢迎访问 https://github.com/yym68686/ChatGPT-Bing-Telegram-Bot 查看源码\n\n"
         "有 bug 可以联系 @yym68686"
     )
     await update.message.reply_html(rf"Hi {user.mention_html()} ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",)
