@@ -16,7 +16,7 @@
 
 ✅ 支持 docker，fly.io 部署
 
-## Zeabur 远程部署
+## Zeabur 远程部署 (推荐)
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/R5JY5O?referralCode=yym68686)
 
