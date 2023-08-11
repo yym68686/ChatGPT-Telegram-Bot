@@ -20,6 +20,7 @@
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/R5JY5O?referralCode=yym68686)
 
+设置好域名和环境变量后，重新部署即可。
 
 ## Replit 远程部署
 
