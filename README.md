@@ -16,6 +16,11 @@
 
 ✅ 支持 docker，fly.io 部署
 
+## Zeabur 远程部署
+
+[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/R5JY5O?referralCode=yym68686)
+
+
 ## Replit 远程部署
 
 [![Run on Repl.it](https://replit.com/badge/github/yym68686/ChatGPT-Telegram-Bot)](https://replit.com/new/github/yym68686/ChatGPT-Telegram-Bot)
