@@ -1,5 +1,8 @@
 import telegram
 import threading
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from bot import setup
 from urllib import parse
 from waitress import serve
