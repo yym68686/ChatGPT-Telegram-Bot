@@ -36,7 +36,7 @@ async def en2zhtranslator(update, context):
         prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to simplified chinese, please do not explain any sentences, just translate or leave them as they are.: "
         message = prompt + message
         if ai_bot.api and message:
-            await ai_bot.getChatGPT("", ai_bot.ChatGPTbot, message, update, context)
+            await ai_bot.getChatGPT("gpt-3.5", ai_bot.ChatGPTbot, message, update, context)
     else:
         message = await context.bot.send_message(
             chat_id=update.message.chat_id,
