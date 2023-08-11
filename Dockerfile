@@ -1,3 +1,6 @@
+# docker build --no-cache -t chatgpt:1.0 --platform linux/amd64 .
+# docker tag chatgpt:1.0 yym68686/chatgpt:1.0
+# docker push yym68686/chatgpt:1.0
 FROM python:3.9.15-slim-bullseye
 WORKDIR /home
 EXPOSE 8080
