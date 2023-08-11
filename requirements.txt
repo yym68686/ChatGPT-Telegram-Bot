@@ -1,5 +1,4 @@
 pytz
-EdgeGPT
 waitress
 flask[async]
 revChatGPT
