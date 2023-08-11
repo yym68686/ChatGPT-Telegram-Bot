@@ -32,7 +32,11 @@ async def en2zhtranslator(update, context):
         print("\033[32m")
         print("en2zh", message)
         print("\033[0m")
-        ai_bot.en2zhtranslator(message, update, context)
+
+        prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to simplified chinese, please do not explain any sentences, just translate or leave them as they are.: "
+        message = prompt + message
+        if ai_bot.api and message:
+            await ai_bot.getChatGPT("", ai_bot.ChatGPTbot, message, update, context)
     else:
         message = await context.bot.send_message(
             chat_id=update.message.chat_id,
@@ -47,15 +51,9 @@ async def gpt4(update, context):
         print("\033[32m")
         print("gpt4", message)
         print("\033[0m")
+
         if ai_bot.api4:
             await ai_bot.getChatGPT("gpt-4", ai_bot.ChatGPT4bot, message, update, context)
-        else:
-            message = await context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text="没有传入 gpt4 api",
-                parse_mode='MarkdownV2',
-                reply_to_message_id=update.message.message_id,
-            )
     else:
         message = await context.bot.send_message(
             chat_id=update.message.chat_id,
@@ -84,7 +82,7 @@ def setup(token):
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", ai_bot.reset_chat))
     application.add_handler(CommandHandler("gpt4", gpt4))
-    application.add_handler(CommandHandler("en2zh", ai_bot.en2zhtranslator))
+    application.add_handler(CommandHandler("en2zh", en2zhtranslator))
     application.add_handler(MessageHandler(filters.TEXT, ai_bot.getResult))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
