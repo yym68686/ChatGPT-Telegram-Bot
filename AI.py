@@ -19,7 +19,7 @@ class AIBot:
         print("nick:", self.botNick)
     
     async def getChatGPT(self, title, robot, message, update, context):
-        result = f"`🤖️ {title}`\n\n"
+        result = title
         text = message
         modifytime = 0
         lastresult = ''
@@ -64,7 +64,7 @@ class AIBot:
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         chat_content = update.message.text if NICK is None else update.message.text[self.botNicKLength:].strip() if update.message.text[:self.botNicKLength].lower() == self.botNick else None
         if self.api and chat_content:
-            await self.getChatGPT("gpt-3.5", self.ChatGPTbot, chat_content, update, context)
+            await self.getChatGPT("`🤖️ gpt-3.5`\n\n", self.ChatGPTbot, chat_content, update, context)
 
     async def reset_chat(self, update, context):
         if self.api:
@@ -80,4 +80,4 @@ class AIBot:
         prompt = "I want you to act as a simplified chinese translator. I will speak to you in any language and you will detect the language, translate it and answer in the corrected and improved version of my text, in simplified Chinese. Keep the meaning same, but make them more literary. I want you to only reply the correction, the improvements and nothing else, do not write explanations. My first sentence is \""
         chat_content = prompt + message + '"'
         if self.api and message:
-            await self.getChatGPT("gpt-3.5", self.ChatGPTbot, chat_content, update, context)
+            await self.getChatGPT("`🤖️ gpt-3.5`\n\n", self.ChatGPTbot, chat_content, update, context)
