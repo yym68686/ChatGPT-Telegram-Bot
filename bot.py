@@ -30,9 +30,7 @@ translator_prompt = "You are a translation engine, you can only translate text a
 async def command_bot(update, context, language="simplified chinese", prompt=translator_prompt, title="", robot=ai_bot.ChatGPTbot):
     if len(context.args) > 0:
         message = ' '.join(context.args)
-        print("\033[32m")
-        print("en2zh", message)
-        print("\033[0m")
+        print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         if prompt:
             prompt = prompt.format(language)
             message = prompt + message
