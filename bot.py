@@ -26,17 +26,17 @@ async def start(update, context): # 当用户输入/start时，返回文本
     await update.message.reply_html(rf"Hi {user.mention_html()} ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",)
     await update.message.reply_text(escape(message), parse_mode='MarkdownV2')
 
-async def en2zhtranslator(update, context):
+async def translator(update, context, language):
     if len(context.args) > 0:
         message = ' '.join(context.args)
         print("\033[32m")
         print("en2zh", message)
         print("\033[0m")
 
-        prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to simplified chinese, please do not explain any sentences, just translate or leave them as they are.: "
+        prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are.: ".format(language)
         message = prompt + message
         if ai_bot.api and message:
-            await ai_bot.getChatGPT("`🤖️ gpt-3.5`\n\n", ai_bot.ChatGPTbot, message, update, context)
+            await ai_bot.getChatGPT("", ai_bot.ChatGPTbot, message, update, context)
     else:
         message = await context.bot.send_message(
             chat_id=update.message.chat_id,
@@ -82,7 +82,7 @@ def setup(token):
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", ai_bot.reset_chat))
     application.add_handler(CommandHandler("gpt4", gpt4))
-    application.add_handler(CommandHandler("en2zh", en2zhtranslator))
+    application.add_handler(CommandHandler("en2zh", translator("simplified chinese")))
     application.add_handler(MessageHandler(filters.TEXT, ai_bot.getResult))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
