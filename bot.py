@@ -26,38 +26,22 @@ async def start(update, context): # 当用户输入/start时，返回文本
     await update.message.reply_html(rf"Hi {user.mention_html()} ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",)
     await update.message.reply_text(escape(message), parse_mode='MarkdownV2')
 
-async def translator(update, context, language):
+translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are.: "
+async def command_bot(update, context, language="simplified chinese", prompt=translator_prompt, title="", robot=ai_bot.ChatGPTbot):
     if len(context.args) > 0:
         message = ' '.join(context.args)
         print("\033[32m")
         print("en2zh", message)
         print("\033[0m")
-
-        prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are.: ".format(language)
-        message = prompt + message
+        if prompt:
+            prompt = prompt.format(language)
+            message = prompt + message
         if ai_bot.api and message:
-            await ai_bot.getChatGPT("", ai_bot.ChatGPTbot, message, update, context)
+            await ai_bot.getChatGPT(title, robot, message, update, context)
     else:
         message = await context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="请在命令后面放入要翻译的文本。",
-            parse_mode='MarkdownV2',
-            reply_to_message_id=update.message.message_id,
-        )
-
-async def gpt4(update, context):
-    if len(context.args) > 0:
-        message = ' '.join(context.args)
-        print("\033[32m")
-        print("gpt4", message)
-        print("\033[0m")
-
-        if ai_bot.api4:
-            await ai_bot.getChatGPT("`🤖️ gpt-4`\n\n", ai_bot.ChatGPT4bot, message, update, context)
-    else:
-        message = await context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="请在命令后面放入问题。",
+            text="请在命令后面放入文本。",
             parse_mode='MarkdownV2',
             reply_to_message_id=update.message.message_id,
         )
@@ -76,13 +60,15 @@ def setup(token):
         BotCommand('gpt4', 'use gpt4'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
-        BotCommand('en2zh', 'translate English to Chinese'),
+        BotCommand('en2zh', 'translate to Chinese'),
+        BotCommand('zh2en', 'translate to English'),
     ]))
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", ai_bot.reset_chat))
-    application.add_handler(CommandHandler("gpt4", gpt4))
-    application.add_handler(CommandHandler("en2zh", lambda update, context: translator(update, context, "simplified chinese")))
+    application.add_handler(CommandHandler("en2zh", command_bot))
+    application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english")))
+    application.add_handler(CommandHandler("gpt4", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-4`\n\n", robot=ai_bot.ChatGPT4bot)))
     application.add_handler(MessageHandler(filters.TEXT, ai_bot.getResult))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
