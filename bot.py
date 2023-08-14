@@ -82,7 +82,7 @@ def setup(token):
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", ai_bot.reset_chat))
     application.add_handler(CommandHandler("gpt4", gpt4))
-    application.add_handler(CommandHandler("en2zh", translator, pass_args=True, pass_chat_data=True, args=("simplified chinese",))
+    application.add_handler(CommandHandler("en2zh", translator, pass_args=True, pass_chat_data=True, args=("simplified chinese",)))
     application.add_handler(MessageHandler(filters.TEXT, ai_bot.getResult))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
