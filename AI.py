@@ -75,9 +75,3 @@ class AIBot:
             chat_id=update.message.chat_id,
             text="重置成功！",
         )
-
-    async def en2zhtranslator(self, message, update, context):
-        prompt = "I want you to act as a simplified chinese translator. I will speak to you in any language and you will detect the language, translate it and answer in the corrected and improved version of my text, in simplified Chinese. Keep the meaning same, but make them more literary. I want you to only reply the correction, the improvements and nothing else, do not write explanations. My first sentence is \""
-        chat_content = prompt + message + '"'
-        if self.api and message:
-            await self.getChatGPT("`🤖️ gpt-3.5`\n\n", self.ChatGPTbot, chat_content, update, context)
