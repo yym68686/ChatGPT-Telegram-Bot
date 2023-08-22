@@ -1,6 +1,6 @@
 import re
 from md2tgmd import escape
-from config import API, NICK, API4
+from config import API, NICK, API4, PASS_HISTORY
 from revChatGPT.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
 
@@ -31,7 +31,7 @@ class AIBot:
         )
         messageid = message.message_id
         try:
-            for data in robot.ask_stream(text, convo_id=str(update.message.chat_id)):
+            for data in robot.ask_stream(text, convo_id=str(update.message.chat_id), pass_history=PASS_HISTORY):
                 result = result + data
                 tmpresult = result
                 modifytime = modifytime + 1
