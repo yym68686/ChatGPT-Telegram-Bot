@@ -41,6 +41,7 @@ pip install -r requirements.txt --index-url https://pypi.python.org/simple/ > /d
 - API_URL: 调用 api 的地址，默认是：https://api.openai.com/v1/chat/completions
 - GPT_ENGINE：模型名字，默认是 `gpt-3.5-turbo`
 - NICK: 可选，默认为空，NICK 是机器人的名字。当用户输入消息以 NICK 开头，机器人才会回答，否则机器人会回答任何消息。尤其在群聊里，没有 NICK，机器人会对所有消息进行回复。
+- PASS_HISTORY: 可选，默认为真，表示机器人会记住对话历史，下次回复时会考虑上下文。如果设置为假，机器人会忘记对话历史，只考虑当前对话。
 
 点击屏幕上方的 run，即可运行机器人。记得打开 Always On。
 
