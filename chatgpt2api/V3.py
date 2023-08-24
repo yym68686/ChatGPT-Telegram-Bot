@@ -232,7 +232,7 @@ class Chatbot:
             headers=headers,
             json={
                 "model": os.environ.get("MODEL_NAME") or model or self.engine,
-                "messages": self.conversation[convo_id] if pass_history else [{"role": role, "content": prompt}],
+                "messages": self.conversation[convo_id] if pass_history else [{"role": "system","content": self.system_prompt},{"role": role, "content": prompt}],
                 "stream": True,
                 # kwargs
                 "temperature": kwargs.get("temperature", self.temperature),
@@ -307,7 +307,7 @@ class Chatbot:
             headers={"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"},
             json={
                 "model": model or self.engine,
-                "messages": self.conversation[convo_id] if pass_history else [{"role": role, "content": prompt}],
+                "messages": self.conversation[convo_id] if pass_history else [{"role": "system","content": self.system_prompt},{"role": role, "content": prompt}],
                 "stream": True,
                 # kwargs
                 "temperature": kwargs.get("temperature", self.temperature),
