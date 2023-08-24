@@ -80,6 +80,8 @@ class Chatbot:
             if "gpt-4" in engine
             else 15000
             if "gpt-3.5-turbo-16k" in engine
+            else 99000
+            if "claude-2-web" in engine
             else 4000
         )
         self.truncate_limit: int = truncate_limit or (
@@ -89,6 +91,8 @@ class Chatbot:
             if "gpt-4" in engine
             else 14500
             if "gpt-3.5-turbo-16k" in engine
+            else 98500
+            if "claude-2-web" in engine
             else 3500
         )
         self.temperature: float = temperature
