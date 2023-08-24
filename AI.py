@@ -8,6 +8,7 @@ api = API
 api4 = API4
 if api:
     ChatGPTbot = GPT(api_key=f"{api}")
+    Claude2bot = GPT(api_key=f"{api}", engine="claude-2-web")
 if api4:
     ChatGPT4bot = GPT(api_key=f"{api4}", engine="gpt-4-0613")
     

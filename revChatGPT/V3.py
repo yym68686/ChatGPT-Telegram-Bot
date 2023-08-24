@@ -43,6 +43,7 @@ ENGINES = [
     "gpt-4-32k-0314",
     "gpt-4-0613",
     "gpt-4-32k-0613",
+    "claude-2-web",
 ]
 
 
@@ -167,6 +168,7 @@ class Chatbot:
                 f"Engine {self.engine} is not supported. Select from {ENGINES}",
             )
         tiktoken.model.MODEL_TO_ENCODING["gpt-4"] = "cl100k_base"
+        tiktoken.model.MODEL_TO_ENCODING["claude-2-web"] = "cl100k_base"
 
         encoding = tiktoken.encoding_for_model(self.engine)
 

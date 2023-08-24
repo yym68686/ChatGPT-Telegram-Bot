@@ -6,7 +6,7 @@ from telegram import BotCommand
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters
 from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY
 from telegram.constants import ChatAction
-from AI import getChatGPT, reset_chat, ChatGPTbot, ChatGPT4bot, api, api4
+from AI import getChatGPT, reset_chat, ChatGPTbot, ChatGPT4bot, Claude2bot, api, api4
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
@@ -70,6 +70,7 @@ def setup(token):
     
     run_async(application.bot.set_my_commands([
         BotCommand('gpt4', 'use gpt4'),
+        BotCommand('claude2', 'use claude2'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
         BotCommand('en2zh', 'translate to Chinese'),
@@ -82,6 +83,7 @@ def setup(token):
     application.add_handler(CommandHandler("en2zh", command_bot))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english")))
     application.add_handler(CommandHandler("gpt4", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-4`\n\n", robot=ChatGPT4bot)))
+    application.add_handler(CommandHandler("claude2", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ claude2`\n\n", robot=Claude2bot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-3.5`\n\n", robot=ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))

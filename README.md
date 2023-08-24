@@ -134,6 +134,14 @@ services:
       - 80:8080
 ```
 
+仓库打包 Docker 镜像
+
+```bash
+docker build --no-cache -t chatgpt:1.0 --platform linux/amd64 .
+docker tag chatgpt:1.0 yym68686/chatgpt:1.0
+docker push yym68686/chatgpt:1.0
+```
+
 ## Reference
 
 参考项目：
