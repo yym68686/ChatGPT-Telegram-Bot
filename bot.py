@@ -5,9 +5,9 @@ from md2tgmd import escape
 from runasync import run_async
 from telegram import BotCommand
 from revChatGPT.V3 import Chatbot as GPT
-from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters
-from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY
 from telegram.constants import ChatAction
+from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY
+from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
@@ -82,7 +82,7 @@ async def getChatGPT(title, robot, message, update, context):
     messageid = message.message_id
     try:
         for data in robot.ask_stream(text, convo_id=str(update.message.chat_id), pass_history=PASS_HISTORY):
-            if data[0] == ' ': # claude-2-web bug fix
+            if len(data) > 1 and data[0] == ' ': # claude-2-web bug fix
                 data = data[1:]
             result = result + data
             tmpresult = result
