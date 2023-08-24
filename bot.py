@@ -109,6 +109,8 @@ async def getChatGPT(title, robot, message, update, context):
         result += f"`出错啦！{e}`"
     print(result)
     if lastresult != result and messageid:
+        if 'claude2' in title:
+            result = re.sub(r",", '，', result)
         await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
 
 
