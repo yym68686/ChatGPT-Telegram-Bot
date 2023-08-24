@@ -4,7 +4,7 @@ import logging
 from md2tgmd import escape
 from runasync import run_async
 from telegram import BotCommand
-from revChatGPT.V3 import Chatbot as GPT
+from chatgpt2api.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
 from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters
@@ -90,7 +90,7 @@ async def getChatGPT(title, robot, message, update, context):
             if result.count("```") % 2 != 0:
                 tmpresult = result + "\n```"
             if modifytime % 12 == 0 and lastresult != tmpresult:
-                if title == 'claude2':
+                if 'claude2' in title:
                     tmpresult = re.sub(r",", '，', tmpresult)
                 await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
                 lastresult = tmpresult
