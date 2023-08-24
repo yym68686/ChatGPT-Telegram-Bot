@@ -2,6 +2,7 @@ import re
 import os
 import logging
 from md2tgmd import escape
+from datetime import datetime
 from runasync import run_async
 from telegram import BotCommand
 from chatgpt2api.V3 import Chatbot as GPT
@@ -12,11 +13,15 @@ from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, fil
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 
+current_date = datetime.now()
+Current_Date = current_date.strftime("%Y-%m-%d")
+systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]"
+
 if API:
-    ChatGPTbot = GPT(api_key=f"{API}")
+    ChatGPTbot = GPT(api_key=f"{API}", system_prompt=systemprompt)
     Claude2bot = GPT(api_key=f"{API}", engine="claude-2-web")
 if API4:
-    ChatGPT4bot = GPT(api_key=f"{API4}", engine="gpt-4-0613")
+    ChatGPT4bot = GPT(api_key=f"{API4}", engine="gpt-4-0613", system_prompt=systemprompt)
 
 botNick = NICK.lower() if NICK else None
 botNicKLength = len(botNick) if botNick else 0
@@ -67,7 +72,6 @@ async def reset_chat(update, context):
         text="重置成功！",
     )
 
-systemprompt = "You are ChatGPT, a large language model trained by OpenAI. Knowledge cutoff: 2021-09. Current date: [ Current Date ]"
 async def getChatGPT(title, robot, message, update, context):
     result = title
     text = message
