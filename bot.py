@@ -31,6 +31,8 @@ async def command_bot(update, context, language="simplified chinese", prompt=tra
         if prompt:
             prompt = prompt.format(language)
             message = prompt + message
+        global API
+        global API4
         if (API or API4) and message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
             await getChatGPT(title, robot, message, update, context)
@@ -99,6 +101,8 @@ async def getChatGPT(title, robot, message, update, context):
         print("response_msg", result)
         print("error", e)
         print('\033[0m')
+        global API
+        global API4
         if API:
             robot.reset(convo_id=str(update.message.chat_id), system_prompt=systemprompt)
         if "You exceeded your current quota, please check your plan and billing details." in str(e):
