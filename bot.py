@@ -82,8 +82,6 @@ async def getChatGPT(title, robot, message, update, context):
     messageid = message.message_id
     try:
         for data in robot.ask_stream(text, convo_id=str(update.message.chat_id), pass_history=PASS_HISTORY):
-            if len(data) > 1 and data[0] == ' ': # claude-2-web bug fix
-                data = data[1:]
             result = result + data
             tmpresult = result
             modifytime = modifytime + 1
@@ -101,8 +99,6 @@ async def getChatGPT(title, robot, message, update, context):
         print("response_msg", result)
         print("error", e)
         print('\033[0m')
-        global API
-        global API4
         if API:
             robot.reset(convo_id=str(update.message.chat_id), system_prompt=systemprompt)
         if "You exceeded your current quota, please check your plan and billing details." in str(e):
