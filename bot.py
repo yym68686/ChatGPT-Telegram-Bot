@@ -100,7 +100,7 @@ async def getChatGPT(title, robot, message, update, context):
                 tmpresult = result + "`"
             if result.count("```") % 2 != 0:
                 tmpresult = result + "\n```"
-            if modifytime % 12 == 0 and lastresult != tmpresult:
+            if modifytime % 20 == 0 and lastresult != tmpresult:
                 if 'claude2' in title:
                     tmpresult = re.sub(r",", '，', tmpresult)
                 await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
