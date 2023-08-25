@@ -14,7 +14,7 @@ from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperatu
 # from langchain.agents import get_all_tool_names
 # print(get_all_tool_names())
 
-def duckduckgo_search(searchtext, model="gpt-3.5-turbo", temperature=0.5):
+def duckduckgo_search(searchtext, model="gpt-3.5-turbo", temperature=0):
     llm = ChatOpenAI(temperature=temperature, openai_api_base='https://api.ohmygpt.com/v1/', model_name=model, openai_api_key=API)
     tools = load_tools(["ddg-search", "llm-math"], llm=llm)
     agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION)

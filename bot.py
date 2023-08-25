@@ -14,6 +14,11 @@ from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, fil
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 
+# 获取 httpx 的 logger
+httpx_logger = logging.getLogger("httpx")
+# 设置 httpx 的日志级别为 WARNING
+httpx_logger.setLevel(logging.WARNING)
+
 current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]"
@@ -138,6 +143,7 @@ async def search(update, context):
         if API and message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
             message = duckduckgo_search(message)
+            print(message)
             await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
     else:
         message = await context.bot.send_message(

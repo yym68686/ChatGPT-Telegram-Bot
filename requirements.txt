@@ -2,9 +2,9 @@ tiktoken
 requests
 waitress
 flask[async]
-python-telegram-bot==20.2
+python-telegram-bot==20.4
 
 # langchain
 openai
-duckduckgo-search
+duckduckgo-search==3.8.5
 langchain==0.0.271
