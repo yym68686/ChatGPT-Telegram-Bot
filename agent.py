@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
     # 搜索
     # print(getweibo("今天是几号? 今天微博的热搜话题有哪些？"))
-    print(duckduckgo_search("凡凡还有多久出狱？"))
+    # print(duckduckgo_search("凡凡还有多久出狱？"))
 
     # 问答
     # result = docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？", get_doc_from_local)
@@ -157,8 +157,8 @@ if __name__ == "__main__":
     source_url = set([i.metadata['source'] for i in result["source_documents"]])
     source_url = "\n".join(source_url)
     message = (
-        f"{result['result']}\n",
-        f"参考链接：\n",
-        f"{source_url}",
+        f"{result['result']}\n"
+        f"参考链接：\n\n"
+        f"{source_url}"
     )
     print(message)

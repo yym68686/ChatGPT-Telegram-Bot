@@ -6,6 +6,8 @@ python-telegram-bot==20.4
 
 # langchain
 openai
+chromadb
 wikipedia
+unstructured[md]
 duckduckgo-search==3.8.5
 langchain==0.0.271

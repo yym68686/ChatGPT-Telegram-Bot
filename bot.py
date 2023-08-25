@@ -1,7 +1,6 @@
 import re
 import os
 import logging
-import decorators
 from md2tgmd import escape
 from datetime import datetime
 from runasync import run_async
@@ -153,17 +152,27 @@ async def search(update, context):
             reply_to_message_id=update.message.message_id,
         )
 
-@decorators.check_qa_Number_of_parameters
 async def qa(update, context):
+    if (len(context.args) != 2):
+        message = (
+            f"格式错误哦~，需要两个参数，注意sitemap.xml、问题之间的空格\n\n"
+            f"请输入 `/qa sitemap.xml链接 要问的问题`\n\n"
+            f"例如`sitemap.xml`链接为 https://abc.com/sitemap.xml，问题是 蘑菇怎么分类？\n\n"
+            f"则输入 `/qa https://abc.com/sitemap.xml 蘑菇怎么分类？`\n\n"
+            f"问题务必不能有空格，👆点击上方命令复制格式\n\n"
+        )
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2')
+        return
     print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
     await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-    result = docQA(context.args[0], context.args[1], get_doc_from_sitemap)
+    # result = docQA(context.args[0], context.args[1], get_doc_from_sitemap)
+    result = docQA(context.args[0], context.args[1], get_doc_from_local)
     source_url = set([i.metadata['source'] for i in result["source_documents"]])
     source_url = "\n".join(source_url)
     message = (
-        f"{result['result']}\n",
-        f"参考链接：\n",
-        f"{source_url}",
+        f"{result['result']}\n"
+        f"参考链接：\n\n"
+        f"{source_url}"
     )
     print(message)
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
