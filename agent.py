@@ -14,7 +14,7 @@ from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperatu
 # from langchain.agents import get_all_tool_names
 # print(get_all_tool_names())
 
-def duckduckgo_search(searchtext, model="gpt-3.5-turbo", temperature=0):
+def duckduckgo_search(searchtext, model="gpt-3.5-turbo", temperature=0.5):
     try:
         translate_prompt = PromptTemplate(
             input_variables=["targetlang", "text"],
