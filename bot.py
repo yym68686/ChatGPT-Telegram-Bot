@@ -1,11 +1,12 @@
 import re
 import os
 import logging
+import decorators
 from md2tgmd import escape
 from datetime import datetime
 from runasync import run_async
 from telegram import BotCommand
-from agent import duckduckgo_search
+from agent import duckduckgo_search, docQA, get_doc_from_sitemap, get_doc_from_local
 from chatgpt2api.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
 from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature
@@ -139,8 +140,7 @@ async def search(update, context):
         message = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
         message = ' '.join(context.args)
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
-        global API
-        if API and message:
+        if message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
             message = duckduckgo_search(message)
             print(message)
@@ -152,6 +152,21 @@ async def search(update, context):
             parse_mode='MarkdownV2',
             reply_to_message_id=update.message.message_id,
         )
+
+@decorators.check_qa_Number_of_parameters
+async def qa(update, context):
+    print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
+    await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
+    result = docQA(context.args[0], context.args[1], get_doc_from_sitemap)
+    source_url = set([i.metadata['source'] for i in result["source_documents"]])
+    source_url = "\n".join(source_url)
+    message = (
+        f"{result['result']}\n",
+        f"参考链接：\n",
+        f"{source_url}",
+    )
+    print(message)
+    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
 
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
@@ -177,6 +192,7 @@ def setup(token):
         BotCommand('gpt4', 'use gpt4'),
         BotCommand('claude2', 'use claude2'),
         BotCommand('search', 'search the web with duckduckgo'),
+        BotCommand('qa', 'Document Q&A with Embedding Database Search'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
         BotCommand('en2zh', 'translate to Chinese'),
@@ -194,6 +210,7 @@ def setup(token):
     application.add_handler(CommandHandler("info", info))
     application.add_handler(CommandHandler("history", history))
     application.add_handler(CommandHandler("search", search))
+    application.add_handler(CommandHandler("qa", qa))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-3.5`\n\n", robot=ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)

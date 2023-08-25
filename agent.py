@@ -16,9 +16,60 @@ from langchain.prompts.chat import (
 from datetime import date
 from langchain.agents import tool
 from langchain.memory import ConversationBufferWindowMemory, ConversationTokenBufferMemory
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.vectorstores import Chroma
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.document_loaders import DirectoryLoader
+from langchain.chains import RetrievalQA
 
 
 from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature
+
+
+def getmd5(string):
+    import hashlib
+    md5_hash = hashlib.md5()
+    md5_hash.update(string.encode('utf-8'))
+    md5_hex = md5_hash.hexdigest()
+    return md5_hex
+
+from langchain.document_loaders.sitemap import SitemapLoader
+def get_doc_from_sitemap(url):
+    # https://www.langchain.asia/modules/indexes/document_loaders/examples/sitemap#%E8%BF%87%E6%BB%A4%E7%AB%99%E7%82%B9%E5%9C%B0%E5%9B%BE-url-
+    sitemap_loader = SitemapLoader(web_path=url)
+    docs = sitemap_loader.load()
+    return docs
+
+def get_doc_from_local(docpath, doctype="md"):
+    # 加载文件夹中的所有txt类型的文件
+    loader = DirectoryLoader(docpath, glob='**/*.' + doctype)
+    # 将数据转成 document 对象，每个文件会作为一个 document
+    documents = loader.load()
+    return documents
+
+def docQA(docpath, query_message, doc_method, persist_db_path="db", model = "gpt-3.5-turbo"):
+    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
+    embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=API)
+
+    persist_db_path = getmd5(docpath)
+    if not os.path.exists(persist_db_path):
+        documents = doc_method(docpath)
+        # 初始化加载器
+        text_splitter = CharacterTextSplitter(chunk_size=100, chunk_overlap=50)
+        # 切割加载的 document
+        split_docs = text_splitter.split_documents(documents)
+        # 持久化数据
+        vector_store = Chroma.from_documents(split_docs, embeddings, persist_directory=persist_db_path)
+        vector_store.persist()
+    else:
+        # 加载数据
+        vector_store = Chroma(persist_directory=persist_db_path, embedding_function=embeddings)
+
+    # 创建问答对象
+    qa = RetrievalQA.from_chain_type(llm=chatllm, chain_type="stuff", retriever=vector_store.as_retriever(),return_source_documents=True)
+    # 进行问答
+    result = qa({"query": query_message})
+    return result
 
 @tool
 def time(text: str) -> str:
@@ -96,6 +147,18 @@ if __name__ == "__main__":
     # from langchain.agents import get_all_tool_names
     # print(get_all_tool_names())
 
+    # 搜索
     # print(getweibo("今天是几号? 今天微博的热搜话题有哪些？"))
     print(duckduckgo_search("凡凡还有多久出狱？"))
-    # print(getsitemap("https://yym68686.top/sitemap.xml"))
+
+    # 问答
+    # result = docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？", get_doc_from_local)
+    result = docQA("https://yym68686.top/sitemap.xml", "reid可以怎么分类？", get_doc_from_sitemap)
+    source_url = set([i.metadata['source'] for i in result["source_documents"]])
+    source_url = "\n".join(source_url)
+    message = (
+        f"{result['result']}\n",
+        f"参考链接：\n",
+        f"{source_url}",
+    )
+    print(message)
