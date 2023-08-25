@@ -4,6 +4,8 @@
 
 ✅ 支持 ChatGPT API 和 GPT4 API
 
+✅ 支持联网搜索🔍
+
 ✅ 异步处理消息，多线程回答问题，支持对话隔离，不同用户不同对话
 
 ✅ 支持精准的消息 Markdown 渲染，用的是我的另一个[项目](https://github.com/yym68686/md2tgmd)
