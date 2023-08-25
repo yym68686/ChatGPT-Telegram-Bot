@@ -3,3 +3,7 @@ requests
 waitress
 flask[async]
 python-telegram-bot==20.2
+
+# langchain
+duckduckgo-search
+langchain==0.0.271
