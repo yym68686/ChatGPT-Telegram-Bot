@@ -170,8 +170,8 @@ async def qa(update, context):
     source_url = set([i.metadata['source'] for i in result["source_documents"]])
     source_url = "\n".join(source_url)
     message = (
-        f"{result['result']}\n"
-        f"参考链接：\n\n"
+        f"{result['result']}\n\n"
+        f"参考链接：\n"
         f"{source_url}"
     )
     print(message)
