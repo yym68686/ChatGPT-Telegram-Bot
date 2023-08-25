@@ -55,14 +55,15 @@ def duckduckgo_search(result, model="gpt-3.5-turbo", temperature=0.5):
         # result = chain.run({"targetlang": "english", "text": searchtext})
 
         # 搜索
+        # tools = load_tools(["serpapi", "llm-math"], llm=chatllm)
         tools = load_tools(["ddg-search", "llm-math"], llm=chatllm)
-        agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=10, early_stopping_method="generate", handle_parsing_errors="I'm sorry, the answer you are looking for was not found.")
+        agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=2, early_stopping_method="generate", handle_parsing_errors="continue search the web")
         result = agent.run(result)
 
         # 翻译成中文
         en2zhchain = LLMChain(llm=chatllm, prompt=translate_prompt)
         result = en2zhchain.run(targetlang="Simplified Chinese", text=result)
-        # result = en2zhchain.run({"targetlang": "Simplified Chinese", "text": result})
+        result = en2zhchain.run({"targetlang": "Simplified Chinese", "text": result})
 
         return result
     except Exception as e:
