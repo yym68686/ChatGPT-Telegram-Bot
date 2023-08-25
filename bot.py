@@ -7,7 +7,7 @@ from runasync import run_async
 from telegram import BotCommand
 from chatgpt2api.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
-from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY
+from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -18,10 +18,10 @@ Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]"
 
 if API:
-    ChatGPTbot = GPT(api_key=f"{API}", system_prompt=systemprompt)
+    ChatGPTbot = GPT(api_key=f"{API}", system_prompt=systemprompt, temperature=temperature)
     Claude2bot = GPT(api_key=f"{API}", engine="claude-2-web")
 if API4:
-    ChatGPT4bot = GPT(api_key=f"{API4}", engine="gpt-4-0613", system_prompt=systemprompt)
+    ChatGPT4bot = GPT(api_key=f"{API4}", engine="gpt-4-0613", system_prompt=systemprompt, temperature=temperature)
 
 botNick = NICK.lower() if NICK else None
 botNicKLength = len(botNick) if botNick else 0
@@ -52,13 +52,14 @@ async def command_bot(update, context, language="simplified chinese", prompt=tra
 async def info(update, context):
     message = (
         f"`Hi, {update.effective_user.username}!`\n\n"
-        f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
-        f"**API_URL:** `{os.environ.get('API_URL', None)}`\n\n"
+        f"**API_URL:** `{os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')}`\n\n"
         f"**API:** `{API}`\n\n"
         f"**API4:** `{API4}`\n\n"
-        f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
-        f"**NICK:** `{NICK}`\n"
-        f"**PASS_HISTORY:** `{PASS_HISTORY}`"
+        f"**temperature:** `{temperature}`\n"
+        f"**PASS_HISTORY:** `{PASS_HISTORY}`\n"
+        f"**WEB_HOOK:** `{WEB_HOOK}`"
+        # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
+        # f"**NICK:** `{NICK}`\n"
     )
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
 
