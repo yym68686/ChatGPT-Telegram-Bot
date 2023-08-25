@@ -51,7 +51,7 @@ def escape(text, flag=0):
         text = re.sub(r"\@{3}", r"\\\\", text)
     text = re.sub(r"_", '\_', text)
     text = re.sub(r"\*{2}(.*?)\*{2}", '@@@\\1@@@', text)
-    text = re.sub(r"\n\*\s", '\n\n• ', text)
+    text = re.sub(r"\n{1,2}\*\s", '\n\n• ', text)
     text = re.sub(r"\*", '\*', text)
     text = re.sub(r"\@{3}(.*?)\@{3}", '*\\1*', text)
     text = re.sub(r"\!?\[(.*?)\]\((.*?)\)", '@@@\\1@@@^^^\\2^^^', text)
@@ -65,8 +65,8 @@ def escape(text, flag=0):
     text = replace_all(text, r"(^#+\s.+?$)|```[\D\d\s]+?```", escapeshape)
     text = re.sub(r"#", '\#', text)
     text = replace_all(text, r"(\+)|\n[\s]*-\s|```[\D\d\s]+?```|`[\D\d\s]*?`", escapeplus)
-    text = re.sub(r"\n(\s*)-\s", '\n\n\\1• ', text)
-    text = re.sub(r"\n(\s*\d\.\s)", '\n\n\\1', text)
+    text = re.sub(r"\n{1,2}(\s*)-\s", '\n\n\\1• ', text)
+    text = re.sub(r"\n{1,2}(\s*\d\.\s)", '\n\n\\1', text)
     text = replace_all(text, r"(-)|\n[\s]*-\s|```[\D\d\s]+?```|`[\D\d\s]*?`", escapeminus)
     text = re.sub(r"```([\D\d\s]+?)```", '@@@\\1@@@', text)
     text = replace_all(text, r"(``)", escapebackquote)
@@ -107,6 +107,9 @@ ni1
 1. item 1
 2. item 2
 
+1. item 1
+2. item 2
+
 sudo apt install mesa-utils # 安装
 
 ```python
@@ -131,7 +134,7 @@ Cxy = abs (Pxy)**2/ (Pxx*Pyy)
 `-a----++++`++a-b-c`-n-`
 `[^``]*`a``b-c``d``
 # pattern = r"`[^`]*`-([^`-]*)``
-w`-a----`ccccc`-n-`bbbb``a。
+w`-a----`ccccc`-n-`bbbb``a
 '''
 
 if __name__ == '__main__':

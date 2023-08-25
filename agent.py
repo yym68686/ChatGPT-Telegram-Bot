@@ -15,7 +15,7 @@ from langchain.prompts.chat import (
 )
 from datetime import date
 from langchain.agents import tool
-from langchain.memory import ConversationBufferWindowMemory
+from langchain.memory import ConversationBufferWindowMemory, ConversationTokenBufferMemory
 
 
 from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature
@@ -56,12 +56,13 @@ def duckduckgo_search(result, model="gpt-3.5-turbo", temperature=0.5):
 
         # 搜索
         tools = load_tools(["ddg-search", "llm-math"], llm=chatllm)
-        agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, max_tokens=4096, verbose=True, max_iterations=10, memory=ConversationBufferWindowMemory(k=3), early_stopping_method="generate", handle_parsing_errors="I'm sorry, the answer you are looking for was not found.")
+        agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=10, early_stopping_method="generate", handle_parsing_errors="I'm sorry, the answer you are looking for was not found.")
         result = agent.run(result)
 
         # 翻译成中文
         en2zhchain = LLMChain(llm=chatllm, prompt=translate_prompt)
-        result = en2zhchain.run({"targetlang": "Simplified Chinese", "text": result})
+        result = en2zhchain.run(targetlang="Simplified Chinese", text=result)
+        # result = en2zhchain.run({"targetlang": "Simplified Chinese", "text": result})
 
         return result
     except Exception as e:
@@ -81,7 +82,17 @@ def getweibo(searchtext, model="gpt-3.5-turbo", temperature=0.5):
     result = agent.run(searchtext)
     return result
 
+from langchain.document_loaders.sitemap import SitemapLoader
+def getsitemap(url):
+    # https://www.langchain.asia/modules/indexes/document_loaders/examples/sitemap#%E8%BF%87%E6%BB%A4%E7%AB%99%E7%82%B9%E5%9C%B0%E5%9B%BE-url-
+    sitemap_loader = SitemapLoader(web_path=url)
+    
+    docs = sitemap_loader.load()
+    return docs
+ 
+
 if __name__ == "__main__":
     os.system("clear")
     # print(getweibo("今天是几号? 今天微博的热搜话题有哪些？"))
-    print(duckduckgo_search("langchain agent 怎么在失败的时候重新执行"))
+    print(duckduckgo_search("凡凡还有多久出狱？"))
+    # print(getsitemap("https://yym68686.top/sitemap.xml"))
