@@ -20,8 +20,6 @@ from langchain.memory import ConversationBufferWindowMemory, ConversationTokenBu
 
 from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature
 
-# from langchain.agents import get_all_tool_names
-# print(get_all_tool_names())
 @tool
 def time(text: str) -> str:
     """Returns todays date, use this for any \
@@ -56,7 +54,7 @@ def duckduckgo_search(result, model="gpt-3.5-turbo", temperature=0.5):
 
         # 搜索
         # tools = load_tools(["serpapi", "llm-math"], llm=chatllm)
-        tools = load_tools(["ddg-search", "llm-math"], llm=chatllm)
+        tools = load_tools(["ddg-search", "llm-math", "wikipedia"], llm=chatllm)
         agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=2, early_stopping_method="generate", handle_parsing_errors=True)
         result = agent.run(result)
 
@@ -94,6 +92,10 @@ def getsitemap(url):
 
 if __name__ == "__main__":
     os.system("clear")
+    
+    # from langchain.agents import get_all_tool_names
+    # print(get_all_tool_names())
+
     # print(getweibo("今天是几号? 今天微博的热搜话题有哪些？"))
     print(duckduckgo_search("凡凡还有多久出狱？"))
     # print(getsitemap("https://yym68686.top/sitemap.xml"))
