@@ -117,6 +117,14 @@ async def getChatGPT(title, robot, message, update, context):
             result = re.sub(r",", '，', result)
         await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
 
+async def history(update, context):
+    PASS_HISTORY = not PASS_HISTORY
+    status = "打开" if PASS_HISTORY else "关闭"
+    message = (
+        f"当前已{status}聊天记录！\n"
+        f"**PASS_HISTORY:** `{PASS_HISTORY}`"
+    )
+    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
 
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
@@ -146,6 +154,7 @@ def setup(token):
         BotCommand('en2zh', 'translate to Chinese'),
         BotCommand('zh2en', 'translate to English'),
         BotCommand('info', 'basic information'),
+        BotCommand('history', 'open or close chat history'),
     ]))
 
     application.add_handler(CommandHandler("start", start))
@@ -155,6 +164,7 @@ def setup(token):
     application.add_handler(CommandHandler("gpt4", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-4`\n\n", robot=ChatGPT4bot)))
     application.add_handler(CommandHandler("claude2", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ claude2`\n\n", robot=Claude2bot)))
     application.add_handler(CommandHandler("info", info))
+    application.add_handler(CommandHandler("history", history))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-3.5`\n\n", robot=ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
