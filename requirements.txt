@@ -5,5 +5,6 @@ flask[async]
 python-telegram-bot==20.2
 
 # langchain
+openai
 duckduckgo-search
 langchain==0.0.271
