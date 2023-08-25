@@ -57,7 +57,7 @@ async def info(update, context):
         f"**API4:** `{API4}`\n\n"
         f"**temperature:** `{temperature}`\n"
         f"**PASS_HISTORY:** `{PASS_HISTORY}`\n"
-        f"**WEB_HOOK:** `{WEB_HOOK}`"
+        # f"**WEB_HOOK:** `{WEB_HOOK}`"
         # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
         # f"**NICK:** `{NICK}`\n"
     )
