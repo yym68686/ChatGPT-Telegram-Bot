@@ -57,7 +57,7 @@ def duckduckgo_search(result, model="gpt-3.5-turbo", temperature=0.5):
         # 搜索
         # tools = load_tools(["serpapi", "llm-math"], llm=chatllm)
         tools = load_tools(["ddg-search", "llm-math"], llm=chatllm)
-        agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=2, early_stopping_method="generate", handle_parsing_errors="continue search the web")
+        agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=2, early_stopping_method="generate", handle_parsing_errors=True)
         result = agent.run(result)
 
         # 翻译成中文
