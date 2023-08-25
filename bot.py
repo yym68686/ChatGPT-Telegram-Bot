@@ -118,6 +118,7 @@ async def getChatGPT(title, robot, message, update, context):
         await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
 
 async def history(update, context):
+    global PASS_HISTORY
     PASS_HISTORY = not PASS_HISTORY
     status = "打开" if PASS_HISTORY else "关闭"
     message = (
