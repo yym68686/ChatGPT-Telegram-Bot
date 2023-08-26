@@ -157,7 +157,7 @@ async def qa(update, context):
         message = (
             f"格式错误哦~，需要两个参数，注意路径或者链接、问题之间的空格\n\n"
             f"请输入 `/qa 知识库链接 要问的问题`\n\n"
-            f"例如知识库链接为 https://abc.com，问题是 蘑菇怎么分类？\n\n"
+            f"例如知识库链接为 https://abc.com ，问题是 蘑菇怎么分类？\n\n"
             f"则输入 `/qa https://abc.com 蘑菇怎么分类？`\n\n"
             f"问题务必不能有空格，👆点击上方命令复制格式\n\n"
             f"除了输入网址，同时支持本地知识库，本地知识库文件夹路径为 `./wiki`，问题是 蘑菇怎么分类？\n\n"
@@ -170,7 +170,7 @@ async def qa(update, context):
     print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
     await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
     # result = docQA(context.args[0], context.args[1], get_doc_from_sitemap)
-    result = docQA(context.args[0], context.args[1], get_doc_from_local)
+    result = await docQA(context.args[0], context.args[1], get_doc_from_local)
     source_url = set([i.metadata['source'] for i in result["source_documents"]])
     source_url = "\n".join(source_url)
     message = (
@@ -179,7 +179,7 @@ async def qa(update, context):
         f"{source_url}"
     )
     print(message)
-    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user

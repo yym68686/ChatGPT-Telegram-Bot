@@ -1,5 +1,6 @@
 import os
 import re
+import asyncio
 import traceback
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
@@ -20,7 +21,7 @@ from langchain.memory import ConversationBufferWindowMemory, ConversationTokenBu
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.document_loaders import DirectoryLoader
+
 from langchain.chains import RetrievalQA
 
 
@@ -34,21 +35,22 @@ def getmd5(string):
     md5_hex = md5_hash.hexdigest()
     return md5_hex
 
-from langchain.document_loaders.sitemap import SitemapLoader
-def get_doc_from_sitemap(url):
+from sitemap import SitemapLoader
+async def get_doc_from_sitemap(url):
     # https://www.langchain.asia/modules/indexes/document_loaders/examples/sitemap#%E8%BF%87%E6%BB%A4%E7%AB%99%E7%82%B9%E5%9C%B0%E5%9B%BE-url-
     sitemap_loader = SitemapLoader(web_path=url)
-    docs = sitemap_loader.load()
+    docs = await sitemap_loader.load()
     return docs
 
-def get_doc_from_local(docpath, doctype="md"):
+async def get_doc_from_local(docpath, doctype="md"):
+    from langchain.document_loaders import DirectoryLoader
     # 加载文件夹中的所有txt类型的文件
     loader = DirectoryLoader(docpath, glob='**/*.' + doctype)
     # 将数据转成 document 对象，每个文件会作为一个 document
     documents = loader.load()
     return documents
 
-def docQA(docpath, query_message, persist_db_path="db", model = "gpt-3.5-turbo"):
+async def docQA(docpath, query_message, persist_db_path="db", model = "gpt-3.5-turbo"):
     chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
     embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=API)
 
@@ -62,7 +64,7 @@ def docQA(docpath, query_message, persist_db_path="db", model = "gpt-3.5-turbo")
 
     persist_db_path = getmd5(docpath)
     if not os.path.exists(persist_db_path):
-        documents = doc_method(docpath)
+        documents = await doc_method(docpath)
         # 初始化加载器
         text_splitter = CharacterTextSplitter(chunk_size=100, chunk_overlap=50)
         # 切割加载的 document
@@ -141,15 +143,6 @@ def getweibo(searchtext, model="gpt-3.5-turbo", temperature=0.5):
     result = agent.run(searchtext)
     return result
 
-from langchain.document_loaders.sitemap import SitemapLoader
-def getsitemap(url):
-    # https://www.langchain.asia/modules/indexes/document_loaders/examples/sitemap#%E8%BF%87%E6%BB%A4%E7%AB%99%E7%82%B9%E5%9C%B0%E5%9B%BE-url-
-    sitemap_loader = SitemapLoader(web_path=url)
-    
-    docs = sitemap_loader.load()
-    return docs
- 
-
 if __name__ == "__main__":
     os.system("clear")
     
@@ -161,8 +154,8 @@ if __name__ == "__main__":
     # print(duckduckgo_search("凡凡还有多久出狱？"))
 
     # 问答
-    result = docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？")
-    # result = docQA("https://yym68686.top", "reid可以怎么分类？")
+    result = asyncio.run(docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？"))
+    # result = asyncio.run(docQA("https://yym68686.top", "reid可以怎么分类？"))
     source_url = set([i.metadata['source'] for i in result["source_documents"]])
     source_url = "\n".join(source_url)
     message = (
