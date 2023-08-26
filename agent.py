@@ -141,6 +141,8 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
     tools = load_tools(["ddg-search", "llm-math", "wikipedia"], llm=chatllm)
     agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=2, early_stopping_method="generate", handle_parsing_errors=True)
     agentresult = agent.run(result)
+    agentresult += agent.run(result)
+    agentresult += agent.run(result)
 
     summary_prompt = PromptTemplate(
         input_variables=["agentresult", "webresult", "question"],
