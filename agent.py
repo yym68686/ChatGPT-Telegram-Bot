@@ -1,4 +1,5 @@
 import os
+import re
 import traceback
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
@@ -47,9 +48,18 @@ def get_doc_from_local(docpath, doctype="md"):
     documents = loader.load()
     return documents
 
-def docQA(docpath, query_message, doc_method, persist_db_path="db", model = "gpt-3.5-turbo"):
+def docQA(docpath, query_message, persist_db_path="db", model = "gpt-3.5-turbo"):
+    API = os.environ.get('API', None)
     chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
     embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=API)
+
+    sitemap = "sitemap.xml"
+    match = re.match(r'^(https?|ftp)://[^\s/$.?#].[^\s]*$', docpath)
+    if match:
+        doc_method = get_doc_from_sitemap
+        docpath = os.path.join(docpath, sitemap)
+    else:
+        doc_method = get_doc_from_local
 
     persist_db_path = getmd5(docpath)
     if not os.path.exists(persist_db_path):
@@ -152,8 +162,8 @@ if __name__ == "__main__":
     # print(duckduckgo_search("凡凡还有多久出狱？"))
 
     # 问答
-    # result = docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？", get_doc_from_local)
-    result = docQA("https://yym68686.top/sitemap.xml", "reid可以怎么分类？", get_doc_from_sitemap)
+    result = docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？")
+    # result = docQA("https://yym68686.top", "reid可以怎么分类？")
     source_url = set([i.metadata['source'] for i in result["source_documents"]])
     source_url = "\n".join(source_url)
     message = (
