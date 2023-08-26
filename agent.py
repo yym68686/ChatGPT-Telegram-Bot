@@ -165,22 +165,46 @@ class ChainStreamHandler(StreamingStdOutCallbackHandler):
             else:
                 pass
 
+def ddgsearch(result):
+    search = DuckDuckGoSearchResults(num_results=7)
+    webresult = search.run(result)
+    matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
+    return '\n\n'.join(matches)
+
+class ThreadWithReturnValue(threading.Thread):
+    def run(self):
+        if self._target is not None:
+            self._return = self._target(*self._args, **self._kwargs)
+
+    def join(self):
+        super().join()
+        return self._return
+
 def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
     chainStreamHandler = ChainStreamHandler()
     chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
-    Judgment_prompt = PromptTemplate(
-        input_variables=["sourcetext", "question"],
-        template="下面分别是一段材料：{sourcetext}，请你结合上述材料，判断是否可以解答“{question}”这个问题，如果能够解答{question}这个问题请回答True，如果不能解答{question}这个问题相关请回答False，回答中只能出现True或者Flase，不能出现其他任何内容。",
+    chainllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
+
+    # 翻译成英文 方法二
+    translate_prompt = PromptTemplate(
+        input_variables=["targetlang", "text"],
+        template="You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {targetlang}, please do not explain any sentences, just translate or leave them as they are.: {text}",
     )
-    Judgment_chain = LLMChain(llm=chatllm, prompt=Judgment_prompt)
+    chain = LLMChain(llm=chainllm, prompt=translate_prompt)
+    engresult = chain.run({"targetlang": "english", "text": result})
 
     useful_source_text = ""
 
-    # search = DuckDuckGoSearchRun()
-    search = DuckDuckGoSearchResults(num_results=10)
-    webresult = search.run(result)
-    matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
-    useful_source_text = '\n\n'.join(matches)
+    search_thread = ThreadWithReturnValue(target=ddgsearch, args=(engresult,))
+    search_thread.start()
+    useful_source_text = ddgsearch(result)
+    engans = search_thread.join()
+    useful_source_text = useful_source_text + "\n" + engans
+
+    # Judgment_prompt = PromptTemplate(
+    #     input_variables=["sourcetext", "question"],
+    #     template="下面分别是一段材料：{sourcetext}，请你结合上述材料，判断是否可以解答“{question}”这个问题，如果能够解答{question}这个问题请回答True，如果不能解答{question}这个问题相关请回答False，回答中只能出现True或者Flase，不能出现其他任何内容。",
+    # )
     # Judgment_chain_result = Judgment_chain.run({"sourcetext": webresult, "question": result})
     # print("已找到相关内容！" if Judgment_chain_result == "True" else "未找到相关内容！")
 
@@ -209,7 +233,7 @@ if __name__ == "__main__":
     # print(duckduckgo_search("凡凡还有多久出狱？"))
     # print(search_summary("凡凡还有多久出狱？"))
     # print(search_summary("今天微博的热搜话题有哪些？"))
-    for i in search_summary("今天微博的热搜话题有哪些？"):
+    for i in search_summary("金砖国家经济会议取得了什么进展？"):
         print(i, end="")
 
     # # 问答
