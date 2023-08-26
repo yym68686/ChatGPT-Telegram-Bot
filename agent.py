@@ -21,7 +21,7 @@ from langchain.memory import ConversationBufferWindowMemory, ConversationTokenBu
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.tools import DuckDuckGoSearchRun
+from langchain.tools import DuckDuckGoSearchRun, DuckDuckGoSearchResults
 from langchain.utilities import WikipediaAPIWrapper
 
 
@@ -131,40 +131,43 @@ def duckduckgo_search(result, model="gpt-3.5-turbo", temperature=0.5):
         return result
     except Exception as e:
         traceback.print_exc()
-
+    
 def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
-    search = DuckDuckGoSearchRun()
-    webresult = search.run(result) + "`\n\n"
 
     chatllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
-    # 搜索
-    tools = load_tools(["ddg-search", "llm-math", "wikipedia"], llm=chatllm)
-    agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=2, early_stopping_method="generate", handle_parsing_errors=True)
-    agentresult = agent.run(result)
-    agentresult += agent.run(result)
-    agentresult += agent.run(result)
+    Judgment_prompt = PromptTemplate(
+        input_variables=["sourcetext", "question"],
+        template="下面分别是一段材料：{sourcetext}，请你结合上述材料，判断是否可以解答“{question}”这个问题，如果能够解答{question}这个问题请回答True，如果不能解答{question}这个问题相关请回答False，回答中只能出现True或者Flase，不能出现其他任何内容。",
+    )
+    Judgment_chain = LLMChain(llm=chatllm, prompt=Judgment_prompt)
+
+    useful_source_text = ""
+
+    search = DuckDuckGoSearchResults(num_results=10)
+    # search = DuckDuckGoSearchRun()
+    webresult = search.run(result)
+    matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
+    useful_source_text = '\n\n'.join(matches)
+    print(useful_source_text)
+    # Judgment_chain_result = Judgment_chain.run({"sourcetext": webresult, "question": result})
+    # print("已找到相关内容！" if Judgment_chain_result == "True" else "未找到相关内容！")
+
+    # tools = load_tools(["ddg-search", "llm-math", "wikipedia"], llm=chatllm)
+    # agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=2, early_stopping_method="generate", handle_parsing_errors=True)
+    # for i in range(5):
+    #     agentresult = agent.run(result)
+    #     useful_source_text = agentresult + "\n" + useful_source_text
 
     summary_prompt = PromptTemplate(
-        input_variables=["agentresult", "webresult", "question"],
-        template="下面分别是这个问题的网页搜索结果：{agentresult}，{webresult}，请你结合上面搜索结果，挑选相关的内容，总结回答我的问题：{question}，在回答中请不要出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。回答要求：使用简体中文作答，给出清晰、结构化、详尽的回答，语言严谨且学术化，逻辑清晰，行文流畅。",
+        input_variables=["useful_source_text", "question"],
+        template="下面分别是这个问题的网页搜索结果：{useful_source_text}，请你结合上面搜索结果，忽略重复的和与问题无关的内容，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}，在回答中请不要出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。回答要求：使用简体中文作答，给出清晰、结构化、详尽的回答，语言严谨且学术化，逻辑清晰，行文流畅。",
     )
     chain = LLMChain(llm=chatllm, prompt=summary_prompt)
-    result = chain.run({"agentresult": agentresult, "webresult": webresult, "question": result})
-    return result
+    last_result = chain.run({"useful_source_text": useful_source_text, "question": result})
 
-def getweibo(searchtext, model="gpt-3.5-turbo", temperature=0.5):
-    # 加载 OpenAI 模型
-    llm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API) 
-
-    # 加载 serpapi 工具
-    tools = load_tools(["ddg-search"])
-
-    # 工具加载后都需要初始化，verbose 参数为 True，会打印全部的执行详情
-    agent = initialize_agent(tools + [time], llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
-
-    # 运行 agent
-    result = agent.run(searchtext)
-    return result
+    Judgment_chain_result = Judgment_chain.run({"sourcetext": last_result, "question": result})
+    print("已找到相关内容！" if Judgment_chain_result == "True" else "未找到相关内容！")
+    return last_result
 
 if __name__ == "__main__":
     os.system("clear")
@@ -173,7 +176,6 @@ if __name__ == "__main__":
     # print(get_all_tool_names())
 
     # 搜索
-    # print(getweibo("今天是几号? 今天微博的热搜话题有哪些？"))
     # print(duckduckgo_search("凡凡还有多久出狱？"))
     # print(search_summary("凡凡还有多久出狱？"))
     print(search_summary("今天微博的热搜话题有哪些？"))
