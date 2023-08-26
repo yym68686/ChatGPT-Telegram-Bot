@@ -176,8 +176,8 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
 
     useful_source_text = ""
 
-    search = DuckDuckGoSearchResults(num_results=10)
     # search = DuckDuckGoSearchRun()
+    search = DuckDuckGoSearchResults(num_results=10)
     webresult = search.run(result)
     matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
     useful_source_text = '\n\n'.join(matches)
@@ -199,11 +199,6 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
     chain_thread = threading.Thread(target=chain.run, kwargs={"useful_source_text": useful_source_text, "question": result})
     chain_thread.start()
     return chainStreamHandler.generate_tokens()
-    # yield chain.run({"useful_source_text": useful_source_text, "question": result})
-
-    # Judgment_chain_result = Judgment_chain.run({"sourcetext": last_result, "question": result})
-    # print("已找到相关内容！" if Judgment_chain_result == "True" else "未找到相关内容！")
-    # return last_result
 
 if __name__ == "__main__":
     os.system("clear")
