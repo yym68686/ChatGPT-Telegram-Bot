@@ -165,7 +165,7 @@ async def qa(update, context):
             f"问题务必不能有空格，👆点击上方命令复制格式\n\n"
             f"本地知识库目前只支持 Markdown 文件\n\n"
         )
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2')
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
         return
     print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
     await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
