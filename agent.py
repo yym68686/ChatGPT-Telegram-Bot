@@ -181,7 +181,6 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
     webresult = search.run(result)
     matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
     useful_source_text = '\n\n'.join(matches)
-    print(useful_source_text)
     # Judgment_chain_result = Judgment_chain.run({"sourcetext": webresult, "question": result})
     # print("已找到相关内容！" if Judgment_chain_result == "True" else "未找到相关内容！")
 
