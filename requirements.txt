@@ -8,6 +8,7 @@ python-telegram-bot==20.4
 openai
 chromadb
 wikipedia
+fake_useragent
 unstructured[md]
 duckduckgo-search==3.8.5
 langchain==0.0.271
