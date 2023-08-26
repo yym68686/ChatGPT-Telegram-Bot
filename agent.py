@@ -117,13 +117,11 @@ def duckduckgo_search(result, model="gpt-3.5-turbo", temperature=0.5):
         # zh2enchain = LLMChain(llm=chatllm, prompt=chat_prompt)
         # result = zh2enchain.run(sourcelang="Simplified Chinese", targetlang="English", text=searchtext)
 
-        
         # # 翻译成英文 方法二
         # chain = LLMChain(llm=chatllm, prompt=translate_prompt)
         # result = chain.run({"targetlang": "english", "text": searchtext})
 
         # 搜索
-        # tools = load_tools(["serpapi", "llm-math"], llm=chatllm)
         tools = load_tools(["ddg-search", "llm-math", "wikipedia"], llm=chatllm)
         agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=2, early_stopping_method="generate", handle_parsing_errors=True)
         result = agent.run(result)
@@ -185,7 +183,6 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
     chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
     chainllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
 
-    # 翻译成英文 方法二
     translate_prompt = PromptTemplate(
         input_variables=["targetlang", "text"],
         template="You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {targetlang}, please do not explain any sentences, just translate or leave them as they are.: {text}",
