@@ -208,9 +208,9 @@ if __name__ == "__main__":
     # 搜索
     # print(duckduckgo_search("凡凡还有多久出狱？"))
     # print(search_summary("凡凡还有多久出狱？"))
+    # print(search_summary("今天微博的热搜话题有哪些？"))
     for i in search_summary("今天微博的热搜话题有哪些？"):
         print(i, end="")
-    # print(search_summary("今天微博的热搜话题有哪些？"))
 
     # # 问答
     # result = asyncio.run(docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？"))
