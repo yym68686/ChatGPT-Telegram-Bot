@@ -21,6 +21,9 @@ from langchain.memory import ConversationBufferWindowMemory, ConversationTokenBu
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.text_splitter import CharacterTextSplitter
+from langchain.tools import DuckDuckGoSearchRun
+from langchain.utilities import WikipediaAPIWrapper
+
 
 from langchain.chains import RetrievalQA
 
@@ -129,6 +132,24 @@ def duckduckgo_search(result, model="gpt-3.5-turbo", temperature=0.5):
     except Exception as e:
         traceback.print_exc()
 
+def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
+    search = DuckDuckGoSearchRun()
+    webresult = search.run(result) + "`\n\n"
+
+    chatllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
+    # 搜索
+    tools = load_tools(["ddg-search", "llm-math", "wikipedia"], llm=chatllm)
+    agent = initialize_agent(tools + [time], chatllm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=2, early_stopping_method="generate", handle_parsing_errors=True)
+    agentresult = agent.run(result)
+
+    summary_prompt = PromptTemplate(
+        input_variables=["agentresult", "webresult", "question"],
+        template="下面分别是这个问题的两个网页搜索结果，网页搜索结果：1. {agentresult}，2.{webresult}，请你结合上面的材料，根据我的问题：{question}，挑选相关的内容，总结回答我，如果材料没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。回答要求：使用简体中文分点作答，给出清晰、结构化、详尽的回答，语言严谨且学术化，逻辑清晰，行文流畅。",
+    )
+    chain = LLMChain(llm=chatllm, prompt=summary_prompt)
+    result = chain.run({"agentresult": agentresult, "webresult": webresult, "question": result})
+    return result
+
 def getweibo(searchtext, model="gpt-3.5-turbo", temperature=0.5):
     # 加载 OpenAI 模型
     llm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API) 
@@ -152,15 +173,17 @@ if __name__ == "__main__":
     # 搜索
     # print(getweibo("今天是几号? 今天微博的热搜话题有哪些？"))
     # print(duckduckgo_search("凡凡还有多久出狱？"))
+    # print(search_summary("凡凡还有多久出狱？"))
+    print(search_summary("今天微博的热搜话题有哪些？"))
 
-    # 问答
-    result = asyncio.run(docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？"))
-    # result = asyncio.run(docQA("https://yym68686.top", "reid可以怎么分类？"))
-    source_url = set([i.metadata['source'] for i in result["source_documents"]])
-    source_url = "\n".join(source_url)
-    message = (
-        f"{result['result']}\n\n"
-        f"参考链接：\n"
-        f"{source_url}"
-    )
-    print(message)
+    # # 问答
+    # result = asyncio.run(docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？"))
+    # # result = asyncio.run(docQA("https://yym68686.top", "reid可以怎么分类？"))
+    # source_url = set([i.metadata['source'] for i in result["source_documents"]])
+    # source_url = "\n".join(source_url)
+    # message = (
+    #     f"{result['result']}\n\n"
+    #     f"参考链接：\n"
+    #     f"{source_url}"
+    # )
+    # print(message)

@@ -5,7 +5,7 @@ from md2tgmd import escape
 from datetime import datetime
 from runasync import run_async
 from telegram import BotCommand
-from agent import duckduckgo_search, docQA, get_doc_from_sitemap, get_doc_from_local
+from agent import duckduckgo_search, docQA, get_doc_from_sitemap, get_doc_from_local, search_summary
 from chatgpt2api.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
 from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature
@@ -141,7 +141,7 @@ async def search(update, context):
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         if message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-            message = duckduckgo_search(message)
+            message = search_summary(message)
             print(message)
             await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
     else:
