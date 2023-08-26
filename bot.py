@@ -141,9 +141,31 @@ async def search(update, context):
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         if message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-            message = search_summary(message)
-            print(message)
-            await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+            text = message
+            result = ''
+            modifytime = 0
+            lastresult = ''
+            message = await context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text="思考中💭",
+                parse_mode='MarkdownV2',
+                reply_to_message_id=update.message.message_id,
+            )
+            messageid = message.message_id
+            for data in search_summary(text):
+                result = result + data
+                tmpresult = result
+                modifytime = modifytime + 1
+                if re.sub(r"```", '', result).count("`") % 2 != 0:
+                    tmpresult = result + "`"
+                if result.count("```") % 2 != 0:
+                    tmpresult = result + "\n```"
+                if modifytime % 20 == 0 and lastresult != tmpresult:
+                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
+                    lastresult = tmpresult
+            print(result)
+            if lastresult != result and messageid:
+                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
     else:
         message = await context.bot.send_message(
             chat_id=update.message.chat_id,

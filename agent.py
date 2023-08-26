@@ -1,11 +1,14 @@
 import os
 import re
 import asyncio
+import threading
 import traceback
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.agents import AgentType
 from langchain.schema import HumanMessage
+from langchain.callbacks.manager import CallbackManager
+from langchain.schema.output import LLMResult
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import load_tools
@@ -16,10 +19,12 @@ from langchain.prompts.chat import (
     HumanMessagePromptTemplate,
 )
 from datetime import date
+from typing import Any
 from langchain.agents import tool
 from langchain.memory import ConversationBufferWindowMemory, ConversationTokenBufferMemory
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.tools import DuckDuckGoSearchRun, DuckDuckGoSearchResults
 from langchain.utilities import WikipediaAPIWrapper
@@ -131,10 +136,38 @@ def duckduckgo_search(result, model="gpt-3.5-turbo", temperature=0.5):
         return result
     except Exception as e:
         traceback.print_exc()
-    
-def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
 
-    chatllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
+class ChainStreamHandler(StreamingStdOutCallbackHandler):
+    def __init__(self):
+        self.tokens = []
+        # 记得结束后这里置true
+        self.finish = False
+
+    def on_llm_new_token(self, token: str, **kwargs):
+        # print(token)
+        self.tokens.append(token)
+        # yield ''.join(self.tokens)
+        # print(''.join(self.tokens))
+
+    def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
+        self.finish = 1
+
+    def on_llm_error(self, error: Exception, **kwargs: Any) -> None:
+        print(str(error))
+        self.tokens.append(str(error))
+
+    def generate_tokens(self):
+        while not self.finish or self.tokens:
+            if self.tokens:
+                data = self.tokens.pop(0)
+                # print(data)
+                yield data
+            else:
+                pass
+
+def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
+    chainStreamHandler = ChainStreamHandler()
+    chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
     Judgment_prompt = PromptTemplate(
         input_variables=["sourcetext", "question"],
         template="下面分别是一段材料：{sourcetext}，请你结合上述材料，判断是否可以解答“{question}”这个问题，如果能够解答{question}这个问题请回答True，如果不能解答{question}这个问题相关请回答False，回答中只能出现True或者Flase，不能出现其他任何内容。",
@@ -163,11 +196,14 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
         template="下面分别是这个问题的网页搜索结果：{useful_source_text}，请你结合上面搜索结果，忽略重复的和与问题无关的内容，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}，在回答中请不要出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。回答要求：使用简体中文作答，给出清晰、结构化、详尽的回答，语言严谨且学术化，逻辑清晰，行文流畅。",
     )
     chain = LLMChain(llm=chatllm, prompt=summary_prompt)
-    last_result = chain.run({"useful_source_text": useful_source_text, "question": result})
+    chain_thread = threading.Thread(target=chain.run, kwargs={"useful_source_text": useful_source_text, "question": result})
+    chain_thread.start()
+    return chainStreamHandler.generate_tokens()
+    # yield chain.run({"useful_source_text": useful_source_text, "question": result})
 
-    Judgment_chain_result = Judgment_chain.run({"sourcetext": last_result, "question": result})
-    print("已找到相关内容！" if Judgment_chain_result == "True" else "未找到相关内容！")
-    return last_result
+    # Judgment_chain_result = Judgment_chain.run({"sourcetext": last_result, "question": result})
+    # print("已找到相关内容！" if Judgment_chain_result == "True" else "未找到相关内容！")
+    # return last_result
 
 if __name__ == "__main__":
     os.system("clear")
@@ -178,7 +214,9 @@ if __name__ == "__main__":
     # 搜索
     # print(duckduckgo_search("凡凡还有多久出狱？"))
     # print(search_summary("凡凡还有多久出狱？"))
-    print(search_summary("今天微博的热搜话题有哪些？"))
+    for i in search_summary("今天微博的热搜话题有哪些？"):
+        print(i, end="")
+    # print(search_summary("今天微博的热搜话题有哪些？"))
 
     # # 问答
     # result = asyncio.run(docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？"))
