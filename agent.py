@@ -49,7 +49,6 @@ def get_doc_from_local(docpath, doctype="md"):
     return documents
 
 def docQA(docpath, query_message, persist_db_path="db", model = "gpt-3.5-turbo"):
-    API = os.environ.get('API', None)
     chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
     embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=API)
 
