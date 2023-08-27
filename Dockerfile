@@ -5,6 +5,6 @@ FROM python:3.10.12-slim-bullseye
 WORKDIR /home
 EXPOSE 8080
 COPY ./setup.sh /
-RUN apt-get update && apt -y install git build-essential \
+RUN apt-get update && apt -y install git build-essential python3-dev \
     && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/setup.sh"]
