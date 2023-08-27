@@ -244,7 +244,7 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
 
     summary_prompt = PromptTemplate(
         input_variables=["useful_source_text", "question"],
-        template="下面分别是这个问题的网页搜索结果：{useful_source_text}，请你结合上面搜索结果，忽略重复的和与问题无关的内容，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}，在回答中请不要重复出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。回答要求：使用简体中文作答，给出清晰、结构化、详尽的回答，语言严谨且学术化，逻辑清晰，行文流畅。",
+        template="下面是这个问题的网页搜索结果：{useful_source_text}，请你结合上面搜索结果，忽略重复的和与问题无关的内容，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}，在回答中请不要重复出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。回答要求：使用简体中文作答，不要出现繁体文字，不要有重复冗余的内容，给出清晰、结构化、在不有重复冗余的基础上，给出详尽丰富的回答，不要忽略细节，语言严谨且学术化，逻辑清晰，行文流畅。",
     )
 
     chain = LLMChain(llm=chatllm, prompt=summary_prompt)
