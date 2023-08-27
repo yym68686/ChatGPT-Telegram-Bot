@@ -27,7 +27,8 @@ from langchain.vectorstores import Chroma
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.tools import DuckDuckGoSearchRun, DuckDuckGoSearchResults
-from langchain.utilities import WikipediaAPIWrapper, GoogleSearchAPIWrapper
+from langchain.utilities import WikipediaAPIWrapper
+from googlesearch import GoogleSearchAPIWrapper
 from langchain.tools import Tool
 
 
