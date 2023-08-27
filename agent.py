@@ -198,6 +198,14 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
     chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
     chainllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
 
+    keyword_prompt = PromptTemplate(
+        input_variables=["source"],
+        template="请你帮我抽取关键词，输出的关键词之间用空格连接。输出除了关键词，不用解释，也不要出现其他内容，只要出现关键词，必须用空间连接关键词，不要出现其他任何连接符。下面是要提取关键词的文字：{source}，",
+    )
+    chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
+    keyword_google_search_thread = ThreadWithReturnValue(target=chain.run, args=({"source": result},))
+    keyword_google_search_thread.start()
+
 
     translate_prompt = PromptTemplate(
         input_variables=["targetlang", "text"],
@@ -208,12 +216,18 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
 
     en_google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(engresult,))
     en_google_search_thread.start()
-    engans_ddg = ddgsearch(engresult)
+
+    en_ddg_search_thread = ThreadWithReturnValue(target=ddgsearch, args=(engresult,))
+    en_ddg_search_thread.start()
+
+    keyword = keyword_google_search_thread.join()
+    keyword_ans = googlesearch(keyword)
 
     ans_google = google_search_thread.join()
     ans_ddg = search_thread.join()
     enans_google = en_google_search_thread.join()
-    useful_source_text = ans_ddg + "\n" + ans_google + "\n" + engans_ddg + "\n" + enans_google
+    engans_ddg = en_ddg_search_thread.join()
+    useful_source_text = ans_ddg  + "\n" + keyword_ans + "\n" + ans_google + "\n" + engans_ddg + "\n" + enans_google
 
     # Judgment_prompt = PromptTemplate(
     #     input_variables=["sourcetext", "question"],
@@ -230,8 +244,9 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
 
     summary_prompt = PromptTemplate(
         input_variables=["useful_source_text", "question"],
-        template="下面分别是这个问题的网页搜索结果：{useful_source_text}，请你结合上面搜索结果，忽略重复的和与问题无关的内容，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}，在回答中请不要出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。回答要求：使用简体中文作答，给出清晰、结构化、详尽的回答，语言严谨且学术化，逻辑清晰，行文流畅。",
+        template="下面分别是这个问题的网页搜索结果：{useful_source_text}，请你结合上面搜索结果，忽略重复的和与问题无关的内容，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}，在回答中请不要重复出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。回答要求：使用简体中文作答，给出清晰、结构化、详尽的回答，语言严谨且学术化，逻辑清晰，行文流畅。",
     )
+
     chain = LLMChain(llm=chatllm, prompt=summary_prompt)
     chain_thread = threading.Thread(target=chain.run, kwargs={"useful_source_text": useful_source_text, "question": result})
     chain_thread.start()
@@ -247,7 +262,7 @@ if __name__ == "__main__":
     # print(duckduckgo_search("凡凡还有多久出狱？"))
     # print(search_summary("凡凡还有多久出狱？"))
     # print(search_summary("今天微博的热搜话题有哪些？"))
-    for i in search_summary("今天微博的热搜话题有哪些？"):
+    for i in search_summary("yym68686 是谁？"):
         print(i, end="")
 
     # # 问答
