@@ -226,7 +226,7 @@ def setup(token):
     run_async(application.bot.set_my_commands([
         BotCommand('gpt4', 'use gpt4'),
         BotCommand('claude2', 'use claude2'),
-        BotCommand('search', 'search the web with duckduckgo'),
+        BotCommand('search', 'search the web with google and duckduckgo'),
         BotCommand('qa', 'Document Q&A with Embedding Database Search'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),

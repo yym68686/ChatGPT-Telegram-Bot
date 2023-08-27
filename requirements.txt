@@ -10,6 +10,7 @@ openai
 chromadb
 wikipedia
 fake_useragent
+google-api-python-client
 unstructured[md]
 duckduckgo-search==3.8.5
 langchain==0.0.271

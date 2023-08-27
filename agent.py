@@ -27,7 +27,8 @@ from langchain.vectorstores import Chroma
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.tools import DuckDuckGoSearchRun, DuckDuckGoSearchResults
-from langchain.utilities import WikipediaAPIWrapper
+from langchain.utilities import WikipediaAPIWrapper, GoogleSearchAPIWrapper
+from langchain.tools import Tool
 
 
 from langchain.chains import RetrievalQA
@@ -169,6 +170,13 @@ def ddgsearch(result):
     matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
     return '\n\n'.join(matches)
 
+def googlesearch(result):
+    # google_search = GoogleSearchAPIWrapper()
+    # googleresult = google_search.results(result, 10)
+    google_search = GoogleSearchAPIWrapper(k=5)
+    googleresult = google_search.run(result)
+    return googleresult
+
 class ThreadWithReturnValue(threading.Thread):
     def run(self):
         if self._target is not None:
@@ -179,9 +187,16 @@ class ThreadWithReturnValue(threading.Thread):
         return self._return
 
 def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
+
+    google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(result,))
+    google_search_thread.start()
+    search_thread = ThreadWithReturnValue(target=ddgsearch, args=(result,))
+    search_thread.start()
+
     chainStreamHandler = ChainStreamHandler()
     chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
     chainllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
+
 
     translate_prompt = PromptTemplate(
         input_variables=["targetlang", "text"],
@@ -190,13 +205,14 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
     chain = LLMChain(llm=chainllm, prompt=translate_prompt)
     engresult = chain.run({"targetlang": "english", "text": result})
 
-    useful_source_text = ""
+    en_google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(engresult,))
+    en_google_search_thread.start()
+    engans_ddg = ddgsearch(engresult)
 
-    search_thread = ThreadWithReturnValue(target=ddgsearch, args=(engresult,))
-    search_thread.start()
-    useful_source_text = ddgsearch(result)
-    engans = search_thread.join()
-    useful_source_text = useful_source_text + "\n" + engans
+    ans_google = google_search_thread.join()
+    ans_ddg = search_thread.join()
+    enans_google = en_google_search_thread.join()
+    useful_source_text = ans_ddg + "\n" + ans_google + "\n" + engans_ddg + "\n" + enans_google
 
     # Judgment_prompt = PromptTemplate(
     #     input_variables=["sourcetext", "question"],
@@ -230,7 +246,7 @@ if __name__ == "__main__":
     # print(duckduckgo_search("凡凡还有多久出狱？"))
     # print(search_summary("凡凡还有多久出狱？"))
     # print(search_summary("今天微博的热搜话题有哪些？"))
-    for i in search_summary("金砖国家经济会议取得了什么进展？"):
+    for i in search_summary("今天微博的热搜话题有哪些？"):
         print(i, end="")
 
     # # 问答
