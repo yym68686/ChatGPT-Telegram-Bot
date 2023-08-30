@@ -8,7 +8,7 @@ from telegram import BotCommand
 from agent import duckduckgo_search, docQA, get_doc_from_sitemap, get_doc_from_local, search_summary
 from chatgpt2api.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
-from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature, USE_GOOGLE
+from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature, USE_GOOGLE, DEFAULT_SEARCH_MODEL, DEFAULT_SEARCH_MODEL, SEARCH_USE_GPT, GPT_ENGINE, API_URL
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -46,7 +46,10 @@ async def command_bot(update, context, language="simplified chinese", prompt=tra
         global API4
         if (API or API4) and message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-            await getChatGPT(title, robot, message, update, context)
+            if SEARCH_USE_GPT:
+                await search(update, context, has_command=False)
+            else:
+                await getChatGPT(title, robot, message, update, context)
     else:
         message = await context.bot.send_message(
             chat_id=update.message.chat_id,
@@ -58,11 +61,13 @@ async def command_bot(update, context, language="simplified chinese", prompt=tra
 async def info(update, context):
     message = (
         f"`Hi, {update.effective_user.username}!`\n\n"
-        f"**Default engine:** `{os.environ.get('GPT_ENGINE', 'gpt-3.5-turbo-0613')}`\n"
+        f"**Default engine:** `{GPT_ENGINE}`\n"
+        f"**Default search model:** `{DEFAULT_SEARCH_MODEL}`\n"
+        f"**gpt use search:** `{SEARCH_USE_GPT}`\n"
         f"**temperature:** `{temperature}`\n"
         f"**PASS_HISTORY:** `{PASS_HISTORY}`\n"
         f"**USE_GOOGLE:** `{USE_GOOGLE}`\n\n"
-        f"**API_URL:** `{os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')}`\n\n"
+        f"**API_URL:** `{API_URL}`\n\n"
         f"**API:** `{API}`\n\n"
         f"**API4:** `{API4}`\n\n"
         f"**WEB_HOOK:** `{WEB_HOOK}`"
@@ -136,6 +141,16 @@ async def history(update, context):
     )
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
 
+async def gpt_use_search(update, context):
+    global SEARCH_USE_GPT
+    SEARCH_USE_GPT = not SEARCH_USE_GPT
+    status = "打开" if SEARCH_USE_GPT else "关闭"
+    message = (
+        f"当前已{status}gpt默认搜索🔍！\n"
+        f"**SEARCH_USE_GPT:** `{SEARCH_USE_GPT}`"
+    )
+    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+
 async def google(update, context):
     if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
         await context.bot.send_message(chat_id=update.message.chat_id, text=escape("GOOGLE_API_KEY or GOOGLE_CSE_ID not found"), parse_mode='MarkdownV2')
@@ -149,10 +164,11 @@ async def google(update, context):
     )
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
 
-async def search(update, context):
-    if len(context.args) > 0:
+async def search(update, context, has_command=True):
+    if has_command == False or len(context.args) > 0:
         message = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-        message = ' '.join(context.args)
+        if has_command:
+            message = ' '.join(context.args)
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         if message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
@@ -167,7 +183,7 @@ async def search(update, context):
                 reply_to_message_id=update.message.message_id,
             )
             messageid = message.message_id
-            for data in search_summary(text, use_goolge=USE_GOOGLE):
+            for data in search_summary(text, model=DEFAULT_SEARCH_MODEL, use_goolge=USE_GOOGLE, use_gpt=SEARCH_USE_GPT):
                 result = result + data
                 tmpresult = result
                 modifytime = modifytime + 1
@@ -250,6 +266,7 @@ def setup(token):
         BotCommand('info', 'basic information'),
         BotCommand('history', 'open or close chat history'),
         BotCommand('google', 'open or close google search'),
+        BotCommand('gpt_use_search', 'open or close gpt use search'),
     ]))
 
     application.add_handler(CommandHandler("start", start))
@@ -261,6 +278,7 @@ def setup(token):
     application.add_handler(CommandHandler("info", info))
     application.add_handler(CommandHandler("history", history))
     application.add_handler(CommandHandler("google", google))
+    application.add_handler(CommandHandler("gpt_use_search", gpt_use_search))
     application.add_handler(CommandHandler("search", search))
     application.add_handler(CommandHandler("qa", qa))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-3.5`\n\n", robot=ChatGPTbot, has_command=False)))

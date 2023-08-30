@@ -1,6 +1,7 @@
 import os
 import re
 import asyncio
+import tiktoken
 import threading
 import traceback
 from langchain.llms import OpenAI
@@ -35,7 +36,7 @@ from langchain.tools import Tool
 from langchain.chains import RetrievalQA
 
 
-from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature
+from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature, DEFAULT_SEARCH_MODEL, SEARCH_USE_GPT, USE_GOOGLE
 
 
 def getmd5(string):
@@ -166,7 +167,7 @@ class ChainStreamHandler(StreamingStdOutCallbackHandler):
                 pass
 
 def ddgsearch(result):
-    search = DuckDuckGoSearchResults(num_results=7)
+    search = DuckDuckGoSearchResults(num_results=20)
     webresult = search.run(result)
     matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
     return '\n\n'.join(matches)
@@ -174,9 +175,14 @@ def ddgsearch(result):
 def googlesearch(result):
     # google_search = GoogleSearchAPIWrapper()
     # googleresult = google_search.results(result, 10)
-    google_search = GoogleSearchAPIWrapper(k=5)
+    google_search = GoogleSearchAPIWrapper(k=10)
     googleresult = google_search.run(result)
     return googleresult
+
+def gptsearch(result, llm):
+    response = llm([HumanMessage(content=result)])
+    response = response.content
+    return response
 
 class ThreadWithReturnValue(threading.Thread):
     def run(self):
@@ -187,17 +193,22 @@ class ThreadWithReturnValue(threading.Thread):
         super().join()
         return self._return
 
-def search_summary(result, model="gpt-3.5-turbo", temperature=0.5, use_goolge=True):
+def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, use_goolge=USE_GOOGLE, use_gpt=SEARCH_USE_GPT):
 
     if use_goolge:
         google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(result,))
         google_search_thread.start()
+
     search_thread = ThreadWithReturnValue(target=ddgsearch, args=(result,))
     search_thread.start()
 
     chainStreamHandler = ChainStreamHandler()
     chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
     chainllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
+
+    if use_gpt:
+        gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(result, chainllm,))
+        gpt_search_thread.start()
 
     if use_goolge:
         keyword_prompt = PromptTemplate(
@@ -231,10 +242,40 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5, use_goolge=Tr
 
     ans_ddg = search_thread.join()
     engans_ddg = en_ddg_search_thread.join()
-    if use_goolge:
-        useful_source_text = ans_ddg  + "\n" + keyword_ans + "\n" + ans_google + "\n" + engans_ddg + "\n" + enans_google
-    else:
-        useful_source_text = ans_ddg + "\n" + engans_ddg
+    if use_gpt:
+        gpt_ans = gpt_search_thread.join()
+    useful_source_text = (gpt_ans if use_gpt else "") + "\n" + \
+                         ans_ddg  + "\n" + \
+                         (keyword_ans if use_goolge else "") + "\n" + \
+                         (ans_google if use_goolge else "") + "\n" + \
+                         engans_ddg + "\n" + \
+                         (enans_google if use_goolge else "")
+    # if use_goolge:
+    #     useful_source_text = ans_ddg  + "\n" + keyword_ans + "\n" + ans_google + "\n" + engans_ddg + "\n" + enans_google
+    # else:
+    #     useful_source_text = ans_ddg + "\n" + engans_ddg
+
+    encoding = tiktoken.encoding_for_model(model)
+    encode_text = encoding.encode(useful_source_text)
+
+    max_token_len = (
+        30500
+        if "gpt-4-32k" in model
+        else 6500
+        if "gpt-4" in model
+        else 14500
+        if "gpt-3.5-turbo-16k" in model
+        else 98500
+        if "claude-2-web" in model
+        else 3500
+    )
+    if len(encode_text) > max_token_len: 
+        encode_text = encode_text[:max_token_len]
+        # encode_text = encode_text[:3842]
+        useful_source_text = encoding.decode(encode_text)
+    encode_text = encoding.encode(useful_source_text)
+    tokens_len = len(encode_text)
+    print("tokens_len", tokens_len)
 
     # Judgment_prompt = PromptTemplate(
     #     input_variables=["sourcetext", "question"],
@@ -251,7 +292,7 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5, use_goolge=Tr
 
     summary_prompt = PromptTemplate(
         input_variables=["useful_source_text", "question"],
-        template="下面是这个问题的网页搜索结果：{useful_source_text}，请你结合上面搜索结果，忽略重复的和与问题无关的内容，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}，在回答中请不要重复出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。回答要求：使用简体中文作答，不要出现繁体文字，不要有重复冗余的内容，给出清晰、结构化、在不有重复冗余的基础上，给出详尽丰富的回答，不要忽略细节，语言严谨且学术化，逻辑清晰，行文流畅。",
+        template="下面是这个问题的网页搜索结果：{useful_source_text}，请你结合上面搜索结果，忽略重复的和与问题无关的内容，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}，在回答中请不要重复出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。回答要求：使用简体中文作答，不要出现繁体文字，不要有重复冗余的内容，给出清晰、结构化、在不有重复冗余的基础上，给出详尽丰富的回答，不要忽略细节，使用markdown语法输出答案，一行或多行代码需要用一对```符号包起来，特别注意不要遗漏所有的示例代码、代码的示例用法一定要用一对```符号包裹起来实现代码格式化，语言严谨且学术化，逻辑清晰，行文流畅。",
     )
 
     chain = LLMChain(llm=chatllm, prompt=summary_prompt)
