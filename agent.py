@@ -187,10 +187,11 @@ class ThreadWithReturnValue(threading.Thread):
         super().join()
         return self._return
 
-def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
+def search_summary(result, model="gpt-3.5-turbo", temperature=0.5, use_goolge=True):
 
-    google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(result,))
-    google_search_thread.start()
+    if use_goolge:
+        google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(result,))
+        google_search_thread.start()
     search_thread = ThreadWithReturnValue(target=ddgsearch, args=(result,))
     search_thread.start()
 
@@ -198,13 +199,14 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
     chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
     chainllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
 
-    keyword_prompt = PromptTemplate(
-        input_variables=["source"],
-        template="请你帮我抽取关键词，输出的关键词之间用空格连接。输出除了关键词，不用解释，也不要出现其他内容，只要出现关键词，必须用空间连接关键词，不要出现其他任何连接符。下面是要提取关键词的文字：{source}，",
-    )
-    chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
-    keyword_google_search_thread = ThreadWithReturnValue(target=chain.run, args=({"source": result},))
-    keyword_google_search_thread.start()
+    if use_goolge:
+        keyword_prompt = PromptTemplate(
+            input_variables=["source"],
+            template="请你帮我抽取关键词，输出的关键词之间用空格连接。输出除了关键词，不用解释，也不要出现其他内容，只要出现关键词，必须用空间连接关键词，不要出现其他任何连接符。下面是要提取关键词的文字：{source}，",
+        )
+        key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
+        keyword_google_search_thread = ThreadWithReturnValue(target=key_chain.run, args=({"source": result},))
+        keyword_google_search_thread.start()
 
 
     translate_prompt = PromptTemplate(
@@ -214,20 +216,25 @@ def search_summary(result, model="gpt-3.5-turbo", temperature=0.5):
     chain = LLMChain(llm=chainllm, prompt=translate_prompt)
     engresult = chain.run({"targetlang": "english", "text": result})
 
-    en_google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(engresult,))
-    en_google_search_thread.start()
+    if use_goolge:
+        en_google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(engresult,))
+        en_google_search_thread.start()
 
     en_ddg_search_thread = ThreadWithReturnValue(target=ddgsearch, args=(engresult,))
     en_ddg_search_thread.start()
 
-    keyword = keyword_google_search_thread.join()
-    keyword_ans = googlesearch(keyword)
+    if use_goolge:
+        keyword = keyword_google_search_thread.join()
+        keyword_ans = googlesearch(keyword)
+        ans_google = google_search_thread.join()
+        enans_google = en_google_search_thread.join()
 
-    ans_google = google_search_thread.join()
     ans_ddg = search_thread.join()
-    enans_google = en_google_search_thread.join()
     engans_ddg = en_ddg_search_thread.join()
-    useful_source_text = ans_ddg  + "\n" + keyword_ans + "\n" + ans_google + "\n" + engans_ddg + "\n" + enans_google
+    if use_goolge:
+        useful_source_text = ans_ddg  + "\n" + keyword_ans + "\n" + ans_google + "\n" + engans_ddg + "\n" + enans_google
+    else:
+        useful_source_text = ans_ddg + "\n" + engans_ddg
 
     # Judgment_prompt = PromptTemplate(
     #     input_variables=["sourcetext", "question"],
