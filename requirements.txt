@@ -7,7 +7,7 @@ python-telegram-bot==20.4
 
 # langchain
 openai
-# hnswlib
+hnswlib
 # chroma-hnswlib
 chromadb
 wikipedia
