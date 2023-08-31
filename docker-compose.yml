@@ -4,13 +4,9 @@ services:
     container_name: chatgptbot
     image: yym68686/chatgpt:1.0
     environment:
-      # telegram
-      # - NICK=
       - BOT_TOKEN=
       - WEB_HOOK=
-      # openai session
-      # - session_token=
-      - EMAIL=
-      - PASSWORD=
+      - API=
+      - API_URL=
     ports:
       - 80:8080
