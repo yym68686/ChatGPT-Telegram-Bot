@@ -187,7 +187,6 @@ def googlesearch(result):
         if "rateLimitExceeded" in str(e):
             print("Google API 每日调用频率已达上限，请明日再试！")
             config.USE_GOOGLE = False
-            print(config.USE_GOOGLE)
         googleresult = ""
     return googleresult
 
