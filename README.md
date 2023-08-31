@@ -116,7 +116,7 @@ docker run -p 80:8080 -dit \
     -e BOT_TOKEN="telegram bot token" \
     -e WEB_HOOK="https://your_host.com/" \
     -e API="" \
-    -e COOKIES= \
+    -e API_URL= \
     chatgpt:1.0
 ```
 
@@ -129,11 +129,10 @@ services:
     container_name: chatgptbot
     image: yym68686/chatgpt:1.0
     environment:
-      - NICK=
       - BOT_TOKEN=
       - WEB_HOOK=
       - API=
-      - COOKIES=
+      - API_URL=
     ports:
       - 80:8080
 ```
