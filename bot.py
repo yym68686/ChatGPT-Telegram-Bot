@@ -47,7 +47,7 @@ async def command_bot(update, context, language="simplified chinese", prompt=tra
         global API4
         if (API or API4) and message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-            if SEARCH_USE_GPT:
+            if config.SEARCH_USE_GPT:
                 await search(update, context, has_command=False)
             else:
                 await getChatGPT(title, robot, message, update, context)
