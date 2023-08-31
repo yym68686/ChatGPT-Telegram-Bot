@@ -1,5 +1,7 @@
 #!/bin/bash
-git clone --depth 1 -b main https://github.com/yym68686/ChatGPT-Telegram-Bot.git
+git config --global http.sslVerify false
+git config --global http.postBuffer 1048576000
+git clone --depth 1 -b main https://github.com/yym68686/ChatGPT-Telegram-Bot.git 
 echo "code downloaded..." >> /home/log 2>&1
 cd ChatGPT-Telegram-Bot
 pip install -r /home/ChatGPT-Telegram-Bot/requirements.txt > /dev/null
