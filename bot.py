@@ -9,6 +9,7 @@ from agent import duckduckgo_search, docQA, get_doc_from_sitemap, get_doc_from_l
 from chatgpt2api.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
 from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature, USE_GOOGLE, DEFAULT_SEARCH_MODEL, DEFAULT_SEARCH_MODEL, SEARCH_USE_GPT, GPT_ENGINE, API_URL
+import config
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -63,10 +64,10 @@ async def info(update, context):
         f"`Hi, {update.effective_user.username}!`\n\n"
         f"**Default engine:** `{GPT_ENGINE}`\n"
         f"**Default search model:** `{DEFAULT_SEARCH_MODEL}`\n"
-        f"**gpt use search:** `{SEARCH_USE_GPT}`\n"
+        f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
         f"**temperature:** `{temperature}`\n"
         f"**PASS_HISTORY:** `{PASS_HISTORY}`\n"
-        f"**USE_GOOGLE:** `{USE_GOOGLE}`\n\n"
+        f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
         f"**API_URL:** `{API_URL}`\n\n"
         f"**API:** `{API}`\n\n"
         f"**API4:** `{API4}`\n\n"
@@ -117,6 +118,7 @@ async def getChatGPT(title, robot, message, update, context):
         print("response_msg", result)
         print("error", e)
         print('\033[0m')
+        global API
         if API:
             robot.reset(convo_id=str(update.message.chat_id), system_prompt=systemprompt)
         if "You exceeded your current quota, please check your plan and billing details." in str(e):
@@ -143,11 +145,11 @@ async def history(update, context):
 
 async def gpt_use_search(update, context):
     global SEARCH_USE_GPT
-    SEARCH_USE_GPT = not SEARCH_USE_GPT
-    status = "打开" if SEARCH_USE_GPT else "关闭"
+    config.SEARCH_USE_GPT = not SEARCH_USE_GPT
+    status = "打开" if config.SEARCH_USE_GPT else "关闭"
     message = (
         f"当前已{status}gpt默认搜索🔍！\n"
-        f"**SEARCH_USE_GPT:** `{SEARCH_USE_GPT}`"
+        f"**SEARCH_USE_GPT:** `{config.SEARCH_USE_GPT}`"
     )
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
 
@@ -156,11 +158,11 @@ async def google(update, context):
         await context.bot.send_message(chat_id=update.message.chat_id, text=escape("GOOGLE_API_KEY or GOOGLE_CSE_ID not found"), parse_mode='MarkdownV2')
         return
     global USE_GOOGLE
-    USE_GOOGLE = not USE_GOOGLE
-    status = "打开" if USE_GOOGLE else "关闭"
+    config.USE_GOOGLE = not USE_GOOGLE
+    status = "打开" if config.USE_GOOGLE else "关闭"
     message = (
         f"当前已{status}google搜索！\n"
-        f"**USE_GOOGLE:** `{USE_GOOGLE}`"
+        f"**USE_GOOGLE:** `{config.USE_GOOGLE}`"
     )
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
 
@@ -183,7 +185,7 @@ async def search(update, context, has_command=True):
                 reply_to_message_id=update.message.message_id,
             )
             messageid = message.message_id
-            for data in search_summary(text, model=DEFAULT_SEARCH_MODEL, use_goolge=USE_GOOGLE, use_gpt=SEARCH_USE_GPT):
+            for data in search_summary(text, model=DEFAULT_SEARCH_MODEL, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
                 result = result + data
                 tmpresult = result
                 modifytime = modifytime + 1

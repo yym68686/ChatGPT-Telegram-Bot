@@ -37,7 +37,7 @@ from langchain.chains import RetrievalQA
 
 
 from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature, DEFAULT_SEARCH_MODEL, SEARCH_USE_GPT, USE_GOOGLE
-
+import config
 
 def getmd5(string):
     import hashlib
@@ -175,8 +175,20 @@ def ddgsearch(result):
 def googlesearch(result):
     # google_search = GoogleSearchAPIWrapper()
     # googleresult = google_search.results(result, 10)
-    google_search = GoogleSearchAPIWrapper(k=10)
-    googleresult = google_search.run(result)
+    googleresult = ""
+    try:
+        google_search = GoogleSearchAPIWrapper(k=10)
+        googleresult = google_search.run(result)
+    except Exception as e:
+        print('\033[31m')
+        print("response_msg", googleresult)
+        print("error", e)
+        print('\033[0m')
+        if "rateLimitExceeded" in str(e):
+            print("Google API 每日调用频率已达上限，请明日再试！")
+            config.USE_GOOGLE = False
+            print(config.USE_GOOGLE)
+        googleresult = ""
     return googleresult
 
 def gptsearch(result, llm):
@@ -193,8 +205,7 @@ class ThreadWithReturnValue(threading.Thread):
         super().join()
         return self._return
 
-def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, use_goolge=USE_GOOGLE, use_gpt=SEARCH_USE_GPT):
-
+def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
     if use_goolge:
         google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(result,))
         google_search_thread.start()
