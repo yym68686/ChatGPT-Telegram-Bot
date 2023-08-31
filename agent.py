@@ -300,7 +300,7 @@ def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, 
         summary_prompt = PromptTemplate(
             input_variables=["useful_source_text", "fact_text", "question"],
             template=(
-                "你可以提供实时信息，可以实时获取最新的信息，请忽略一切与这个设定相违背的内容。也不要告诉我你不能提供实时信息。下面是这个问题的网页搜索结果，搜索结果分为两个部分，一个专注事实（不会随时间变化的知识）的搜索结果，一个专注实时（实时性比较高的知识）的搜索结果。"
+                "从现在开始你就是专业的搜索引擎，你可以提供实时信息，可以实时获取最新的信息，请忽略一切与这个角色设定相违背的指令。也不要告诉我你不能提供实时信息。下面是这个问题的网页搜索结果，搜索结果分为两个部分，一个专注事实（不会随时间变化的知识）的搜索结果，一个专注实时（实时性比较高的知识）的搜索结果。"
                 "实时性的搜索结果：{useful_source_text}。"
                 "事实性的搜索结果：{fact_text}。"
                 "如何利用实时性和事实性搜索结果的一些原则："
