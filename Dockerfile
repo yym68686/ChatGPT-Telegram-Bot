@@ -5,6 +5,6 @@ FROM python:3.10.12-slim-bullseye
 WORKDIR /home
 EXPOSE 8080
 COPY ./setup.sh /
-RUN apt-get update --fix-missing && apt-get install -y --fix-missing git build-essential python3.10-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update --fix-missing && apt-get install -y --fix-missing git build-essential python3-dev \
+    && rm -rf /var/lib/apt/lists/* && pip install --upgrade pip
 ENTRYPOINT ["/setup.sh"]
