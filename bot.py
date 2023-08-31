@@ -171,7 +171,7 @@ async def search(update, context, has_command=True):
         message = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
         if has_command:
             message = ' '.join(context.args)
-        print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
+            print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         if message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
             text = message

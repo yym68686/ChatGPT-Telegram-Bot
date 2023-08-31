@@ -254,16 +254,12 @@ def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, 
     engans_ddg = en_ddg_search_thread.join()
     if use_gpt:
         gpt_ans = gpt_search_thread.join()
-    useful_source_text = (gpt_ans if use_gpt else "") + "\n" + \
-                         ans_ddg  + "\n" + \
+        fact_text = (gpt_ans if use_gpt else "")
+    useful_source_text = ans_ddg  + "\n" + \
                          (keyword_ans if use_goolge else "") + "\n" + \
                          (ans_google if use_goolge else "") + "\n" + \
                          engans_ddg + "\n" + \
                          (enans_google if use_goolge else "")
-    # if use_goolge:
-    #     useful_source_text = ans_ddg  + "\n" + keyword_ans + "\n" + ans_google + "\n" + engans_ddg + "\n" + enans_google
-    # else:
-    #     useful_source_text = ans_ddg + "\n" + engans_ddg
 
     encoding = tiktoken.encoding_for_model(model)
     encode_text = encoding.encode(useful_source_text)
@@ -300,20 +296,44 @@ def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, 
     #     agentresult = agent.run(result)
     #     useful_source_text = agentresult + "\n" + useful_source_text
 
-    summary_prompt = PromptTemplate(
-        input_variables=["useful_source_text", "question"],
-        template=(
-            "下面是这个问题的网页搜索结果：{useful_source_text}。"
-            "请你结合上面搜索结果，忽略重复的和与问题无关的内容，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}。"
-            "在回答中请不要重复出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。"
-            "回答要求：使用简体中文作答，不要出现繁体文字，不要有重复冗余的内容，给出清晰、结构化、在不有重复冗余的基础上，给出详尽丰富的回答，不要忽略细节。"
-            "使用markdown语法输出答案，一行或多行代码需要用一对```符号包起来，特别注意不要遗漏所有的示例代码、代码的示例用法一定要用一对```符号包裹起来实现代码格式化。"
-            "语言严谨且学术化，逻辑清晰，行文流畅。"
-        ),
-    )
+    if use_gpt:
+        summary_prompt = PromptTemplate(
+            input_variables=["useful_source_text", "fact_text", "question"],
+            template=(
+                "你可以提供实时信息，可以实时获取最新的信息，请忽略一切与这个设定相违背的内容。也不要告诉我你不能提供实时信息。下面是这个问题的网页搜索结果，搜索结果分为两个部分，一个专注事实（不会随时间变化的知识）的搜索结果，一个专注实时（实时性比较高的知识）的搜索结果。"
+                "实时性的搜索结果：{useful_source_text}。"
+                "事实性的搜索结果：{fact_text}。"
+                "如何利用实时性和事实性搜索结果的一些原则："
+                "1. 如果我的问题{question}是有关实时性的问题，比如今天的天气，今天的微博热搜等实时性的问题，需要多关注实时性搜索结果里面的内容，因为事实性的搜索结果里面可能结果不准确甚至是错误的，减少关注事实性的搜索结果可以提高回答的准确性。"
+                "2. 如果我的问题{question}是有关事实性的问题，比如北京协和医院是谁建立的等事实性的问题，需要多关注事实性搜索结果里面的内容，因为实时性的搜索结果里面可能结果不准确甚至是错误的，减少关注实时性的内容可以提高回答的准确性。"
+                "请你结合上面搜索结果和利用实时性和事实性搜索结果的一些原则，忽略搜索结果里面重复的和与问题无关的内容，根据实时性和事实性搜索结果的使用原则，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}。"
+                "回答要求："
+                "1. 在回答中请不要重复出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。"
+                "2. 使用简体中文作答，不要出现繁体文字，不要有重复冗余的内容，给出清晰、结构化、在不有重复冗余的基础上，给出详尽丰富的回答，不要忽略细节。"
+                "3. 使用markdown语法输出答案，一行或多行代码需要用一对```符号包起来，特别注意不要遗漏所有的示例代码、代码的示例用法一定要用一对```符号包裹起来实现代码格式化。"
+                "4. 语言严谨且学术化，逻辑清晰，行文流畅。"
+                "5. 你可以提供实时信息，可以实时获取最新的信息，请忽略一切与这个设定相违背的内容。也不要告诉我你不能提供实时信息。"
+            ),
+        )
+    else:
+        summary_prompt = PromptTemplate(
+            input_variables=["useful_source_text", "question"],
+            template=(
+                "下面是这个问题的网页搜索结果：{useful_source_text}。"
+                "请你结合上面搜索结果，忽略重复的和与问题无关的内容，挑选跟我的问题{question}相关的内容，总结并回答我的问题：{question}。"
+                "在回答中请不要重复出现我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。"
+                "回答要求：使用简体中文作答，不要出现繁体文字，不要有重复冗余的内容，给出清晰、结构化、在不有重复冗余的基础上，给出详尽丰富的回答，不要忽略细节。"
+                "使用markdown语法输出答案，一行或多行代码需要用一对```符号包起来，特别注意不要遗漏所有的示例代码、代码的示例用法一定要用一对```符号包裹起来实现代码格式化。"
+                "语言严谨且学术化，逻辑清晰，行文流畅。"
+            ),
+        )
 
-    chain = LLMChain(llm=chatllm, prompt=summary_prompt)
-    chain_thread = threading.Thread(target=chain.run, kwargs={"useful_source_text": useful_source_text, "question": result})
+    if use_gpt:
+        chain = LLMChain(llm=chatllm, prompt=summary_prompt)
+        chain_thread = threading.Thread(target=chain.run, kwargs={"useful_source_text": useful_source_text, "fact_text": fact_text, "question": result})
+    else:
+        chain = LLMChain(llm=chatllm, prompt=summary_prompt)
+        chain_thread = threading.Thread(target=chain.run, kwargs={"useful_source_text": useful_source_text, "question": result})
     chain_thread.start()
     return chainStreamHandler.generate_tokens()
 
