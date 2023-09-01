@@ -2,7 +2,7 @@
 # docker tag chatgpt:1.0 yym68686/chatgpt:1.0
 # docker push yym68686/chatgpt:1.0
 # FROM python:3.10.13-slim-bullseye
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 WORKDIR /home
 EXPOSE 8080
 COPY ./setup.sh /
