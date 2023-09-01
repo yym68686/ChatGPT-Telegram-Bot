@@ -137,6 +137,12 @@ services:
       - 80:8080
 ```
 
+后台运行 Docker Compose 容器
+
+```bash
+docker-compose up -d
+```
+
 仓库打包 Docker 镜像
 
 ```bash
