@@ -1,4 +1,4 @@
-FROM python:3.10.13-slim-bullseye
+FROM python:3.10.13
 WORKDIR /home
 EXPOSE 8080
 COPY ./setup.sh /home
