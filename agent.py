@@ -249,9 +249,11 @@ def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, 
 
     if use_goolge:
         keyword = keyword_google_search_thread.join()
-        keyword_ans = googlesearch(keyword)
+        key_google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(keyword,))
+        key_google_search_thread.start()
         ans_google = google_search_thread.join()
         enans_google = en_google_search_thread.join()
+        keyword_ans = key_google_search_thread.join()
 
     ans_ddg = search_thread.join()
     engans_ddg = en_ddg_search_thread.join()
