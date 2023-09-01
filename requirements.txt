@@ -7,8 +7,6 @@ python-telegram-bot==20.4
 
 # langchain
 openai
-hnswlib
-# chroma-hnswlib
 chromadb
 wikipedia
 fake_useragent
