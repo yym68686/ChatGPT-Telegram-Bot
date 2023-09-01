@@ -18,7 +18,7 @@
 
 ✅ 全平台，随时随地，只要有 telegram 就可以打破知识壁垒
 
-✅ 支持 docker，fly.io 部署
+✅ 支持 docker，Zeabur，Replit，fly.io 部署
 
 ## Zeabur 远程部署 (推荐)
 
@@ -103,12 +103,6 @@ https://api.telegram.org/bot<token>/getWebhookInfo
 
 ## Docker 本地部署
 
-下载镜像
-
-```bash
-docker pull yym68686/chatgpt:1.0
-```
-
 启动容器
 
 ```bash
@@ -117,7 +111,7 @@ docker run -p 80:8080 -dit \
     -e WEB_HOOK="https://your_host.com/" \
     -e API="" \
     -e API_URL= \
-    chatgpt:1.0
+    yym68686/chatgpt:1.0
 ```
 
 或者你想使用 Docker Compose，下面是 docker-compose.yml 示例:
@@ -143,10 +137,10 @@ services:
 docker-compose up -d
 ```
 
-仓库打包 Docker 镜像
+仓库打包 Docker 镜像，推送到 Docker Hub
 
 ```bash
-docker build --no-cache -t chatgpt:1.0 --platform linux/amd64 .
+docker build --no-cache -t chatgpt:1.0 -f Dockerfile.build --platform linux/amd64 .
 docker tag chatgpt:1.0 yym68686/chatgpt:1.0
 docker push yym68686/chatgpt:1.0
 ```

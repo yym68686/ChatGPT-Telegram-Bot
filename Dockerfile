@@ -1,8 +1,6 @@
-FROM python:3.10.13
+FROM yym68686/chatgpt:1.0
 WORKDIR /home
 EXPOSE 8080
-COPY ./setup.sh /home
-COPY ./requirements.txt /home
-RUN apt-get update && apt-get install -y git \
-    && rm -rf /var/lib/apt/lists/* && pip install -r /home/requirements.txt
-ENTRYPOINT ["/home/setup.sh"]
+RUN rm -rf ChatGPT-Telegram-Bot/ \
+    && git clone --depth 1 -b main https://github.com/yym68686/ChatGPT-Telegram-Bot.git \
+    && python -u /home/ChatGPT-Telegram-Bot/main.py
