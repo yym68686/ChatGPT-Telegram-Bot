@@ -1,5 +1,6 @@
 #!/bin/bash
 set -eu
+rm -rf ChatGPT-Telegram-Bot/
 git clone --depth 1 -b main https://github.com/yym68686/ChatGPT-Telegram-Bot.git
 cd ChatGPT-Telegram-Bot
 pip install --upgrade pip
