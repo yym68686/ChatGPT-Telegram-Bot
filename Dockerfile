@@ -6,7 +6,7 @@ FROM ubuntu:22.04
 WORKDIR /home
 EXPOSE 8080
 COPY ./setup.sh /
-RUN apt-get -y update && apt -get install -y software-properties-common \
+RUN apt-get -y update && apt-get install -y software-properties-common \
     && add-apt-repository ppa:deadsnakes/ppa \
     && apt install -y python3.10 git python3.10-dev build-essential
 # RUN apt-get update \
