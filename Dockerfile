@@ -8,7 +8,7 @@ EXPOSE 8080
 COPY ./setup.sh /
 RUN apt-get -y update && apt-get install -y software-properties-common \
     && add-apt-repository ppa:deadsnakes/ppa \
-    && apt install -y python3.10 python3.10-pip git python3.10-dev build-essential
+    && apt install -y python3.10 python3-pip git python3.10-dev build-essential
 # RUN apt-get update \
 #     && apt-get install -y software-properties-common \
 #     && add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update \
