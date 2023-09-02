@@ -34,7 +34,7 @@ botNick = NICK.lower() if NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are.: "
-async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=ChatGPTbot, has_command=True):
+async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
     if has_command == False or len(context.args) > 0:
         message = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
         if has_command:
@@ -47,7 +47,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         global API4
         if (API or API4) and message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-            if config.SEARCH_USE_GPT and language == None:
+            if config.SEARCH_USE_GPT and language == None and robot == None:
                 await search(update, context, has_command=False)
             else:
                 await getChatGPT(title, robot, message, update, context)
