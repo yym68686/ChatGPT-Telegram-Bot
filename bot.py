@@ -47,7 +47,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         global API4
         if (API or API4) and message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-            if config.SEARCH_USE_GPT and "gpt4" not in title and (language == None or has_command == False):
+            if config.SEARCH_USE_GPT and "gpt4" not in title and language == None:
                 await search(update, context, has_command=False)
             else:
                 await getChatGPT(title, robot, message, update, context)
