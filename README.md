@@ -1,5 +1,7 @@
 # ChatGPT Telegram Bot
 
+Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your user experience.
+
 ## ✨ Features
 
 ✅ 支持 ChatGPT API 和 GPT4 API
