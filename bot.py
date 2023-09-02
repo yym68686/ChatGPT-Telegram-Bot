@@ -34,7 +34,7 @@ botNick = NICK.lower() if NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are.: "
-async def command_bot(update, context, language="simplified chinese", prompt=translator_prompt, title="", robot=ChatGPTbot, has_command=True):
+async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=ChatGPTbot, has_command=True):
     if has_command == False or len(context.args) > 0:
         message = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
         if has_command:
@@ -47,7 +47,7 @@ async def command_bot(update, context, language="simplified chinese", prompt=tra
         global API4
         if (API or API4) and message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-            if config.SEARCH_USE_GPT:
+            if config.SEARCH_USE_GPT and language == None:
                 await search(update, context, has_command=False)
             else:
                 await getChatGPT(title, robot, message, update, context)
@@ -273,7 +273,7 @@ def setup(token):
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", reset_chat))
-    application.add_handler(CommandHandler("en2zh", command_bot))
+    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "simplified chinese")))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english")))
     application.add_handler(CommandHandler("gpt4", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-4`\n\n", robot=ChatGPT4bot)))
     application.add_handler(CommandHandler("claude2", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ claude2`\n\n", robot=Claude2bot)))
