@@ -1,6 +1,6 @@
 # ChatGPT Telegram Bot
 
-Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your user experience.
+Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your user experience or report Bugs.
 
 ## ✨ Features
 
