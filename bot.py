@@ -273,8 +273,8 @@ def setup(token):
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", reset_chat))
-    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "simplified chinese")))
-    application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english")))
+    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "simplified chinese", robot=ChatGPTbot)))
+    application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=ChatGPTbot)))
     application.add_handler(CommandHandler("gpt4", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-4`\n\n", robot=ChatGPT4bot)))
     application.add_handler(CommandHandler("claude2", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ claude2`\n\n", robot=Claude2bot)))
     application.add_handler(CommandHandler("info", info))
