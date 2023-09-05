@@ -328,10 +328,17 @@ def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, 
         summary_prompt = PromptTemplate(
             input_variables=["useful_source_text", "question"],
             template=(
-                f"Today is {today_date()}."
-                "You are an assistant who can use a search engine. You need to response the following question: {question}. Search results: {useful_source_text}. Please provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
+                "question: {question}; Reference materials:{useful_source_text}; Please answer the above question based on the reference materials provided, with a detailed and in-depth response in Simplified Chinese."
             ),
         )
+        # useful_source_text = useful_source_text + "\n" + fact_text
+        # summary_prompt = PromptTemplate(
+        #     input_variables=["useful_source_text", "question"],
+        #     template=(
+        #         f"Today is {today_date()}."
+        #         "You are an assistant who can use a search engine. You need to response the following question: {question}. Search results: {useful_source_text}. Please provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
+        #     ),
+        # )
     else:
         summary_prompt = PromptTemplate(
             input_variables=["useful_source_text", "question"],
