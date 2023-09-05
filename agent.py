@@ -194,7 +194,7 @@ def googlesearch(result):
     return googleresult
 
 def gptsearch(result, llm):
-    result += "\n" + "如果无法提供有用的信息请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。"
+    # result += "\n" + "如果无法提供有用的信息请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。"
     response = llm([HumanMessage(content=result)])
     response = response.content
     return response
@@ -304,6 +304,28 @@ def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, 
     #     useful_source_text = agentresult + "\n" + useful_source_text
 
     if use_gpt:
+        summary_prompt = PromptTemplate(
+            input_variables=["useful_source_text", "fact_text", "question"],
+            template=(
+                "你是可以熟练使用搜索引擎的助手，你可以获取实时搜索的结果，你把搜索结果分为两个部分："
+                "1. 实时性的搜索结果：{useful_source_text}。"
+                "2. 事实性的搜索结果：{fact_text}。"
+                "实时性和事实性搜索结果使用原则："
+                "1. 首先需要整合实时性的搜索结果和事实性的搜索结果。最后的回答是实时性和事实性搜索结果一起整合的结果，不要分别陈述实时性和事实性的搜索结果。"
+                "2. 请不要在回答里提到你把搜索结果分成了事实性的搜索结果和实时性的搜索结果，回答里统一说是搜索结果。上面搜索结果的分开操作是为了让你得到更准确的答案，提高回答的准确性。"
+                "选取与整合实时性和事实性搜索结果的原则："
+                "1. 如果我的问题{question}是有关实时性的问题，比如今天的天气，今天的微博热搜等实时性的问题，需要多关注实时性搜索结果里面的内容，因为事实性的搜索结果里面可能结果不准确甚至是错误的，此时减少关注事实性的搜索结果可以提高回答的准确性。"
+                "2. 如果我的问题{question}是有关事实性的问题，比如北京协和医院是谁建立的等事实性的问题，需要多关注事实性搜索结果里面的内容，因为实时性的搜索结果里面可能结果不准确甚至是错误的，或者实时性的搜索结果搜不到相关的信息，此时减少关注实时性的内容可以提高回答的准确性。"
+                "3. 如果实时性和事实性搜索结果内容发生冲突，一般实时性搜索结果的可信度比较高，应该选取实时性搜索结果里面的内容。如果实时性和事实性搜索结果内容没有发生冲突，可以综合实时性和事实性搜索结果里面的内容。"
+                "回答原则："
+                "1. 在回答中请不要复述我的问题，如果搜索结果中没有提到相关内容，直接告诉我没有，请不要杜撰、臆断、假设或者给出不准确的回答。"
+                "2. 使用简体中文作答，不要出现繁体文字，不要有重复冗余的内容，给出清晰、结构化、在不有重复冗余的基础上，给出详尽丰富的回答，不要忽略细节。"
+                "3. 使用markdown语法输出答案，一行或多行代码需要用一对```符号包起来，特别注意不要遗漏所有的示例代码、代码的示例用法、数学公式一定要用一对```符号包裹起来实现代码格式化。"
+                "4. 语言严谨且学术化，逻辑清晰，行文流畅。"
+                "5. 不要分别总结出现实时性和事实性的搜索结果。在回答中不需要区分实时性和事实性的搜索结果，实时性和事实性的搜索结果这两个概念你自己知道就行，不需要告诉我。"
+                "请你遵守上述原则，总结搜索结果并回答我的问题：{question}。"
+            ),
+        )
         # summary_prompt = PromptTemplate(
         #     input_variables=["useful_source_text", "fact_text", "question"],
         #     template=(
@@ -327,14 +349,14 @@ def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, 
         #     ),
         # )
 
-        useful_source_text =  fact_text + "\n" + useful_source_text
-        summary_prompt = PromptTemplate(
-            input_variables=["useful_source_text", "question"],
-            template=(
-                f"Today is {today_date()}."
-                "You are an assistant who can use a search engine. You need to response the following question: {question}. Search results: {useful_source_text}. Please provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
-            ),
-        )
+        # useful_source_text =  fact_text + "\n" + useful_source_text
+        # summary_prompt = PromptTemplate(
+        #     input_variables=["useful_source_text", "question"],
+        #     template=(
+        #         f"Today is {today_date()}."
+        #         "You are an assistant who can use a search engine. You need to response the following question: {question}. Search results: {useful_source_text}. Please provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
+        #     ),
+        # )
     else:
         summary_prompt = PromptTemplate(
             input_variables=["useful_source_text", "question"],
