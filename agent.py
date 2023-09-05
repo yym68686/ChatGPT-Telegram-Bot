@@ -289,6 +289,7 @@ def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, 
     encode_text = encoding.encode(useful_source_text)
     tokens_len = len(encode_text)
     print("tokens_len", tokens_len)
+    print("web search", useful_source_text)
 
     # Judgment_prompt = PromptTemplate(
     #     input_variables=["sourcetext", "question"],
