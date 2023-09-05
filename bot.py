@@ -134,18 +134,16 @@ async def getChatGPT(title, robot, message, update, context):
         await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
 
 async def history(update, context):
-    global PASS_HISTORY
-    PASS_HISTORY = not PASS_HISTORY
-    status = "打开" if PASS_HISTORY else "关闭"
+    config.PASS_HISTORY = not config.PASS_HISTORY
+    status = "打开" if config.PASS_HISTORY else "关闭"
     message = (
         f"当前已{status}聊天记录！\n"
-        f"**PASS_HISTORY:** `{PASS_HISTORY}`"
+        f"**PASS_HISTORY:** `{config.PASS_HISTORY}`"
     )
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
 
 async def gpt_use_search(update, context):
-    global SEARCH_USE_GPT
-    config.SEARCH_USE_GPT = not SEARCH_USE_GPT
+    config.SEARCH_USE_GPT = not config.SEARCH_USE_GPT
     status = "打开" if config.SEARCH_USE_GPT else "关闭"
     message = (
         f"当前已{status}gpt默认搜索🔍！\n"
@@ -157,8 +155,7 @@ async def google(update, context):
     if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
         await context.bot.send_message(chat_id=update.message.chat_id, text=escape("GOOGLE_API_KEY or GOOGLE_CSE_ID not found"), parse_mode='MarkdownV2')
         return
-    global USE_GOOGLE
-    config.USE_GOOGLE = not USE_GOOGLE
+    config.USE_GOOGLE = not config.USE_GOOGLE
     status = "打开" if config.USE_GOOGLE else "关闭"
     message = (
         f"当前已{status}google搜索！\n"
