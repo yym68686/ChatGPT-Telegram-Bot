@@ -192,7 +192,10 @@ def ddgsearch(result, numresults=3):
 
 def Web_crawler(url: str) -> str:
     """返回链接网址url正文内容，必须是合法的网址"""
-    response = requests.get(url)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+    }
+    response = requests.get(url, headers=headers)
     # soup = BeautifulSoup(response.text, 'html.parser')
     result = ''
     try:
