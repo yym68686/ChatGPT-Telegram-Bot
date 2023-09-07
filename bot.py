@@ -256,7 +256,7 @@ def setup(token):
     run_async(application.bot.set_my_commands([
         BotCommand('gpt4', 'use gpt4'),
         BotCommand('claude2', 'use claude2'),
-        BotCommand('search', 'search the web with google and duckduckgo'),
+        # BotCommand('search', 'search the web with google and duckduckgo'),
         BotCommand('qa', 'Document Q&A with Embedding Database Search'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
@@ -278,7 +278,7 @@ def setup(token):
     application.add_handler(CommandHandler("history", history))
     application.add_handler(CommandHandler("google", google))
     application.add_handler(CommandHandler("gpt_use_search", gpt_use_search))
-    application.add_handler(CommandHandler("search", search))
+    # application.add_handler(CommandHandler("search", search))
     application.add_handler(CommandHandler("qa", qa))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-3.5`\n\n", robot=ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
