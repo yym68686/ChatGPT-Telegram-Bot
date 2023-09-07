@@ -1,15 +1,14 @@
 import re
 import os
+import config
 import logging
 from md2tgmd import escape
 from datetime import datetime
 from runasync import run_async
 from telegram import BotCommand
-from agent import duckduckgo_search, docQA, get_doc_from_sitemap, get_doc_from_local, search_summary
 from chatgpt2api.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
-from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature, USE_GOOGLE, DEFAULT_SEARCH_MODEL, DEFAULT_SEARCH_MODEL, SEARCH_USE_GPT, GPT_ENGINE, API_URL
-import config
+from agent import duckduckgo_search, docQA, get_doc_from_sitemap, get_doc_from_local, search_summary
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -24,28 +23,26 @@ current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]"
 
-if API:
-    ChatGPTbot = GPT(api_key=f"{API}", system_prompt=systemprompt, temperature=temperature)
-    Claude2bot = GPT(api_key=f"{API}", engine="claude-2-web")
-if API4:
-    ChatGPT4bot = GPT(api_key=f"{API4}", engine="gpt-4-0613", system_prompt=systemprompt, temperature=temperature)
+if config.API:
+    ChatGPTbot = GPT(api_key=f"{config.API}", system_prompt=systemprompt, temperature=config.temperature)
+    Claude2bot = GPT(api_key=f"{config.API}", engine="claude-2-web")
+if config.API4:
+    ChatGPT4bot = GPT(api_key=f"{config.API4}", engine="gpt-4-0613", system_prompt=systemprompt, temperature=config.temperature)
 
-botNick = NICK.lower() if NICK else None
+botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are.: "
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
     if has_command == False or len(context.args) > 0:
-        message = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+        message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
         if has_command:
             message = ' '.join(context.args)
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         if prompt:
             prompt = prompt.format(language)
             message = prompt + message
-        global API
-        global API4
-        if (API or API4) and message:
+        if (config.API or config.API4) and message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
             if config.SEARCH_USE_GPT and "gpt-4" not in title and language == None:
                 await search(update, context, has_command=False)
@@ -62,25 +59,25 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 async def info(update, context):
     message = (
         f"`Hi, {update.effective_user.username}!`\n\n"
-        f"**Default engine:** `{GPT_ENGINE}`\n"
-        f"**Default search model:** `{DEFAULT_SEARCH_MODEL}`\n"
+        f"**Default engine:** `{config.GPT_ENGINE}`\n"
+        f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
         f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
         f"**temperature:** `{temperature}`\n"
-        f"**PASS_HISTORY:** `{PASS_HISTORY}`\n"
+        f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
         f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
-        f"**API_URL:** `{API_URL}`\n\n"
-        f"**API:** `{API}`\n\n"
-        f"**API4:** `{API4}`\n\n"
-        f"**WEB_HOOK:** `{WEB_HOOK}`"
+        f"**API_URL:** `{config.API_URL}`\n\n"
+        f"**API:** `{config.API}`\n\n"
+        f"**API4:** `{config.API4}`\n\n"
+        f"**WEB_HOOK:** `{config.WEB_HOOK}`"
         # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
         # f"**NICK:** `{NICK}`\n"
     )
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
 
 async def reset_chat(update, context):
-    if API:
+    if config.API:
         ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=systemprompt)
-    if API4:
+    if config.API4:
         ChatGPT4bot.reset(convo_id=str(update.message.chat_id), system_prompt=systemprompt)
     await context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -100,7 +97,7 @@ async def getChatGPT(title, robot, message, update, context):
     )
     messageid = message.message_id
     try:
-        for data in robot.ask_stream(text, convo_id=str(update.message.chat_id), pass_history=PASS_HISTORY):
+        for data in robot.ask_stream(text, convo_id=str(update.message.chat_id), pass_history=config.PASS_HISTORY):
             result = result + data
             tmpresult = result
             modifytime = modifytime + 1
@@ -118,14 +115,13 @@ async def getChatGPT(title, robot, message, update, context):
         print("response_msg", result)
         print("error", e)
         print('\033[0m')
-        global API
-        if API:
+        if config.API:
             robot.reset(convo_id=str(update.message.chat_id), system_prompt=systemprompt)
         if "You exceeded your current quota, please check your plan and billing details." in str(e):
             print("OpenAI api 已过期！")
             await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
             messageid = ''
-            API = ''
+            config.API = ''
         result += f"`出错啦！{e}`"
     print(result)
     if lastresult != result and messageid:
@@ -165,7 +161,7 @@ async def google(update, context):
 
 async def search(update, context, has_command=True):
     if has_command == False or len(context.args) > 0:
-        message = update.message.text if NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+        message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
         if has_command:
             message = ' '.join(context.args)
             print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
@@ -182,7 +178,7 @@ async def search(update, context, has_command=True):
                 reply_to_message_id=update.message.message_id,
             )
             messageid = message.message_id
-            for data in search_summary(text, model=DEFAULT_SEARCH_MODEL, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
+            for data in search_summary(text, model=config.DEFAULT_SEARCH_MODEL, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
                 result = result + data
                 tmpresult = result
                 modifytime = modifytime + 1
