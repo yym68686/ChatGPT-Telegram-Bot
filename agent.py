@@ -360,10 +360,11 @@ if __name__ == "__main__":
     # print(duckduckgo_search("凡凡还有多久出狱？"))
     # print(search_summary("凡凡还有多久出狱？"))
 
-    for i in search_summary("今天的微博热搜有哪些？"):
+    # for i in search_summary("今天的微博热搜有哪些？"):
     # for i in search_summary("用python写个网络爬虫给我"):
     # for i in search_summary("消失的她主要讲了什么？"):
     # for i in search_summary("奥巴马的全名是什么？"):
+    for i in search_summary("华为mate60怎么样？"):
     # for i in search_summary("卡罗尔与星期二讲的啥？"):
     # for i in search_summary("金砖国家会议有哪些决定？"):
     # for i in search_summary("iphone15有哪些新功能？"):
