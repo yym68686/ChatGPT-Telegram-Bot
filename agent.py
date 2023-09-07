@@ -194,9 +194,15 @@ def Web_crawler(url: str) -> str:
     """返回链接网址url正文内容，必须是合法的网址"""
     response = requests.get(url)
     # soup = BeautifulSoup(response.text, 'html.parser')
-    soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
-    body = "".join(soup.find('body').get_text().split('\n'))
-    result = body
+    result = ''
+    try:
+        soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
+        body = "".join(soup.find('body').get_text().split('\n'))
+        result = body
+    except Exception as e:
+        print('\033[31m')
+        print("error", e)
+        print('\033[0m')
     return result
 
 def googlesearch(result, numresults=3):
