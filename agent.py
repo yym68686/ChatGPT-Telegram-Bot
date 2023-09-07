@@ -1,45 +1,35 @@
 import os
 import re
-import asyncio
+import config
 import tiktoken
+import requests
 import threading
 import traceback
+from typing import Any
+from datetime import date
+from bs4 import BeautifulSoup
+
 from langchain.llms import OpenAI
-from langchain.chains import LLMChain
-from langchain.agents import AgentType
+from langchain.chains import LLMChain, RetrievalQA
+from langchain.agents import AgentType, load_tools, initialize_agent, tool
 from langchain.schema import HumanMessage
-from langchain.callbacks.manager import CallbackManager
 from langchain.schema.output import LLMResult
+from langchain.callbacks.manager import CallbackManager
 from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain.agents import load_tools
-from langchain.agents import initialize_agent
 from langchain.prompts.chat import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
-import requests
-from bs4 import BeautifulSoup
-from datetime import date
-from typing import Any
-from langchain.agents import tool
+from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferWindowMemory, ConversationTokenBufferMemory
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.tools import DuckDuckGoSearchRun, DuckDuckGoSearchResults
+from langchain.tools import DuckDuckGoSearchRun, DuckDuckGoSearchResults, Tool
 from langchain.utilities import WikipediaAPIWrapper
 from googlesearch import GoogleSearchAPIWrapper
-from langchain.tools import Tool
-
-
-from langchain.chains import RetrievalQA
-
-
-from config import BOT_TOKEN, WEB_HOOK, NICK, API, API4, PASS_HISTORY, temperature, DEFAULT_SEARCH_MODEL, SEARCH_USE_GPT, USE_GOOGLE
-import config
 
 def getmd5(string):
     import hashlib
@@ -64,8 +54,8 @@ async def get_doc_from_local(docpath, doctype="md"):
     return documents
 
 async def docQA(docpath, query_message, persist_db_path="db", model = "gpt-3.5-turbo"):
-    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
-    embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=API)
+    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=config.API)
+    embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=config.API)
 
     sitemap = "sitemap.xml"
     match = re.match(r'^(https?|ftp)://[^\s/$.?#].[^\s]*$', docpath)
@@ -114,7 +104,7 @@ def duckduckgo_search(result, model="gpt-3.5-turbo", temperature=0.5):
             input_variables=["targetlang", "text"],
             template="You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {targetlang}, please do not explain any sentences, just translate or leave them as they are.: {text}",
         )
-        chatllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
+        chatllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=config.API)
         
         # # 翻译成英文 带聊天模型的链 方法一
         # translate_template="You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text from {sourcelang} to {targetlang}, please do not explain any sentences, just translate or leave them as they are."
@@ -263,7 +253,7 @@ class ThreadWithReturnValue(threading.Thread):
         super().join()
         return self._return
 
-def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
+def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config.temperature, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
     # if use_goolge:
     #     google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(result,))
     #     google_search_thread.start()
@@ -272,8 +262,8 @@ def search_summary(result, model=DEFAULT_SEARCH_MODEL, temperature=temperature, 
     search_thread.start()
 
     chainStreamHandler = ChainStreamHandler()
-    chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
-    chainllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=API)
+    chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=config.API)
+    chainllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=config.API)
 
     if use_gpt:
         gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(result, chainllm,))
