@@ -165,7 +165,7 @@ def ddgsearch(result, numresults=3):
     search = DuckDuckGoSearchResults(num_results=numresults)
     webresult = search.run(result)
     urls = re.findall(r"(https?://\S+)\]", webresult, re.MULTILINE)
-    print("ddgsearch", urls)
+    print("duckduckgo urls", urls)
     ddgresult = ""
     for url in urls:
         tmp = Web_crawler(url)
@@ -187,7 +187,12 @@ def Web_crawler(url: str) -> str:
     }
     result = ''
     try:
-        response = requests.get(url, headers=headers)
+        requests.packages.urllib3.disable_warnings()
+        # session = requests.Session()
+        # session.mount('http://', HTTPAdapter(max_retries=5))
+        # session.mount('https://', HTTPAdapter(max_retries=5))
+        # response = session.get(url, headers=headers, verify=False)
+        response = requests.get(url, headers=headers, verify=False)
         # soup = BeautifulSoup(response.text, 'html.parser')
         soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
         body = "".join(soup.find('body').get_text().split('\n'))
@@ -204,7 +209,7 @@ def googlesearch(result, numresults=3):
         googleresult = google_search.results(result, numresults)
         urls = [i["link"] for i in googleresult]
         googleresult = ""
-        print(urls)
+        print("google urls", urls)
         for url in urls:
                 tmp = Web_crawler(url)
                 googleresult += "\n\n" + tmp
@@ -295,6 +300,7 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
 
     if use_goolge:
         keyword = keyword_google_search_thread.join()
+        print("google search keyword", keyword)
         key_google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(keyword,3,))
         key_google_search_thread.start()
         # ans_google = google_search_thread.join()

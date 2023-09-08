@@ -2,6 +2,7 @@ import os
 os.system('cls' if os.name == 'nt' else 'clear')
 import requests
 from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
 
 def Web_crawler(url: str) -> str:
     """返回链接网址url正文内容，必须是合法的网址"""
@@ -10,7 +11,12 @@ def Web_crawler(url: str) -> str:
     }
     result = ''
     try:
-        response = requests.get(url, headers=headers)
+        requests.packages.urllib3.disable_warnings()
+        # session = requests.Session()
+        # session.mount('http://', HTTPAdapter(max_retries=5))
+        # session.mount('https://', HTTPAdapter(max_retries=5))
+        # response = session.get(url, headers=headers, verify=False)
+        response = requests.get(url, headers=headers, verify=False)
         # soup = BeautifulSoup(response.text, 'html.parser')
         soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
         body = "".join(soup.find('body').get_text().split('\n'))
