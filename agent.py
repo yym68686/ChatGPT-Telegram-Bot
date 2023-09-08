@@ -210,7 +210,7 @@ def ddgsearch(result, numresults=3):
 
 def googlesearch(result, numresults=3):
     google_search = GoogleSearchAPIWrapper()
-    googleresult = ""
+    web_content = ""
     try:
         googleresult = google_search.results(result, numresults)
         urls = [i["link"] for i in googleresult]
@@ -223,7 +223,7 @@ def googlesearch(result, numresults=3):
         
         for t in threads:
             tmp = t.join()
-            googleresult += "\n\n" + tmp
+            web_content += "\n\n" + tmp
     except Exception as e:
         print('\033[31m')
         print("error", e)
@@ -231,7 +231,7 @@ def googlesearch(result, numresults=3):
         if "rateLimitExceeded" in str(e):
             print("Google API 每日调用频率已达上限，请明日再试！")
             config.USE_GOOGLE = False
-    return googleresult
+    return web_content
 
     # googleresult = ""
     # try:
@@ -349,7 +349,7 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
     encode_text = encoding.encode(useful_source_text)
     tokens_len = len(encode_text)
     print("tokens_len", tokens_len)
-    print("web search", useful_source_text)
+    print("web search", useful_source_text, end="\n\n")
 
     useful_source_text =  useful_source_text + "\n\n" + fact_text
     summary_prompt = PromptTemplate(
