@@ -24,7 +24,7 @@ Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]"
 
 if config.API:
-    ChatGPTbot = GPT(api_key=f"{config.API}", system_prompt=systemprompt, temperature=config.temperature)
+    ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=systemprompt, temperature=config.temperature)
     Claude2bot = GPT(api_key=f"{config.API}", engine="claude-2-web")
 if config.API4:
     ChatGPT4bot = GPT(api_key=f"{config.API4}", engine="gpt-4-0613", system_prompt=systemprompt, temperature=config.temperature)
@@ -32,7 +32,7 @@ if config.API4:
 botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
-translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are.: "
+translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
     if has_command == False or len(context.args) > 0:
         message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
@@ -62,7 +62,7 @@ async def info(update, context):
         f"**Default engine:** `{config.GPT_ENGINE}`\n"
         f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
         f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
-        f"**temperature:** `{temperature}`\n"
+        f"**temperature:** `{config.temperature}`\n"
         f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
         f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
         f"**API_URL:** `{config.API_URL}`\n\n"
