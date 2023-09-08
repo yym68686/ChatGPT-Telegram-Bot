@@ -8,10 +8,10 @@ def Web_crawler(url: str) -> str:
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
     }
-    response = requests.get(url, headers=headers)
-    # soup = BeautifulSoup(response.text, 'html.parser')
     result = ''
     try:
+        response = requests.get(url, headers=headers)
+        # soup = BeautifulSoup(response.text, 'html.parser')
         soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
         body = "".join(soup.find('body').get_text().split('\n'))
         result = body
