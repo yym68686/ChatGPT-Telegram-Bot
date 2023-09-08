@@ -161,25 +161,6 @@ class ChainStreamHandler(StreamingStdOutCallbackHandler):
             else:
                 pass
 
-def ddgsearch(result, numresults=3):
-    search = DuckDuckGoSearchResults(num_results=numresults)
-    webresult = search.run(result)
-    urls = re.findall(r"(https?://\S+)\]", webresult, re.MULTILINE)
-    print("duckduckgo urls", urls)
-    ddgresult = ""
-    for url in urls:
-        tmp = Web_crawler(url)
-        ddgresult += "\n\n" + tmp
-        # print("ddg search", tmp)
-        break
-    return ddgresult
-
-# def ddgsearch(result):
-#     search = DuckDuckGoSearchResults(num_results=3)
-#     webresult = search.run(result)
-#     matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
-#     return '\n\n'.join(matches)
-
 def Web_crawler(url: str) -> str:
     """返回链接网址url正文内容，必须是合法的网址"""
     headers = {
@@ -199,23 +180,50 @@ def Web_crawler(url: str) -> str:
         result = body
     except Exception as e:
         print('\033[31m')
-        print("url", url)
+        print("error url", url)
         print("error", e)
         print('\033[0m')
     return result
 
+def ddgsearch(result, numresults=3):
+    search = DuckDuckGoSearchResults(num_results=numresults)
+    webresult = search.run(result)
+    urls = re.findall(r"(https?://\S+)\]", webresult, re.MULTILINE)
+    print("duckduckgo urls", urls)
+    ddgresult = ""
+    threads = []
+    for url in urls:
+        ddg_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
+        ddg_search_thread.start()
+        threads.append(ddg_search_thread)
+    
+    for t in threads:
+        tmp = t.join()
+        ddgresult += "\n\n" + tmp
+    return ddgresult
+
+# def ddgsearch(result):
+#     search = DuckDuckGoSearchResults(num_results=3)
+#     webresult = search.run(result)
+#     matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
+#     return '\n\n'.join(matches)
+
 def googlesearch(result, numresults=3):
     google_search = GoogleSearchAPIWrapper()
+    googleresult = ""
     try:
         googleresult = google_search.results(result, numresults)
         urls = [i["link"] for i in googleresult]
-        googleresult = ""
         print("google urls", urls)
+        threads = []
         for url in urls:
-                tmp = Web_crawler(url)
-                googleresult += "\n\n" + tmp
-                # print("google search", tmp)
-                break
+            google_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
+            google_search_thread.start()
+            threads.append(google_search_thread)
+        
+        for t in threads:
+            tmp = t.join()
+            googleresult += "\n\n" + tmp
     except Exception as e:
         print('\033[31m')
         print("error", e)
@@ -223,7 +231,6 @@ def googlesearch(result, numresults=3):
         if "rateLimitExceeded" in str(e):
             print("Google API 每日调用频率已达上限，请明日再试！")
             config.USE_GOOGLE = False
-        googleresult = ""
     return googleresult
 
     # googleresult = ""
