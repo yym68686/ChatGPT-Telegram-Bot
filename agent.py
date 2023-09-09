@@ -271,7 +271,7 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
     #     google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(result,))
     #     google_search_thread.start()
 
-    search_thread = ThreadWithReturnValue(target=ddgsearch, args=(result,3,))
+    search_thread = ThreadWithReturnValue(target=ddgsearch, args=(result,2,))
     search_thread.start()
 
     chainStreamHandler = ChainStreamHandler()
@@ -323,8 +323,9 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
         gpt_ans = gpt_search_thread.join()
         fact_text = (gpt_ans if use_gpt else "")
         print("gpt", fact_text)
-    useful_source_text = ans_ddg  + "\n" + \
+    useful_source_text = \
                          (keyword_ans if use_goolge else "") + "\n" + \
+                         ans_ddg  + "\n" + \
                          engans_ddg
                         #  (enans_google if use_goolge else "")
                         #  (ans_google if use_goolge else "") + "\n" + \
