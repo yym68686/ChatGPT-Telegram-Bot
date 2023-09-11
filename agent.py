@@ -410,7 +410,7 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
         input_variables=["web_summary", "question"],
         template=(
             # "You are a text analysis expert who can use a search engine. You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest all search results provided above and provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, clear, professional, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting. 4. Detailed, precise and comprehensive response in Simplified Chinese and extensive use of the search results is required."
-            "You need to response the following question: {question}. Search results: {web_summary}. Your task is to take a deep breath first and then answer the above question based on the Search results provided. Please response in simplified Chinese and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
+            "You need to response the following question: {question}. Search results: {web_summary}. Your task is to take a deep breath first, think about the question step by step and then answer the above question in simplified Chinese based on the Search results provided. Please response in simplified Chinese and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
 
             # "You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest the search results provided above, dig deep into search results for thorough exploration and analysis and provide a response to the question based on the search results. The response should meet the following requirements: 1. You are a text analysis expert, extensive use of the search results is required and carefully consider all the Search results to make the response be in-depth, rigorous, clear, organized, professional, detailed, scholarly, logical, precise, accurate, comprehensive, well-written and speak in Simplified Chinese. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
         ),
@@ -437,12 +437,12 @@ if __name__ == "__main__":
     # for i in search_summary("华为mate60怎么样？"):
     # for i in search_summary("慈禧养的猫叫什么名字?"):
     # for i in search_summary("民进党当初为什么支持柯文哲选台北市长？"):
-    # for i in search_summary("Has the United States won the china US trade war？"):
+    for i in search_summary("Has the United States won the china US trade war？"):
     # for i in search_summary("What does 'n+2' mean in Huawei's 'Mate 60 Pro' chipset? Please conduct in-depth analysis."):
     # for i in search_summary("AUTOMATIC1111 是什么？"):
     # for i in search_summary("How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"):
     # for i in search_summary("英国脱欧没有好处，为什么英国人还是要脱欧？"):
-    for i in search_summary("2022年俄乌战争为什么发生？"):
+    # for i in search_summary("2022年俄乌战争为什么发生？"):
     # for i in search_summary("卡罗尔与星期二讲的啥？"):
     # for i in search_summary("金砖国家会议有哪些决定？"):
     # for i in search_summary("iphone15有哪些新功能？"):
