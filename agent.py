@@ -313,7 +313,7 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
             input_variables=["source"],
             # template="*{source}*, ——我想通过网页搜索引擎，获取上述问题的可能答案。请你提取上述问题相关的关键词作为搜索用词(用空格隔开)，直接给我结果(不要多余符号)。",
             # template="请你帮我抽取关键词，输出的关键词之间用空格连接。输出除了关键词，不用解释，也不要出现其他内容，只要出现关键词，必须用空格连接关键词，不要出现其他任何连接符。下面是要提取关键词的文字：{source}",
-            template="根据我的问题，提炼最少的关键词概括，用空格连接，不要出现其他符号，例如这个问题《How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?》，最少关键词是《zeabur price》，这是我的问题：{source}",
+            template="根据我的问题，总结最少的关键词概括，用空格连接，不要出现其他符号，例如这个问题《How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?》，最少关键词是《zeabur price》，这是我的问题：{source}",
         )
         key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
         keyword_google_search_thread = ThreadWithReturnValue(target=key_chain.run, args=({"source": result},))
