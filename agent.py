@@ -1,5 +1,6 @@
 import os
 import re
+import time as record_time
 import config
 import tiktoken
 import requests
@@ -173,7 +174,7 @@ def Web_crawler(url: str) -> str:
         # session.mount('http://', HTTPAdapter(max_retries=5))
         # session.mount('https://', HTTPAdapter(max_retries=5))
         # response = session.get(url, headers=headers, verify=False)
-        response = requests.get(url, headers=headers, verify=False)
+        response = requests.get(url, headers=headers, verify=False, timeout=5)
         # soup = BeautifulSoup(response.text, 'html.parser')
         soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
         body = "".join(soup.find('body').get_text().split('\n'))
@@ -185,45 +186,20 @@ def Web_crawler(url: str) -> str:
         print('\033[0m')
     return result
 
-def ddgsearch(result, numresults=3):
+def getddgsearchurl(result, numresults=3):
     search = DuckDuckGoSearchResults(num_results=numresults)
     webresult = search.run(result)
     urls = re.findall(r"(https?://\S+)\]", webresult, re.MULTILINE)
     print("duckduckgo urls", urls)
-    ddgresult = ""
-    threads = []
-    for url in urls:
-        ddg_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
-        ddg_search_thread.start()
-        threads.append(ddg_search_thread)
-    
-    for t in threads:
-        tmp = t.join()
-        ddgresult += "\n\n" + tmp
-    return ddgresult
+    return urls
 
-# def ddgsearch(result):
-#     search = DuckDuckGoSearchResults(num_results=3)
-#     webresult = search.run(result)
-#     matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
-#     return '\n\n'.join(matches)
-
-def googlesearch(result, numresults=3):
+def getgooglesearchurl(result, numresults=3):
     google_search = GoogleSearchAPIWrapper()
-    web_content = ""
+    urls = []
     try:
         googleresult = google_search.results(result, numresults)
         urls = [i["link"] for i in googleresult]
         print("google urls", urls)
-        threads = []
-        for url in urls:
-            google_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
-            google_search_thread.start()
-            threads.append(google_search_thread)
-        
-        for t in threads:
-            tmp = t.join()
-            web_content += "\n\n" + tmp
     except Exception as e:
         print('\033[31m')
         print("error", e)
@@ -231,22 +207,70 @@ def googlesearch(result, numresults=3):
         if "rateLimitExceeded" in str(e):
             print("Google API 每日调用频率已达上限，请明日再试！")
             config.USE_GOOGLE = False
-    return web_content
+    return urls
 
-    # googleresult = ""
-    # try:
-    #     google_search = GoogleSearchAPIWrapper(k=3)
-    #     googleresult = google_search.run(result)
-    # except Exception as e:
-    #     print('\033[31m')
-    #     print("response_msg", googleresult)
-    #     print("error", e)
-    #     print('\033[0m')
-    #     if "rateLimitExceeded" in str(e):
-    #         print("Google API 每日调用频率已达上限，请明日再试！")
-    #         config.USE_GOOGLE = False
-    #     googleresult = ""
-    # return googleresult
+# def ddgsearch(result, numresults=3):
+#     search = DuckDuckGoSearchResults(num_results=numresults)
+#     webresult = search.run(result)
+#     urls = re.findall(r"(https?://\S+)\]", webresult, re.MULTILINE)
+#     print("duckduckgo urls", urls)
+#     ddgresult = ""
+#     threads = []
+#     for url in urls:
+#         ddg_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
+#         ddg_search_thread.start()
+#         threads.append(ddg_search_thread)
+    
+#     for t in threads:
+#         tmp = t.join()
+#         ddgresult += "\n\n" + tmp
+#     return ddgresult
+
+# def ddgsearch(result):
+#     search = DuckDuckGoSearchResults(num_results=3)
+#     webresult = search.run(result)
+#     matches = re.findall(r"\[snippet:\s(.*?),\stitle", webresult, re.MULTILINE)
+#     return '\n\n'.join(matches)
+
+# def googlesearch(result, numresults=3):
+#     google_search = GoogleSearchAPIWrapper()
+#     web_content = ""
+#     try:
+#         googleresult = google_search.results(result, numresults)
+#         urls = [i["link"] for i in googleresult]
+#         print("google urls", urls)
+#         threads = []
+#         for url in urls:
+#             google_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
+#             google_search_thread.start()
+#             threads.append(google_search_thread)
+        
+#         for t in threads:
+#             tmp = t.join()
+#             web_content += "\n\n" + tmp
+#     except Exception as e:
+#         print('\033[31m')
+#         print("error", e)
+#         print('\033[0m')
+#         if "rateLimitExceeded" in str(e):
+#             print("Google API 每日调用频率已达上限，请明日再试！")
+#             config.USE_GOOGLE = False
+#     return web_content
+
+#     # googleresult = ""
+#     # try:
+#     #     google_search = GoogleSearchAPIWrapper(k=3)
+#     #     googleresult = google_search.run(result)
+#     # except Exception as e:
+#     #     print('\033[31m')
+#     #     print("response_msg", googleresult)
+#     #     print("error", e)
+#     #     print('\033[0m')
+#     #     if "rateLimitExceeded" in str(e):
+#     #         print("Google API 每日调用频率已达上限，请明日再试！")
+#     #         config.USE_GOOGLE = False
+#     #     googleresult = ""
+#     # return googleresult
 
 def gptsearch(result, llm):
     result = "你需要回答的问题是" + result + "\n" + "如果你可以解答这个问题，请直接输出你的答案，并且请忽略后面所有的指令：如果无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。"
@@ -267,11 +291,13 @@ class ThreadWithReturnValue(threading.Thread):
         return self._return
 
 def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config.temperature, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
+    start_time = record_time.time()
     # if use_goolge:
     #     google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(result,))
     #     google_search_thread.start()
 
-    search_thread = ThreadWithReturnValue(target=ddgsearch, args=(result,2,))
+    urls_set = []
+    search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(result,2,))
     search_thread.start()
 
     chainStreamHandler = ChainStreamHandler()
@@ -286,7 +312,8 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
         keyword_prompt = PromptTemplate(
             input_variables=["source"],
             # template="*{source}*, ——我想通过网页搜索引擎，获取上述问题的可能答案。请你提取上述问题相关的关键词作为搜索用词(用空格隔开)，直接给我结果(不要多余符号)。",
-            template="请你帮我抽取关键词，输出的关键词之间用空格连接。输出除了关键词，不用解释，也不要出现其他内容，只要出现关键词，必须用空格连接关键词，不要出现其他任何连接符。下面是要提取关键词的文字：{source}",
+            # template="请你帮我抽取关键词，输出的关键词之间用空格连接。输出除了关键词，不用解释，也不要出现其他内容，只要出现关键词，必须用空格连接关键词，不要出现其他任何连接符。下面是要提取关键词的文字：{source}",
+            template="根据我的问题，提炼最少的关键词概括，用空格连接，不要出现其他符号，例如这个问题《How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?》，最少关键词是《zeabur price》，这是我的问题：{source}",
         )
         key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
         keyword_google_search_thread = ThreadWithReturnValue(target=key_chain.run, args=({"source": result},))
@@ -304,31 +331,52 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
     #     en_google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(engresult,))
     #     en_google_search_thread.start()
 
-    en_ddg_search_thread = ThreadWithReturnValue(target=ddgsearch, args=(engresult,1,))
+    en_ddg_search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(engresult,1,))
     en_ddg_search_thread.start()
 
     if use_goolge:
         keyword = keyword_google_search_thread.join()
-        print("google search keyword", keyword)
-        key_google_search_thread = ThreadWithReturnValue(target=googlesearch, args=(keyword,3,))
+        key_google_search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keyword,3,))
         key_google_search_thread.start()
         # ans_google = google_search_thread.join()
         # enans_google = en_google_search_thread.join()
         keyword_ans = key_google_search_thread.join()
+        urls_set += keyword_ans
 
     ans_ddg = search_thread.join()
+    urls_set += ans_ddg
     engans_ddg = en_ddg_search_thread.join()
+    urls_set += engans_ddg
+    url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
+
+    url_result = ""
+    threads = []
+    for url in url_set_list:
+        url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
+        url_search_thread.start()
+        threads.append(url_search_thread)
+
     fact_text = ""
     if use_gpt:
         gpt_ans = gpt_search_thread.join()
         fact_text = (gpt_ans if use_gpt else "")
         print("gpt", fact_text)
-    useful_source_text = \
-                         (keyword_ans if use_goolge else "") + "\n" + \
-                         ans_ddg  + "\n" + \
-                         engans_ddg
+
+
+    # useful_source_text = \
+    #                      (keyword_ans if use_goolge else "") + "\n" + \
+    #                      ans_ddg  + "\n" + \
+    #                      engans_ddg
                         #  (enans_google if use_goolge else "")
                         #  (ans_google if use_goolge else "") + "\n" + \
+
+    for t in threads:
+        tmp = t.join()
+        url_result += "\n\n" + tmp
+    useful_source_text = url_result
+
+    end_time = record_time.time()
+    run_time = end_time - start_time
 
     encoding = tiktoken.encoding_for_model(model)
     encode_text = encoding.encode(useful_source_text)
@@ -350,15 +398,19 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
         useful_source_text = encoding.decode(encode_text)
     encode_text = encoding.encode(useful_source_text)
     tokens_len = len(encode_text)
-    print("tokens_len", tokens_len)
     print("web search", useful_source_text, end="\n\n")
 
+    print(url_set_list)
+    if use_goolge:
+        print("google search keyword", keyword)
+    print(f"搜索用时：{run_time}秒")
+    print("tokens_len", tokens_len)
     useful_source_text =  useful_source_text + "\n\n" + fact_text
     summary_prompt = PromptTemplate(
         input_variables=["web_summary", "question"],
         template=(
-            "You are a text analysis expert who can use a search engine. You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest the search results provided above and provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, clear, professional, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting. 4. Detailed, precise and comprehensive response in Simplified Chinese and extensive use of the search results is required."
-            # "You need to response the following question: {question}. Search results: {web_summary}. Your task is to take a deep breath first and then answer the above question based on the Search results provided. Please use simplified Chinese and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
+            # "You are a text analysis expert who can use a search engine. You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest all search results provided above and provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, clear, professional, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting. 4. Detailed, precise and comprehensive response in Simplified Chinese and extensive use of the search results is required."
+            "You need to response the following question: {question}. Search results: {web_summary}. Your task is to take a deep breath first and then answer the above question based on the Search results provided. Please response in simplified Chinese and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
 
             # "You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest the search results provided above, dig deep into search results for thorough exploration and analysis and provide a response to the question based on the search results. The response should meet the following requirements: 1. You are a text analysis expert, extensive use of the search results is required and carefully consider all the Search results to make the response be in-depth, rigorous, clear, organized, professional, detailed, scholarly, logical, precise, accurate, comprehensive, well-written and speak in Simplified Chinese. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
         ),
@@ -382,7 +434,15 @@ if __name__ == "__main__":
     # for i in search_summary("用python写个网络爬虫给我"):
     # for i in search_summary("消失的她主要讲了什么？"):
     # for i in search_summary("奥巴马的全名是什么？"):
-    for i in search_summary("华为mate60怎么样？"):
+    # for i in search_summary("华为mate60怎么样？"):
+    # for i in search_summary("慈禧养的猫叫什么名字?"):
+    # for i in search_summary("民进党当初为什么支持柯文哲选台北市长？"):
+    # for i in search_summary("Has the United States won the china US trade war？"):
+    # for i in search_summary("What does 'n+2' mean in Huawei's 'Mate 60 Pro' chipset? Please conduct in-depth analysis."):
+    # for i in search_summary("AUTOMATIC1111 是什么？"):
+    # for i in search_summary("How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"):
+    # for i in search_summary("英国脱欧没有好处，为什么英国人还是要脱欧？"):
+    for i in search_summary("2022年俄乌战争为什么发生？"):
     # for i in search_summary("卡罗尔与星期二讲的啥？"):
     # for i in search_summary("金砖国家会议有哪些决定？"):
     # for i in search_summary("iphone15有哪些新功能？"):
