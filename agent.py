@@ -437,8 +437,8 @@ if __name__ == "__main__":
     # for i in search_summary("华为mate60怎么样？"):
     # for i in search_summary("慈禧养的猫叫什么名字?"):
     # for i in search_summary("民进党当初为什么支持柯文哲选台北市长？"):
-    for i in search_summary("Has the United States won the china US trade war？"):
-    # for i in search_summary("What does 'n+2' mean in Huawei's 'Mate 60 Pro' chipset? Please conduct in-depth analysis."):
+    # for i in search_summary("Has the United States won the china US trade war？"):
+    for i in search_summary("What does 'n+2' mean in Huawei's 'Mate 60 Pro' chipset? Please conduct in-depth analysis."):
     # for i in search_summary("AUTOMATIC1111 是什么？"):
     # for i in search_summary("How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"):
     # for i in search_summary("英国脱欧没有好处，为什么英国人还是要脱欧？"):

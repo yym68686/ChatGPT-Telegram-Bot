@@ -56,24 +56,6 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             reply_to_message_id=update.message.message_id,
         )
 
-async def info(update, context):
-    message = (
-        f"`Hi, {update.effective_user.username}!`\n\n"
-        f"**Default engine:** `{config.GPT_ENGINE}`\n"
-        f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
-        f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
-        f"**temperature:** `{config.temperature}`\n"
-        f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
-        f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
-        f"**API_URL:** `{config.API_URL}`\n\n"
-        f"**API:** `{config.API}`\n\n"
-        f"**API4:** `{config.API4}`\n\n"
-        f"**WEB_HOOK:** `{config.WEB_HOOK}`"
-        # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
-        # f"**NICK:** `{NICK}`\n"
-    )
-    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
-
 async def reset_chat(update, context):
     if config.API:
         ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=systemprompt)
@@ -129,6 +111,13 @@ async def getChatGPT(title, robot, message, update, context):
             result = re.sub(r",", '，', result)
         await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
 
+import time
+import threading
+async def delete_message(update, context, messageid):
+    time.sleep(10)
+    await context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
+    await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
+
 async def history(update, context):
     config.PASS_HISTORY = not config.PASS_HISTORY
     status = "打开" if config.PASS_HISTORY else "关闭"
@@ -136,7 +125,10 @@ async def history(update, context):
         f"当前已{status}聊天记录！\n"
         f"**PASS_HISTORY:** `{config.PASS_HISTORY}`"
     )
-    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    messageid = message.message_id
+    thread = threading.Thread(target=delete_message, args=(update, context, messageid))
+    thread.start()
 
 async def gpt_use_search(update, context):
     config.SEARCH_USE_GPT = not config.SEARCH_USE_GPT
@@ -145,7 +137,10 @@ async def gpt_use_search(update, context):
         f"当前已{status}gpt默认搜索🔍！\n"
         f"**SEARCH_USE_GPT:** `{config.SEARCH_USE_GPT}`"
     )
-    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    messageid = message.message_id
+    thread = threading.Thread(target=delete_message, args=(update, context, messageid))
+    thread.start()
 
 async def google(update, context):
     if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
@@ -157,7 +152,31 @@ async def google(update, context):
         f"当前已{status}google搜索！\n"
         f"**USE_GOOGLE:** `{config.USE_GOOGLE}`"
     )
-    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    messageid = message.message_id
+    thread = threading.Thread(target=delete_message, args=(update, context, messageid))
+    thread.start()
+
+async def info(update, context):
+    message = (
+        f"`Hi, {update.effective_user.username}!`\n\n"
+        f"**Default engine:** `{config.GPT_ENGINE}`\n"
+        f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
+        f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
+        f"**temperature:** `{config.temperature}`\n"
+        f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
+        f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
+        f"**API_URL:** `{config.API_URL}`\n\n"
+        f"**API:** `{config.API}`\n\n"
+        f"**API4:** `{config.API4}`\n\n"
+        f"**WEB_HOOK:** `{config.WEB_HOOK}`"
+        # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
+        # f"**NICK:** `{NICK}`\n"
+    )
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    messageid = message.message_id
+    thread = threading.Thread(target=delete_message, args=(update, context, messageid))
+    thread.start()
 
 async def search(update, context, has_command=True):
     if has_command == False or len(context.args) > 0:
