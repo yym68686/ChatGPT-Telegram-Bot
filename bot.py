@@ -127,7 +127,7 @@ async def history(update, context):
     )
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
     messageid = message.message_id
-    thread = threading.Thread(target=delete_message, args=(update, context, messageid))
+    thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
     thread.start()
 
 async def gpt_use_search(update, context):
@@ -139,7 +139,7 @@ async def gpt_use_search(update, context):
     )
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
     messageid = message.message_id
-    thread = threading.Thread(target=delete_message, args=(update, context, messageid))
+    thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
     thread.start()
 
 async def google(update, context):
@@ -154,7 +154,7 @@ async def google(update, context):
     )
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
     messageid = message.message_id
-    thread = threading.Thread(target=delete_message, args=(update, context, messageid))
+    thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
     thread.start()
 
 async def info(update, context):
@@ -175,7 +175,7 @@ async def info(update, context):
     )
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
     messageid = message.message_id
-    thread = threading.Thread(target=delete_message, args=(update, context, messageid))
+    thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
     thread.start()
 
 async def search(update, context, has_command=True):
