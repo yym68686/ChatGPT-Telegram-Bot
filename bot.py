@@ -5,11 +5,12 @@ import logging
 from md2tgmd import escape
 from datetime import datetime
 from runasync import run_async
-from telegram import BotCommand
+from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from chatgpt2api.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
 from agent import duckduckgo_search, docQA, get_doc_from_sitemap, get_doc_from_local, search_summary
-from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters
+from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
@@ -113,10 +114,14 @@ async def getChatGPT(title, robot, message, update, context):
 
 import time
 import threading
-async def delete_message(update, context, messageid):
-    time.sleep(10)
-    await context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
-    await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
+async def delete_message(update, context, messageid, delay=10):
+    time.sleep(delay)
+    try:
+        await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=messageid)
+    except Exception as e:
+        print('\033[31m')
+        print("error", e)
+        print('\033[0m')
 
 async def history(update, context):
     config.PASS_HISTORY = not config.PASS_HISTORY
@@ -126,7 +131,9 @@ async def history(update, context):
         f"**PASS_HISTORY:** `{config.PASS_HISTORY}`"
     )
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    
     messageid = message.message_id
+    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
     thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
     thread.start()
 
@@ -138,7 +145,9 @@ async def gpt_use_search(update, context):
         f"**SEARCH_USE_GPT:** `{config.SEARCH_USE_GPT}`"
     )
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    
     messageid = message.message_id
+    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
     thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
     thread.start()
 
@@ -153,12 +162,80 @@ async def google(update, context):
         f"**USE_GOOGLE:** `{config.USE_GOOGLE}`"
     )
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    
     messageid = message.message_id
+    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
     thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
     thread.start()
 
+buttons = [
+    [
+        InlineKeyboardButton("gpt-3.5-turbo", callback_data="gpt-3.5-turbo"),
+        InlineKeyboardButton("gpt-3.5-turbo-16k", callback_data="gpt-3.5-turbo-16k"),
+    ],
+    [
+        InlineKeyboardButton("gpt-3.5-turbo-0301", callback_data="gpt-3.5-turbo-0301"),
+    ],
+    [
+        InlineKeyboardButton("gpt-3.5-turbo-0613", callback_data="gpt-3.5-turbo-0613"),
+    ],
+    [
+        InlineKeyboardButton("gpt-4", callback_data="gpt-4"),
+        InlineKeyboardButton("gpt-4-0314", callback_data="gpt-4-0314"),
+    ],
+    [
+        InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
+        InlineKeyboardButton("gpt-4-32k-0314", callback_data="gpt-4-32k-0314"),
+    ],
+    [
+        InlineKeyboardButton("gpt-4-0613", callback_data="gpt-4-0613"),
+        InlineKeyboardButton("gpt-4-32k-0613", callback_data="gpt-4-32k-0613"),
+    ],
+    [
+        InlineKeyboardButton("claude-2-web", callback_data="claude-2-web"),
+    ],
+]
+
+
+banner = "👇下面可以随时更改默认 gpt 模型："
+async def button_press(update, context):
+    """Function to handle the button press"""
+    callback_query = update.callback_query
+    await callback_query.answer()
+    data = callback_query.data
+    config.GPT_ENGINE = data
+    if config.API:
+        ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=systemprompt)
+        try:
+            info_message = (
+                f"`Hi, {update.effective_user.username}!`\n\n"
+                f"**Default engine:** `{config.GPT_ENGINE}`\n"
+                f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
+                f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
+                f"**temperature:** `{config.temperature}`\n"
+                f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
+                f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
+                f"**API_URL:** `{config.API_URL}`\n\n"
+                f"**API:** `{config.API}`\n\n"
+                f"**API4:** `{config.API4}`\n\n"
+                f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+                # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
+                # f"**NICK:** `{NICK}`\n"
+            )
+            message = await callback_query.edit_message_text(
+                text=escape(info_message + banner),
+                reply_markup=InlineKeyboardMarkup(buttons),
+                parse_mode='MarkdownV2'
+            )
+            messageid = message.message_id
+            thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid, delay=10),))
+            thread.start()
+        except Exception as e:
+            logger.info(e)
+            pass
+
 async def info(update, context):
-    message = (
+    info_message = (
         f"`Hi, {update.effective_user.username}!`\n\n"
         f"**Default engine:** `{config.GPT_ENGINE}`\n"
         f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
@@ -169,14 +246,15 @@ async def info(update, context):
         f"**API_URL:** `{config.API_URL}`\n\n"
         f"**API:** `{config.API}`\n\n"
         f"**API4:** `{config.API4}`\n\n"
-        f"**WEB_HOOK:** `{config.WEB_HOOK}`"
+        f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
         # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
         # f"**NICK:** `{NICK}`\n"
     )
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message + banner), reply_markup=InlineKeyboardMarkup(buttons), parse_mode='MarkdownV2')
+
     messageid = message.message_id
-    thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
-    thread.start()
+    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
+
 
 async def search(update, context, has_command=True):
     if has_command == False or len(context.args) > 0:
@@ -284,6 +362,7 @@ def setup(token):
     ]))
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(CommandHandler("reset", reset_chat))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "simplified chinese", robot=ChatGPTbot)))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=ChatGPTbot)))
@@ -293,9 +372,8 @@ def setup(token):
     application.add_handler(CommandHandler("history", history))
     application.add_handler(CommandHandler("google", google))
     application.add_handler(CommandHandler("gpt_use_search", gpt_use_search))
-    # application.add_handler(CommandHandler("search", search))
     application.add_handler(CommandHandler("qa", qa))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-3.5`\n\n", robot=ChatGPTbot, has_command=False)))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
 
