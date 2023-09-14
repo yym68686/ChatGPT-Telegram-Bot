@@ -205,6 +205,7 @@ async def button_press(update, context):
     data = callback_query.data
     config.GPT_ENGINE = data
     if config.API:
+        ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=systemprompt, temperature=config.temperature)
         ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=systemprompt)
         try:
             info_message = (
