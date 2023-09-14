@@ -43,7 +43,7 @@ pip install -r requirements.txt > /dev/null && python3 main.py
 - BOT_TOKEN: 你需要在 [BotFather](https://t.me/BotFather) 创建一个 bot 以获取 BOT_TOKEN
 - WEB_HOOK: 在 Replit 会自动分配一个域名给你，填入 `https://appname.username.repl.co`
 - API: openai 的 api key。
-- API4: openai gpt4 的 api key。
+<!-- - API4: openai gpt4 的 api key。 -->
 - API_URL: 调用 api 的地址，默认是：https://api.openai.com/v1/chat/completions
 - GPT_ENGINE：模型名字，默认是 `gpt-3.5-turbo`
 - NICK: 可选，默认为空，NICK 是机器人的名字。当用户输入消息以 NICK 开头，机器人才会回答，否则机器人会回答任何消息。尤其在群聊里，没有 NICK，机器人会对所有消息进行回复。

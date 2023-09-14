@@ -3,7 +3,7 @@ import os
 import config
 import logging
 from md2tgmd import escape
-from datetime import datetime
+
 from runasync import run_async
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from chatgpt2api.V3 import Chatbot as GPT
@@ -20,16 +20,6 @@ httpx_logger = logging.getLogger("httpx")
 # 设置 httpx 的日志级别为 WARNING
 httpx_logger.setLevel(logging.WARNING)
 
-current_date = datetime.now()
-Current_Date = current_date.strftime("%Y-%m-%d")
-systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]"
-
-if config.API:
-    ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=systemprompt, temperature=config.temperature)
-    Claude2bot = GPT(api_key=f"{config.API}", engine="claude-2-web")
-if config.API4:
-    ChatGPT4bot = GPT(api_key=f"{config.API4}", engine="gpt-4-0613", system_prompt=systemprompt, temperature=config.temperature)
-
 botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
@@ -43,7 +33,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if prompt:
             prompt = prompt.format(language)
             message = prompt + message
-        if (config.API or config.API4) and message:
+        if config.API and message:
             await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
             if config.SEARCH_USE_GPT and "gpt-4" not in title and language == None:
                 await search(update, context, has_command=False)
@@ -59,9 +49,9 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 
 async def reset_chat(update, context):
     if config.API:
-        ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=systemprompt)
-    if config.API4:
-        ChatGPT4bot.reset(convo_id=str(update.message.chat_id), system_prompt=systemprompt)
+        config.ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
+    # if config.API4:
+    #     config.ChatGPT4bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
     await context.bot.send_message(
         chat_id=update.message.chat_id,
         text="重置成功！",
@@ -205,8 +195,8 @@ async def button_press(update, context):
     data = callback_query.data
     config.GPT_ENGINE = data
     if config.API:
-        ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=systemprompt, temperature=config.temperature)
-        ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=systemprompt)
+        config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+        config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
         try:
             info_message = (
                 f"`Hi, {update.effective_user.username}!`\n\n"
@@ -218,7 +208,7 @@ async def button_press(update, context):
                 f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
                 f"**API_URL:** `{config.API_URL}`\n\n"
                 f"**API:** `{config.API}`\n\n"
-                f"**API4:** `{config.API4}`\n\n"
+                # f"**API4:** `{config.API4}`\n\n"
                 f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
                 # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
                 # f"**NICK:** `{NICK}`\n"
@@ -246,7 +236,7 @@ async def info(update, context):
         f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
         f"**API_URL:** `{config.API_URL}`\n\n"
         f"**API:** `{config.API}`\n\n"
-        f"**API4:** `{config.API4}`\n\n"
+        # f"**API4:** `{config.API4}`\n\n"
         f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
         # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
         # f"**NICK:** `{NICK}`\n"
@@ -348,33 +338,33 @@ def setup(token):
     application = ApplicationBuilder().read_timeout(10).connection_pool_size(50000).pool_timeout(1200.0).token(token).build()
     
     run_async(application.bot.set_my_commands([
-        BotCommand('gpt4', 'use gpt4'),
-        BotCommand('claude2', 'use claude2'),
+        # BotCommand('gpt4', 'use gpt4'),
+        # BotCommand('claude2', 'use claude2'),
         # BotCommand('search', 'search the web with google and duckduckgo'),
-        BotCommand('qa', 'Document Q&A with Embedding Database Search'),
-        BotCommand('start', 'Start the bot'),
-        BotCommand('reset', 'Reset the bot'),
-        BotCommand('en2zh', 'translate to Chinese'),
-        BotCommand('zh2en', 'translate to English'),
         BotCommand('info', 'basic information'),
         BotCommand('history', 'open or close chat history'),
         BotCommand('google', 'open or close google search'),
         BotCommand('gpt_use_search', 'open or close gpt use search'),
+        BotCommand('en2zh', 'translate to Chinese'),
+        BotCommand('zh2en', 'translate to English'),
+        BotCommand('start', 'Start the bot'),
+        BotCommand('reset', 'Reset the bot'),
+        BotCommand('qa', 'Document Q&A with Embedding Database Search'),
     ]))
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(CommandHandler("reset", reset_chat))
-    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "simplified chinese", robot=ChatGPTbot)))
-    application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=ChatGPTbot)))
-    application.add_handler(CommandHandler("gpt4", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-4`\n\n", robot=ChatGPT4bot)))
-    application.add_handler(CommandHandler("claude2", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ claude2`\n\n", robot=Claude2bot)))
+    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "simplified chinese", robot=config.ChatGPTbot)))
+    application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.ChatGPTbot)))
+    # application.add_handler(CommandHandler("gpt4", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-4`\n\n", robot=config.ChatGPT4bot)))
+    # application.add_handler(CommandHandler("claude2", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ claude2`\n\n", robot=config.Claude2bot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(CommandHandler("history", history))
     application.add_handler(CommandHandler("google", google))
     application.add_handler(CommandHandler("gpt_use_search", gpt_use_search))
     application.add_handler(CommandHandler("qa", qa))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=ChatGPTbot, has_command=False)))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
 
