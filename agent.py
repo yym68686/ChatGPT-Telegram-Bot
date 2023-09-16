@@ -1,13 +1,14 @@
 import os
 import re
-import time as record_time
 import config
+import chardet
 import tiktoken
 import requests
 import threading
 import traceback
 from typing import Any
 from datetime import date
+import time as record_time
 from bs4 import BeautifulSoup
 
 from langchain.llms import OpenAI
@@ -170,12 +171,11 @@ def Web_crawler(url: str) -> str:
     result = ''
     try:
         requests.packages.urllib3.disable_warnings()
-        # session = requests.Session()
-        # session.mount('http://', HTTPAdapter(max_retries=5))
-        # session.mount('https://', HTTPAdapter(max_retries=5))
-        # response = session.get(url, headers=headers, verify=False)
-        response = requests.get(url, headers=headers, verify=False, timeout=5)
-        # soup = BeautifulSoup(response.text, 'html.parser')
+        response = requests.get(url, headers=headers, verify=False, timeout=5, stream=True)
+        content_length = int(response.headers.get('Content-Length', 0))
+        if content_length > 500000:
+            print("Skipping large file:", url)
+            return result
         soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
         body = "".join(soup.find('body').get_text().split('\n'))
         result = body
@@ -348,6 +348,8 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
     engans_ddg = en_ddg_search_thread.join()
     urls_set += engans_ddg
     url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
+    url_pdf_set_list = [item for item in url_set_list if "pdf" in item]
+    url_set_list = [item for item in url_set_list if "pdf" not in item]
 
     url_result = ""
     threads = []
