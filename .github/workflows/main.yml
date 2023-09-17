@@ -1,10 +1,13 @@
 name: Publish Docker Image
 
 on:
-  paths:
-    - Dockerfile.build
-    - requirements.txt
-    - .github/workflows/main.yml
+  push:
+    branches:
+      - main
+    paths:
+      - Dockerfile.build
+      - requirements.txt
+      - .github/workflows/main.yml
 
 jobs:
   build-and-push:
