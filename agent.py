@@ -305,8 +305,8 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
     engans_ddg = en_ddg_search_thread.join()
     urls_set += engans_ddg
     url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
-    url_pdf_set_list = [item for item in url_set_list if "pdf" in item]
-    url_set_list = [item for item in url_set_list if "pdf" not in item]
+    url_pdf_set_list = [item for item in url_set_list if item.endswith(".pdf")]
+    url_set_list = [item for item in url_set_list if not item.endswith(".pdf")]
 
     pdf_result = ""
     pdf_threads = []
@@ -403,7 +403,8 @@ if __name__ == "__main__":
     # for i in search_summary("Has the United States won the china US trade war？"):
     # for i in search_summary("What does 'n+2' mean in Huawei's 'Mate 60 Pro' chipset? Please conduct in-depth analysis."):
     # for i in search_summary("AUTOMATIC1111 是什么？"):
-    for i in search_summary("中国利用外资指标下降了 87% ？真的假的。"):
+    for i in search_summary("python telegram bot 怎么接收pdf文件"):
+    # for i in search_summary("中国利用外资指标下降了 87% ？真的假的。"):
     # for i in search_summary("How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"):
     # for i in search_summary("英国脱欧没有好处，为什么英国人还是要脱欧？"):
     # for i in search_summary("2022年俄乌战争为什么发生？"):
