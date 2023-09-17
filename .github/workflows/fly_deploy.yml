@@ -1,0 +1,25 @@
+name: Fly Deploy
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ main ]
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  APP_NAME: ${{ secrets.APP_NAME }}
+  WEB_HOOK: ${{ secrets.WEB_HOOK }}
+  BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+  NICK: ${{ secrets.NICK }}
+  API: ${{ secrets.API }}
+  COOKIES: ${{ secrets.COOKIES }}
+jobs:
+  deploy:
+    name: Deploy app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Deploy
+        run: |
+          sh ./deploy.sh
