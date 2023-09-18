@@ -89,7 +89,7 @@ async def getChatGPT(title, robot, message, update, context):
         print("error", e)
         print('\033[0m')
         if config.API:
-            robot.reset(convo_id=str(update.message.chat_id), system_prompt=systemprompt)
+            robot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
         if "You exceeded your current quota, please check your plan and billing details." in str(e):
             print("OpenAI api 已过期！")
             await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
@@ -288,6 +288,25 @@ async def search(update, context, has_command=True):
             reply_to_message_id=update.message.message_id,
         )
 
+from agent import pdfQA, getmd5
+def handle_pdf(update, context):
+    # 获取接收到的文件
+    pdf_file = update.message.document
+    question = update.message.text
+
+    # 下载文件到本地
+    file_name = pdf_file.file_name
+    docpath = os.getcwd() + "/" + file_name
+    match_embedding = os.path.exists(getmd5(docpath))
+    if not match_embedding:
+        file_id = pdf_file.file_id
+        new_file = context.bot.get_file(file_id)
+        new_file.download(docpath)
+    result = pdfQA(docpath, question)
+    if not match_embedding:
+        os.remove(docpath)
+    context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+
 async def qa(update, context):
     if (len(context.args) != 2):
         message = (
@@ -338,9 +357,6 @@ def setup(token):
     application = ApplicationBuilder().read_timeout(10).connection_pool_size(50000).pool_timeout(1200.0).token(token).build()
     
     run_async(application.bot.set_my_commands([
-        # BotCommand('gpt4', 'use gpt4'),
-        # BotCommand('claude2', 'use claude2'),
-        # BotCommand('search', 'search the web with google and duckduckgo'),
         BotCommand('info', 'basic information'),
         BotCommand('gpt_use_search', 'open or close gpt use search'),
         BotCommand('history', 'open or close chat history'),
@@ -357,13 +373,12 @@ def setup(token):
     application.add_handler(CommandHandler("reset", reset_chat))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "simplified chinese", robot=config.ChatGPTbot)))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.ChatGPTbot)))
-    # application.add_handler(CommandHandler("gpt4", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ gpt-4`\n\n", robot=config.ChatGPT4bot)))
-    # application.add_handler(CommandHandler("claude2", lambda update, context: command_bot(update, context, prompt=None, title="`🤖️ claude2`\n\n", robot=config.Claude2bot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(CommandHandler("history", history))
     application.add_handler(CommandHandler("google", google))
     application.add_handler(CommandHandler("gpt_use_search", gpt_use_search))
     application.add_handler(CommandHandler("qa", qa))
+    application.add_handler(MessageHandler(filters.Document.mime_type('application/pdf') & filters.TEXT, handle_pdf))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
