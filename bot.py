@@ -8,7 +8,7 @@ from runasync import run_async
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from chatgpt2api.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
-from agent import duckduckgo_search, docQA, get_doc_from_sitemap, get_doc_from_local, search_summary
+from agent import docQA, get_doc_from_local, search_summary
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler
 
 
