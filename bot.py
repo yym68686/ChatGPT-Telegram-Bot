@@ -378,7 +378,7 @@ def setup(token):
     application.add_handler(CommandHandler("google", google))
     application.add_handler(CommandHandler("gpt_use_search", gpt_use_search))
     application.add_handler(CommandHandler("qa", qa))
-    application.add_handler(MessageHandler(filters.Document.mime_type('application/pdf') & filters.TEXT, handle_pdf))
+    application.add_handler(MessageHandler(filters.Document.MimeType('application/pdf') & filters.TEXT, handle_pdf))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
