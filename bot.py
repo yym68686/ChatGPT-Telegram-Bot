@@ -3,12 +3,11 @@ import os
 import config
 import logging
 from md2tgmd import escape
-
 from runasync import run_async
-from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from chatgpt2api.V3 import Chatbot as GPT
 from telegram.constants import ChatAction
 from agent import docQA, get_doc_from_local, search_summary
+from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler
 
 
@@ -113,50 +112,50 @@ async def delete_message(update, context, messageid, delay=10):
         print("error", e)
         print('\033[0m')
 
-async def history(update, context):
-    config.PASS_HISTORY = not config.PASS_HISTORY
-    status = "打开" if config.PASS_HISTORY else "关闭"
-    message = (
-        f"当前已{status}聊天记录！\n"
-        f"**PASS_HISTORY:** `{config.PASS_HISTORY}`"
-    )
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+# async def history(update, context):
+#     config.PASS_HISTORY = not config.PASS_HISTORY
+#     status = "打开" if config.PASS_HISTORY else "关闭"
+#     message = (
+#         f"当前已{status}聊天记录！\n"
+#         f"**PASS_HISTORY:** `{config.PASS_HISTORY}`"
+#     )
+#     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
     
-    messageid = message.message_id
-    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
-    thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
-    thread.start()
+#     messageid = message.message_id
+#     await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
+#     thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
+#     thread.start()
 
-async def gpt_use_search(update, context):
-    config.SEARCH_USE_GPT = not config.SEARCH_USE_GPT
-    status = "打开" if config.SEARCH_USE_GPT else "关闭"
-    message = (
-        f"当前已{status}gpt默认搜索🔍！\n"
-        f"**SEARCH_USE_GPT:** `{config.SEARCH_USE_GPT}`"
-    )
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+# async def gpt_use_search(update, context):
+#     config.SEARCH_USE_GPT = not config.SEARCH_USE_GPT
+#     status = "打开" if config.SEARCH_USE_GPT else "关闭"
+#     message = (
+#         f"当前已{status}gpt默认搜索🔍！\n"
+#         f"**SEARCH_USE_GPT:** `{config.SEARCH_USE_GPT}`"
+#     )
+#     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
     
-    messageid = message.message_id
-    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
-    thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
-    thread.start()
+#     messageid = message.message_id
+#     await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
+#     thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
+#     thread.start()
 
-async def google(update, context):
-    if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
-        await context.bot.send_message(chat_id=update.message.chat_id, text=escape("GOOGLE_API_KEY or GOOGLE_CSE_ID not found"), parse_mode='MarkdownV2')
-        return
-    config.USE_GOOGLE = not config.USE_GOOGLE
-    status = "打开" if config.USE_GOOGLE else "关闭"
-    message = (
-        f"当前已{status}google搜索！\n"
-        f"**USE_GOOGLE:** `{config.USE_GOOGLE}`"
-    )
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
+# async def google(update, context):
+#     if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
+#         await context.bot.send_message(chat_id=update.message.chat_id, text=escape("GOOGLE_API_KEY or GOOGLE_CSE_ID not found"), parse_mode='MarkdownV2')
+#         return
+#     config.USE_GOOGLE = not config.USE_GOOGLE
+#     status = "打开" if config.USE_GOOGLE else "关闭"
+#     message = (
+#         f"当前已{status}google搜索！\n"
+#         f"**USE_GOOGLE:** `{config.USE_GOOGLE}`"
+#     )
+#     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2')
     
-    messageid = message.message_id
-    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
-    thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
-    thread.start()
+#     messageid = message.message_id
+#     await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
+#     thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid),))
+#     thread.start()
 
 buttons = [
     [
@@ -184,46 +183,144 @@ buttons = [
     [
         InlineKeyboardButton("claude-2-web", callback_data="claude-2-web"),
     ],
+    [
+        InlineKeyboardButton("返回上一级", callback_data="返回上一级"),
+    ],
+]
+
+first_buttons = [
+    [
+        InlineKeyboardButton("更换模型", callback_data="更换模型"),
+        # InlineKeyboardButton("更多设置", callback_data="更多设置"),
+    ],
+    [
+        InlineKeyboardButton("打开/关闭历史记录", callback_data="历史记录"),
+        InlineKeyboardButton("打开/关闭搜索", callback_data="搜索"),
+        InlineKeyboardButton("打开/关闭 google", callback_data="google"),
+    ],
 ]
 
 
 banner = "👇下面可以随时更改默认 gpt 模型："
 async def button_press(update, context):
     """Function to handle the button press"""
+    info_message = (
+        f"`Hi, {update.effective_user.username}!`\n\n"
+        f"**Default engine:** `{config.GPT_ENGINE}`\n"
+        f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
+        f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
+        f"**temperature:** `{config.temperature}`\n"
+        f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
+        f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
+        f"**API_URL:** `{config.API_URL}`\n\n"
+        f"**API:** `{config.API}`\n\n"
+        f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+    )
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
-    config.GPT_ENGINE = data
-    if config.API:
-        config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
-        config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
-        try:
-            info_message = (
-                f"`Hi, {update.effective_user.username}!`\n\n"
-                f"**Default engine:** `{config.GPT_ENGINE}`\n"
-                f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
-                f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
-                f"**temperature:** `{config.temperature}`\n"
-                f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
-                f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
-                f"**API_URL:** `{config.API_URL}`\n\n"
-                f"**API:** `{config.API}`\n\n"
-                # f"**API4:** `{config.API4}`\n\n"
-                f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-                # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
-                # f"**NICK:** `{NICK}`\n"
-            )
-            message = await callback_query.edit_message_text(
-                text=escape(info_message + banner),
-                reply_markup=InlineKeyboardMarkup(buttons),
-                parse_mode='MarkdownV2'
-            )
-            messageid = message.message_id
-            thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid, delay=10),))
-            thread.start()
-        except Exception as e:
-            logger.info(e)
-            pass
+    if ("gpt" or "cluade") in data:
+        config.GPT_ENGINE = data
+        if config.API:
+            config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
+            try:
+                info_message = (
+                    f"`Hi, {update.effective_user.username}!`\n\n"
+                    f"**Default engine:** `{config.GPT_ENGINE}`\n"
+                    f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
+                    f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
+                    f"**temperature:** `{config.temperature}`\n"
+                    f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
+                    f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
+                    f"**API_URL:** `{config.API_URL}`\n\n"
+                    f"**API:** `{config.API}`\n\n"
+                    f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+                )
+                message = await callback_query.edit_message_text(
+                    text=escape(info_message + banner),
+                    reply_markup=InlineKeyboardMarkup(buttons),
+                    parse_mode='MarkdownV2'
+                )
+                # messageid = message.message_id
+                # thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid, delay=10),))
+                # thread.start()
+            except Exception as e:
+                logger.info(e)
+                pass
+    elif "更换模型" in data:
+        message = await callback_query.edit_message_text(
+            text=escape(info_message + banner),
+            reply_markup=InlineKeyboardMarkup(buttons),
+            parse_mode='MarkdownV2'
+        )
+    elif "返回" in data:
+        message = await callback_query.edit_message_text(
+            text=escape(info_message),
+            reply_markup=InlineKeyboardMarkup(first_buttons),
+            parse_mode='MarkdownV2'
+        )
+    elif "历史记录" in data:
+        config.PASS_HISTORY = not config.PASS_HISTORY
+        info_message = (
+            f"`Hi, {update.effective_user.username}!`\n\n"
+            f"**Default engine:** `{config.GPT_ENGINE}`\n"
+            f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
+            f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
+            f"**temperature:** `{config.temperature}`\n"
+            f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
+            f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
+            f"**API_URL:** `{config.API_URL}`\n\n"
+            f"**API:** `{config.API}`\n\n"
+            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+        )
+        message = await callback_query.edit_message_text(
+            text=escape(info_message),
+            reply_markup=InlineKeyboardMarkup(first_buttons),
+            parse_mode='MarkdownV2'
+        )
+    elif "搜索" in data:
+        config.SEARCH_USE_GPT = not config.SEARCH_USE_GPT
+        info_message = (
+            f"`Hi, {update.effective_user.username}!`\n\n"
+            f"**Default engine:** `{config.GPT_ENGINE}`\n"
+            f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
+            f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
+            f"**temperature:** `{config.temperature}`\n"
+            f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
+            f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
+            f"**API_URL:** `{config.API_URL}`\n\n"
+            f"**API:** `{config.API}`\n\n"
+            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+        )
+        message = await callback_query.edit_message_text(
+            text=escape(info_message),
+            reply_markup=InlineKeyboardMarkup(first_buttons),
+            parse_mode='MarkdownV2'
+        )
+    elif "google" in data:
+        if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
+            # await context.bot.send_message(chat_id=update.message.chat_id, text=escape("GOOGLE_API_KEY or GOOGLE_CSE_ID not found"), parse_mode='MarkdownV2')
+            return
+        config.USE_GOOGLE = not config.USE_GOOGLE
+        info_message = (
+            f"`Hi, {update.effective_user.username}!`\n\n"
+            f"**Default engine:** `{config.GPT_ENGINE}`\n"
+            f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
+            f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
+            f"**temperature:** `{config.temperature}`\n"
+            f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
+            f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
+            f"**API_URL:** `{config.API_URL}`\n\n"
+            f"**API:** `{config.API}`\n\n"
+            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+        )
+        message = await callback_query.edit_message_text(
+            text=escape(info_message),
+            reply_markup=InlineKeyboardMarkup(first_buttons),
+            parse_mode='MarkdownV2'
+        )
+
 
 async def info(update, context):
     info_message = (
@@ -241,7 +338,7 @@ async def info(update, context):
         # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
         # f"**NICK:** `{NICK}`\n"
     )
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message + banner), reply_markup=InlineKeyboardMarkup(buttons), parse_mode='MarkdownV2')
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(first_buttons), parse_mode='MarkdownV2')
 
     messageid = message.message_id
     await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
@@ -358,14 +455,14 @@ def setup(token):
     
     run_async(application.bot.set_my_commands([
         BotCommand('info', 'basic information'),
-        BotCommand('gpt_use_search', 'open or close gpt use search'),
-        BotCommand('history', 'open or close chat history'),
-        BotCommand('google', 'open or close google search'),
+        BotCommand('qa', 'Document Q&A with Embedding Database Search'),
         BotCommand('en2zh', 'translate to Chinese'),
         BotCommand('zh2en', 'translate to English'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
-        BotCommand('qa', 'Document Q&A with Embedding Database Search'),
+        # BotCommand('gpt_use_search', 'open or close gpt use search'),
+        # BotCommand('history', 'open or close chat history'),
+        # BotCommand('google', 'open or close google search'),
     ]))
 
     application.add_handler(CommandHandler("start", start))
@@ -374,9 +471,6 @@ def setup(token):
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "simplified chinese", robot=config.ChatGPTbot)))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.ChatGPTbot)))
     application.add_handler(CommandHandler("info", info))
-    application.add_handler(CommandHandler("history", history))
-    application.add_handler(CommandHandler("google", google))
-    application.add_handler(CommandHandler("gpt_use_search", gpt_use_search))
     application.add_handler(CommandHandler("qa", qa))
     application.add_handler(MessageHandler(filters.Document.MimeType('application/pdf') & filters.TEXT, handle_pdf))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
