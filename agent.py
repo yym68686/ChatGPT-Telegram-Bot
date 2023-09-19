@@ -133,7 +133,9 @@ def get_doc_from_url(url):
             f.write(chunk)
     return filename
 
-def persist_emdedding_pdf(docpath, persist_db_path, embeddings):
+def persist_emdedding_pdf(docurl, persist_db_path, embeddings):
+    filename = get_doc_from_url(docurl)
+    docpath = os.getcwd() + "/" + filename
     loader = UnstructuredPDFLoader(docpath)
     documents = loader.load()
     # 初始化加载器
@@ -142,18 +144,20 @@ def persist_emdedding_pdf(docpath, persist_db_path, embeddings):
     split_docs = text_splitter.split_documents(documents)
     vector_store = Chroma.from_documents(split_docs, embeddings, persist_directory=persist_db_path)
     vector_store.persist()
+    os.remove(docpath)
     return vector_store
 
-def pdfQA(docpath, query_message, model="gpt-3.5-turbo"):
+async def pdfQA(docurl, query_message, model="gpt-3.5-turbo"):
     chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=os.environ.get('API', None))
     embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=os.environ.get('API', None))
-    persist_db_path = getmd5(docpath)
+    persist_db_path = getmd5(docurl)
     if not os.path.exists(persist_db_path):
-        vector_store = persist_emdedding_pdf(docpath, persist_db_path, embeddings)
+        vector_store = persist_emdedding_pdf(docurl, persist_db_path, embeddings)
     else:
         vector_store = Chroma(persist_directory=persist_db_path, embedding_function=embeddings)
-    qa = RetrievalQA.from_chain_type(llm=chatllm, chain_type="stuff", retriever=vector_store.as_retriever(),return_source_documents=True)
+    qa = RetrievalQA.from_chain_type(llm=chatllm, chain_type="stuff", retriever=vector_store.as_retriever(), return_source_documents=True)
     result = qa({"query": query_message})
+    print(2)
     return result['result']
 
 def pdf_search(docurl, query_message, model="gpt-3.5-turbo"):
@@ -426,8 +430,10 @@ if __name__ == "__main__":
     # 问答
     # result = asyncio.run(docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？"))
     # result = asyncio.run(docQA("https://yym68686.top", "说一下HSTL pipeline"))
-    result = asyncio.run(docQA("https://wiki.yym68686.top", "PyTorch to MindSpore翻译思路是什么？"))
-    print(result['answer'])
+    # result = asyncio.run(docQA("https://wiki.yym68686.top", "PyTorch to MindSpore翻译思路是什么？"))
+    # print(result['answer'])
+    result = asyncio.run(pdfQA("https://api.telegram.org/file/bot5569497961:AAHobhUuydAwD8SPkXZiVFybvZJOmGrST_w/documents/file_1.pdf", "HSTL的pipeline详细讲一下"))
+    print(result)
     # source_url = set([i.metadata['source'] for i in result["source_documents"]])
     # source_url = "\n".join(source_url)
     # message = (
