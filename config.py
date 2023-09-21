@@ -14,6 +14,7 @@ DEFAULT_SEARCH_MODEL = os.environ.get('DEFAULT_SEARCH_MODEL', 'gpt-3.5-turbo-16k
 SEARCH_USE_GPT = (os.environ.get('SEARCH_USE_GPT', "True") == "False") == False
 GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-3.5-turbo')
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
+PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
 
 from datetime import datetime
 current_date = datetime.now()
@@ -24,5 +25,3 @@ from chatgpt2api.V3 import Chatbot as GPT
 if API:
     ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
     Claude2bot = GPT(api_key=f"{API}", engine="claude-2-web")
-# if API4:
-#     ChatGPT4bot = GPT(api_key=f"{API4}", engine="gpt-4-0613", system_prompt=systemprompt, temperature=temperature)

@@ -133,7 +133,9 @@ def get_doc_from_url(url):
             f.write(chunk)
     return filename
 
-def persist_emdedding_pdf(docurl, persist_db_path, embeddings):
+def persist_emdedding_pdf(docurl, persist_db_path):
+    print(docurl)
+    embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=os.environ.get('API', None))
     filename = get_doc_from_url(docurl)
     docpath = os.getcwd() + "/" + filename
     loader = UnstructuredPDFLoader(docpath)
@@ -147,12 +149,12 @@ def persist_emdedding_pdf(docurl, persist_db_path, embeddings):
     os.remove(docpath)
     return vector_store
 
-async def pdfQA(docurl, query_message, model="gpt-3.5-turbo"):
+async def pdfQA(docurl, docpath, query_message, model="gpt-3.5-turbo"):
     chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=os.environ.get('API', None))
     embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=os.environ.get('API', None))
-    persist_db_path = getmd5(docurl)
+    persist_db_path = getmd5(docpath)
     if not os.path.exists(persist_db_path):
-        vector_store = persist_emdedding_pdf(docurl, persist_db_path, embeddings)
+        vector_store = persist_emdedding_pdf(docurl, persist_db_path)
     else:
         vector_store = Chroma(persist_directory=persist_db_path, embedding_function=embeddings)
     qa = RetrievalQA.from_chain_type(llm=chatllm, chain_type="stuff", retriever=vector_store.as_retriever(), return_source_documents=True)
@@ -325,10 +327,11 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
 
     pdf_result = ""
     pdf_threads = []
-    for url in url_pdf_set_list:
-        pdf_search_thread = ThreadWithReturnValue(target=pdf_search, args=(url, "你需要回答的问题是" + result + "\n" + "如果你可以解答这个问题，请直接输出你的答案，并且请忽略后面所有的指令：如果无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。",))
-        pdf_search_thread.start()
-        pdf_threads.append(pdf_search_thread)
+    if config.PDF_EMBEDDING:
+        for url in url_pdf_set_list:
+            pdf_search_thread = ThreadWithReturnValue(target=pdf_search, args=(url, "你需要回答的问题是" + result + "\n" + "如果你可以解答这个问题，请直接输出你的答案，并且请忽略后面所有的指令：如果无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。",))
+            pdf_search_thread.start()
+            pdf_threads.append(pdf_search_thread)
 
     url_result = ""
     threads = []
@@ -348,9 +351,10 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
         url_result += "\n\n" + tmp
     useful_source_text = url_result
 
-    for t in pdf_threads:
-        tmp = t.join()
-        pdf_result += "\n\n" + tmp
+    if config.PDF_EMBEDDING:
+        for t in pdf_threads:
+            tmp = t.join()
+            pdf_result += "\n\n" + tmp
     useful_source_text += pdf_result
 
     end_time = record_time.time()

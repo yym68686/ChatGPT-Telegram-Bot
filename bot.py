@@ -24,27 +24,54 @@ botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
-    if has_command == False or len(context.args) > 0:
-        message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-        if has_command:
-            message = ' '.join(context.args)
-        print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
-        if prompt:
-            prompt = prompt.format(language)
-            message = prompt + message
-        if config.API and message:
-            await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-            if config.SEARCH_USE_GPT and "gpt-4" not in title and language == None:
-                await search(update, context, has_command=False)
-            else:
-                await getChatGPT(title, robot, message, update, context)
+    if update.message.reply_to_message is None:
+        if has_command == False or len(context.args) > 0:
+            message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+            if has_command:
+                message = ' '.join(context.args)
+            print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
+            if prompt:
+                prompt = prompt.format(language)
+                message = prompt + message
+            if config.API and message:
+                await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
+                if config.SEARCH_USE_GPT and "gpt-4" not in title and language == None:
+                    await search(update, context, has_command=False)
+                else:
+                    await getChatGPT(title, robot, message, update, context)
+        else:
+            message = await context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text="请在命令后面放入文本。",
+                parse_mode='MarkdownV2',
+                reply_to_message_id=update.message.message_id,
+            )
     else:
-        message = await context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="请在命令后面放入文本。",
-            parse_mode='MarkdownV2',
-            reply_to_message_id=update.message.message_id,
-        )
+        if update.message.reply_to_message.document is None:
+            message = (
+                f"格式错误哦~，需要回复一个文件，我才知道你要针对哪个文件提问，注意命令与问题之间的空格\n\n"
+                f"请输入 `要问的问题`\n\n"
+                f"例如已经上传某文档 ，问题是 蘑菇怎么分类？\n\n"
+                f"先左滑文档进入回复模式，在聊天框里面输入 `蘑菇怎么分类？`\n\n"
+            )
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+            return
+        print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
+        await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
+        pdf_file = update.message.reply_to_message.document
+        # print(pdf_file)
+        file_id = pdf_file.file_id
+        new_file = await context.bot.get_file(file_id)
+        # print(new_file)
+        file_url = new_file.file_path
+
+        question = update.message.text
+
+        file_name = pdf_file.file_name
+        docpath = os.getcwd() + "/" + file_name
+        result = await pdfQA(file_url, docpath, question)
+        print(result)
+        await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def reset_chat(update, context):
     if config.API:
@@ -146,14 +173,18 @@ buttons = [
 first_buttons = [
     [
         InlineKeyboardButton("更换模型", callback_data="更换模型"),
-        # InlineKeyboardButton("更多设置", callback_data="更多设置"),
     ],
     [
-        InlineKeyboardButton("打开/关闭历史记录", callback_data="历史记录"),
-        InlineKeyboardButton("打开/关闭搜索", callback_data="搜索"),
-        InlineKeyboardButton("打开/关闭 google", callback_data="google"),
+        InlineKeyboardButton("历史记录已关闭", callback_data="历史记录"),
+        InlineKeyboardButton("google已打开", callback_data="google"),
+    ],
+    [
+        InlineKeyboardButton("搜索已打开", callback_data="搜索"),
+        InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf"),
     ],
 ]
+if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
+    first_buttons[1][1] = InlineKeyboardButton("google已关闭", callback_data="google")
 
 
 banner = "👇下面可以随时更改默认 gpt 模型："
@@ -163,10 +194,7 @@ async def button_press(update, context):
         f"`Hi, {update.effective_user.username}!`\n\n"
         f"**Default engine:** `{config.GPT_ENGINE}`\n"
         f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
-        f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
         f"**temperature:** `{config.temperature}`\n"
-        f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
-        f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
         f"**API_URL:** `{config.API_URL}`\n\n"
         f"**API:** `{config.API}`\n\n"
         f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
@@ -184,7 +212,7 @@ async def button_press(update, context):
                     f"`Hi, {update.effective_user.username}!`\n\n"
                     f"**Default engine:** `{config.GPT_ENGINE}`\n"
                     f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
-                    f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
+    
                     f"**temperature:** `{config.temperature}`\n"
                     f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
                     f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
@@ -217,14 +245,15 @@ async def button_press(update, context):
         )
     elif "历史记录" in data:
         config.PASS_HISTORY = not config.PASS_HISTORY
+        if config.PASS_HISTORY == False:
+            first_buttons[1][0] = InlineKeyboardButton("历史记录已关闭", callback_data="历史记录")
+        else:
+            first_buttons[1][0] = InlineKeyboardButton("历史记录已打开", callback_data="历史记录")
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
             f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
-            f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
             f"**temperature:** `{config.temperature}`\n"
-            f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
-            f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
             f"**API:** `{config.API}`\n\n"
             f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
@@ -236,14 +265,40 @@ async def button_press(update, context):
         )
     elif "搜索" in data:
         config.SEARCH_USE_GPT = not config.SEARCH_USE_GPT
+        if config.SEARCH_USE_GPT == False:
+            first_buttons[2][0] = InlineKeyboardButton("搜索已关闭", callback_data="搜索")
+        else:
+            first_buttons[2][0] = InlineKeyboardButton("搜索已打开", callback_data="搜索")
+
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
             f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
-            f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
             f"**temperature:** `{config.temperature}`\n"
-            f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
-            f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
+            f"**API_URL:** `{config.API_URL}`\n\n"
+            f"**API:** `{config.API}`\n\n"
+            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+        )
+
+        message = await callback_query.edit_message_text(
+            text=escape(info_message),
+            reply_markup=InlineKeyboardMarkup(first_buttons),
+            parse_mode='MarkdownV2'
+        )
+    elif "google" in data:
+        if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
+            return
+        config.USE_GOOGLE = not config.USE_GOOGLE
+        if config.USE_GOOGLE == False:
+            first_buttons[1][1] = InlineKeyboardButton("google已关闭", callback_data="google")
+        else:
+            first_buttons[1][1] = InlineKeyboardButton("google已打开", callback_data="google")
+
+        info_message = (
+            f"`Hi, {update.effective_user.username}!`\n\n"
+            f"**Default engine:** `{config.GPT_ENGINE}`\n"
+            f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
+            f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
             f"**API:** `{config.API}`\n\n"
             f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
@@ -253,19 +308,18 @@ async def button_press(update, context):
             reply_markup=InlineKeyboardMarkup(first_buttons),
             parse_mode='MarkdownV2'
         )
-    elif "google" in data:
-        if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
-            # await context.bot.send_message(chat_id=update.message.chat_id, text=escape("GOOGLE_API_KEY or GOOGLE_CSE_ID not found"), parse_mode='MarkdownV2')
-            return
-        config.USE_GOOGLE = not config.USE_GOOGLE
+    elif "pdf" in data:
+        config.PDF_EMBEDDING = not config.PDF_EMBEDDING
+        if config.PDF_EMBEDDING == False:
+            first_buttons[2][1] = InlineKeyboardButton("联网解析PDF已关闭", callback_data="pdf")
+        else:
+            first_buttons[2][1] = InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf")
+
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
             f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
-            f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
             f"**temperature:** `{config.temperature}`\n"
-            f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
-            f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
             f"**API:** `{config.API}`\n\n"
             f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
@@ -282,16 +336,10 @@ async def info(update, context):
         f"`Hi, {update.effective_user.username}!`\n\n"
         f"**Default engine:** `{config.GPT_ENGINE}`\n"
         f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
-        f"**gpt use search:** `{config.SEARCH_USE_GPT}`\n"
         f"**temperature:** `{config.temperature}`\n"
-        f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
-        f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
         f"**API_URL:** `{config.API_URL}`\n\n"
         f"**API:** `{config.API}`\n\n"
-        # f"**API4:** `{config.API4}`\n\n"
         f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-        # f"**BOT_TOKEN:** `{BOT_TOKEN}`\n\n"
-        # f"**NICK:** `{NICK}`\n"
     )
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(first_buttons), parse_mode='MarkdownV2')
 
@@ -340,80 +388,63 @@ async def search(update, context, has_command=True):
             reply_to_message_id=update.message.message_id,
         )
 
-from agent import pdfQA, getmd5
+from agent import pdfQA, getmd5, persist_emdedding_pdf
 async def handle_pdf(update, context):
     # 获取接收到的文件
     pdf_file = update.message.document
-    question = update.message.caption
-
-    # 下载文件到本地
+    # 得到文件的url
     file_name = pdf_file.file_name
     docpath = os.getcwd() + "/" + file_name
-    match_embedding = os.path.exists(getmd5(docpath))
-    if not match_embedding:
-        file_id = pdf_file.file_id
-        new_file = await context.bot.get_file(file_id)
-        file_url = new_file.file_path
-    result = await pdfQA(file_url, question)
+    persist_db_path = getmd5(docpath)
+    match_embedding = os.path.exists(persist_db_path)
+    file_id = pdf_file.file_id
+    new_file = await context.bot.get_file(file_id)
+    file_url = new_file.file_path
+
+    question = update.message.caption
+    if question is None:
+        if not match_embedding:
+            persist_emdedding_pdf(file_url, persist_db_path)
+        message = (
+            f"已成功解析文档！\n\n"
+            f"请输入 `要问的问题`\n\n"
+            f"例如已经上传某文档 ，问题是 蘑菇怎么分类？\n\n"
+            f"先左滑文档进入回复模式，并在聊天框里面输入 `蘑菇怎么分类？`\n\n"
+        )
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        return
+
+    result = await pdfQA(file_url, docpath, question)
     print(result)
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def qa(update, context):
-    if update.message.reply_to_message is None:
-        if (len(context.args) != 2):
-            message = (
-                f"格式错误哦~，需要两个参数，注意路径或者链接、问题之间的空格\n\n"
-                f"请输入 `/qa 知识库链接 要问的问题`\n\n"
-                f"例如知识库链接为 https://abc.com ，问题是 蘑菇怎么分类？\n\n"
-                f"则输入 `/qa https://abc.com 蘑菇怎么分类？`\n\n"
-                f"问题务必不能有空格，👆点击上方命令复制格式\n\n"
-                f"除了输入网址，同时支持本地知识库，本地知识库文件夹路径为 `./wiki`，问题是 蘑菇怎么分类？\n\n"
-                f"则输入 `/qa ./wiki 蘑菇怎么分类？`\n\n"
-                f"问题务必不能有空格，👆点击上方命令复制格式\n\n"
-                f"本地知识库目前只支持 Markdown 文件\n\n"
-            )
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-            return
-        print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
-        await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        result = await docQA(context.args[0], context.args[1], get_doc_from_local)
-        source_url = set([i.metadata['source'] for i in result["source_documents"]])
-        source_url = "\n".join(source_url)
+    if (len(context.args) != 2):
         message = (
-            f"{result['result']}\n\n"
-            f"参考链接：\n"
-            f"{source_url}"
+            f"格式错误哦~，需要两个参数，注意路径或者链接、问题之间的空格\n\n"
+            f"请输入 `/qa 知识库链接 要问的问题`\n\n"
+            f"例如知识库链接为 https://abc.com ，问题是 蘑菇怎么分类？\n\n"
+            f"则输入 `/qa https://abc.com 蘑菇怎么分类？`\n\n"
+            f"问题务必不能有空格，👆点击上方命令复制格式\n\n"
+            f"除了输入网址，同时支持本地知识库，本地知识库文件夹路径为 `./wiki`，问题是 蘑菇怎么分类？\n\n"
+            f"则输入 `/qa ./wiki 蘑菇怎么分类？`\n\n"
+            f"问题务必不能有空格，👆点击上方命令复制格式\n\n"
+            f"本地知识库目前只支持 Markdown 文件\n\n"
         )
-        print(message)
-        await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-    else:
-        if update.message.reply_to_message.document is None:
-            message = (
-                f"格式错误哦~，需要回复一个文件，我才知道你要针对哪个文件提问，注意命令与问题之间的空格\n\n"
-                f"请输入 `/qa 要问的问题`\n\n"
-                f"例如已经上传某文档 ，问题是 蘑菇怎么分类？\n\n"
-                f"先左滑文档进入回复模式，在聊天框里面输入 `/qa 蘑菇怎么分类？`\n\n"
-                f"问题务必不能有空格，👆点击上方命令复制格式\n\n"
-                # f"本地知识库目前只支持 Markdown 文件\n\n"
-            )
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-            return
-        print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
-        await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        pdf_file = update.message.reply_to_message.document
-        question = update.message.text
-        # 下载文件到本地
-        file_name = pdf_file.file_name
-        docpath = os.getcwd() + "/" + file_name
-        match_embedding = os.path.exists(getmd5(docpath))
-        if not match_embedding:
-            file_id = pdf_file.file_id
-            new_file = context.bot.get_file(file_id)
-            new_file.download(docpath)
-        result = await pdfQA(docpath, question)
-        if not match_embedding:
-            os.remove(docpath)
-        context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        return
+    print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
+    await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
+    result = await docQA(context.args[0], context.args[1], get_doc_from_local)
+    source_url = set([i.metadata['source'] for i in result["source_documents"]])
+    source_url = "\n".join(source_url)
+    message = (
+        f"{result['result']}\n\n"
+        f"参考链接：\n"
+        f"{source_url}"
+    )
+    print(message)
+    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
