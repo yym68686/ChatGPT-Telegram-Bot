@@ -134,7 +134,6 @@ def get_doc_from_url(url):
     return filename
 
 def persist_emdedding_pdf(docurl, persist_db_path):
-    print(docurl)
     embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=os.environ.get('API', None))
     filename = get_doc_from_url(docurl)
     docpath = os.getcwd() + "/" + filename

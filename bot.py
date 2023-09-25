@@ -19,6 +19,9 @@ httpx_logger = logging.getLogger("httpx")
 # 设置 httpx 的日志级别为 WARNING
 httpx_logger.setLevel(logging.WARNING)
 
+httpx_logger = logging.getLogger("chromadb.telemetry.posthog")
+httpx_logger.setLevel(logging.WARNING)
+
 botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
@@ -436,15 +439,15 @@ async def qa(update, context):
     print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
     await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
     result = await docQA(context.args[0], context.args[1], get_doc_from_local)
-    source_url = set([i.metadata['source'] for i in result["source_documents"]])
-    source_url = "\n".join(source_url)
-    message = (
-        f"{result['result']}\n\n"
-        f"参考链接：\n"
-        f"{source_url}"
-    )
-    print(message)
-    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    print(result["answer"])
+    # source_url = set([i.metadata['source'] for i in result["source_documents"]])
+    # source_url = "\n".join(source_url)
+    # message = (
+    #     f"{result['result']}\n\n"
+    #     f"参考链接：\n"
+    #     f"{source_url}"
+    # )
+    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result["answer"]), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
