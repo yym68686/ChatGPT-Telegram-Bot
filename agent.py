@@ -8,9 +8,9 @@ import requests
 import threading
 import traceback
 from typing import Any
+import time
 from datetime import date
 import time as record_time
-import time
 from bs4 import BeautifulSoup
 
 from langchain.llms import OpenAI
@@ -94,8 +94,8 @@ def get_chain(store, llm):
     return chain
 
 async def docQA(docpath, query_message, persist_db_path="db", model = "gpt-3.5-turbo"):
-    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=config.API)
-    embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=config.API)
+    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=config.API_URL.split("chat")[0], model_name=model, openai_api_key=config.API)
+    embeddings = OpenAIEmbeddings(openai_api_base=config.API_URL.split("chat")[0], openai_api_key=config.API)
 
     sitemap = "sitemap.xml"
     match = re.match(r'^(https?|ftp)://[^\s/$.?#].[^\s]*$', docpath)
@@ -134,7 +134,7 @@ def get_doc_from_url(url):
     return filename
 
 def persist_emdedding_pdf(docurl, persist_db_path):
-    embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=os.environ.get('API', None))
+    embeddings = OpenAIEmbeddings(openai_api_base=config.API_URL.split("chat")[0], openai_api_key=os.environ.get('API', None))
     filename = get_doc_from_url(docurl)
     docpath = os.getcwd() + "/" + filename
     loader = UnstructuredPDFLoader(docpath)
@@ -149,8 +149,8 @@ def persist_emdedding_pdf(docurl, persist_db_path):
     return vector_store
 
 async def pdfQA(docurl, docpath, query_message, model="gpt-3.5-turbo"):
-    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=os.environ.get('API', None))
-    embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=os.environ.get('API', None))
+    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=config.API_URL.split("chat")[0], model_name=model, openai_api_key=os.environ.get('API', None))
+    embeddings = OpenAIEmbeddings(openai_api_base=config.API_URL.split("chat")[0], openai_api_key=os.environ.get('API', None))
     persist_db_path = getmd5(docpath)
     if not os.path.exists(persist_db_path):
         vector_store = persist_emdedding_pdf(docurl, persist_db_path)
@@ -162,8 +162,8 @@ async def pdfQA(docurl, docpath, query_message, model="gpt-3.5-turbo"):
     return result['result']
 
 def pdf_search(docurl, query_message, model="gpt-3.5-turbo"):
-    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=os.environ.get('API', None))
-    embeddings = OpenAIEmbeddings(openai_api_base=os.environ.get('API_URL', None).split("chat")[0], openai_api_key=os.environ.get('API', None))
+    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=config.API_URL.split("chat")[0], model_name=model, openai_api_key=os.environ.get('API', None))
+    embeddings = OpenAIEmbeddings(openai_api_base=config.API_URL.split("chat")[0], openai_api_key=os.environ.get('API', None))
     filename = get_doc_from_url(docurl)
     docpath = os.getcwd() + "/" + filename
     loader = UnstructuredPDFLoader(docpath)
@@ -280,8 +280,8 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
     search_thread.start()
 
     chainStreamHandler = ChainStreamHandler()
-    chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=config.API)
-    chainllm = ChatOpenAI(temperature=temperature, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name=model, openai_api_key=config.API)
+    chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=model, openai_api_key=config.API)
+    chainllm = ChatOpenAI(temperature=temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=model, openai_api_key=config.API)
 
     if use_gpt:
         gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(result, chainllm,))
@@ -426,17 +426,17 @@ if __name__ == "__main__":
     # # for i in search_summary("2022年俄乌战争为什么发生？"):
     # # for i in search_summary("卡罗尔与星期二讲的啥？"):
     # # for i in search_summary("金砖国家会议有哪些决定？"):
-    # # for i in search_summary("iphone15有哪些新功能？"):
+    # for i in search_summary("iphone15有哪些新功能？"):
     # # for i in search_summary("python函数开头：def time(text: str) -> str:每个部分有什么用？"):
-    #     print(i, end="")
+        # print(i, end="")
 
     # 问答
     # result = asyncio.run(docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？"))
     # result = asyncio.run(docQA("https://yym68686.top", "说一下HSTL pipeline"))
-    # result = asyncio.run(docQA("https://wiki.yym68686.top", "PyTorch to MindSpore翻译思路是什么？"))
-    # print(result['answer'])
-    result = asyncio.run(pdfQA("https://api.telegram.org/file/bot5569497961:AAHobhUuydAwD8SPkXZiVFybvZJOmGrST_w/documents/file_1.pdf", "HSTL的pipeline详细讲一下"))
-    print(result)
+    result = asyncio.run(docQA("https://wiki.yym68686.top", "PyTorch to MindSpore翻译思路是什么？"))
+    print(result['answer'])
+    # result = asyncio.run(pdfQA("https://api.telegram.org/file/bot5569497961:AAHobhUuydAwD8SPkXZiVFybvZJOmGrST_w/documents/file_1.pdf", "HSTL的pipeline详细讲一下"))
+    # print(result)
     # source_url = set([i.metadata['source'] for i in result["source_documents"]])
     # source_url = "\n".join(source_url)
     # message = (

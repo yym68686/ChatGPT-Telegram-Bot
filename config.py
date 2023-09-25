@@ -1,6 +1,6 @@
 import os
-WEB_HOOK = os.environ["WEB_HOOK"]
-BOT_TOKEN = os.environ["BOT_TOKEN"]
+WEB_HOOK = os.environ.get('WEB_HOOK', None)
+BOT_TOKEN = os.environ.get('BOT_TOKEN', None)
 PORT = int(os.environ.get('PORT', '8080'))
 NICK = os.environ.get('NICK', None)
 API = os.environ.get('API', None)
