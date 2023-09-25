@@ -361,6 +361,7 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
 
     encoding = tiktoken.encoding_for_model(model)
     encode_text = encoding.encode(useful_source_text)
+    encode_fact_text = encoding.encode(fact_text)
 
     max_token_len = (
         30500
@@ -374,8 +375,7 @@ def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config
         else 3500
     )
     if len(encode_text) > max_token_len: 
-        encode_text = encode_text[:max_token_len]
-        # encode_text = encode_text[:3842]
+        encode_text = encode_text[:max_token_len-len(encode_fact_text)]
         useful_source_text = encoding.decode(encode_text)
     encode_text = encoding.encode(useful_source_text)
     tokens_len = len(encode_text)

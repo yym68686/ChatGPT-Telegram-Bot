@@ -38,10 +38,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 message = prompt + message
             if config.API and message:
                 await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-                if config.SEARCH_USE_GPT and "gpt-4" not in title and language == None:
-                    await search(update, context, has_command=False)
-                else:
-                    await getChatGPT(title, robot, message, update, context)
+                await getChatGPT(update, context, title, robot, message, config.SEARCH_USE_GPT)
         else:
             message = await context.bot.send_message(
                 chat_id=update.message.chat_id,
@@ -62,10 +59,10 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
         pdf_file = update.message.reply_to_message.document
-        # print(pdf_file)
+
         file_id = pdf_file.file_id
         new_file = await context.bot.get_file(file_id)
-        # print(new_file)
+
         file_url = new_file.file_path
 
         question = update.message.text
@@ -79,14 +76,12 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 async def reset_chat(update, context):
     if config.API:
         config.ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
-    # if config.API4:
-    #     config.ChatGPT4bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
     await context.bot.send_message(
         chat_id=update.message.chat_id,
         text="重置成功！",
     )
 
-async def getChatGPT(title, robot, message, update, context):
+async def getChatGPT(update, context, title, robot, message, use_search=config.SEARCH_USE_GPT):
     result = title
     text = message
     modifytime = 0
@@ -99,19 +94,34 @@ async def getChatGPT(title, robot, message, update, context):
     )
     messageid = message.message_id
     try:
-        for data in robot.ask_stream(text, convo_id=str(update.message.chat_id), pass_history=config.PASS_HISTORY):
-            result = result + data
-            tmpresult = result
-            modifytime = modifytime + 1
-            if re.sub(r"```", '', result).count("`") % 2 != 0:
-                tmpresult = result + "`"
-            if result.count("```") % 2 != 0:
-                tmpresult = result + "\n```"
-            if modifytime % 20 == 0 and lastresult != tmpresult:
-                if 'claude2' in title:
-                    tmpresult = re.sub(r",", '，', tmpresult)
-                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
-                lastresult = tmpresult
+        if use_search:
+            for data in search_summary(text, model=config.DEFAULT_SEARCH_MODEL, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
+                result = result + data
+                tmpresult = result
+                modifytime = modifytime + 1
+                if re.sub(r"```", '', result).count("`") % 2 != 0:
+                    tmpresult = result + "`"
+                if result.count("```") % 2 != 0:
+                    tmpresult = result + "\n```"
+                if modifytime % 20 == 0 and lastresult != tmpresult:
+                    if 'claude2' in title:
+                        tmpresult = re.sub(r",", '，', tmpresult)
+                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
+                    lastresult = tmpresult
+        else:
+            for data in robot.ask_stream(text, convo_id=str(update.message.chat_id), pass_history=config.PASS_HISTORY):
+                result = result + data
+                tmpresult = result
+                modifytime = modifytime + 1
+                if re.sub(r"```", '', result).count("`") % 2 != 0:
+                    tmpresult = result + "`"
+                if result.count("```") % 2 != 0:
+                    tmpresult = result + "\n```"
+                if modifytime % 20 == 0 and lastresult != tmpresult:
+                    if 'claude2' in title:
+                        tmpresult = re.sub(r",", '，', tmpresult)
+                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
+                    lastresult = tmpresult
     except Exception as e:
         print('\033[31m')
         print("response_msg", result)
@@ -175,7 +185,8 @@ buttons = [
 
 first_buttons = [
     [
-        InlineKeyboardButton("更换模型", callback_data="更换模型"),
+        InlineKeyboardButton("更换问答模型", callback_data="更换问答模型"),
+        InlineKeyboardButton("更换搜索模型", callback_data="更换搜索模型"),
     ],
     [
         InlineKeyboardButton("历史记录已关闭", callback_data="历史记录"),
@@ -206,7 +217,10 @@ async def button_press(update, context):
     await callback_query.answer()
     data = callback_query.data
     if ("gpt" or "cluade") in data:
-        config.GPT_ENGINE = data
+        if config.ENGINE_FLAG:
+            config.GPT_ENGINE = data
+        else:
+            config.DEFAULT_SEARCH_MODEL = data
         if config.API:
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
@@ -215,10 +229,7 @@ async def button_press(update, context):
                     f"`Hi, {update.effective_user.username}!`\n\n"
                     f"**Default engine:** `{config.GPT_ENGINE}`\n"
                     f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
-    
                     f"**temperature:** `{config.temperature}`\n"
-                    f"**PASS_HISTORY:** `{config.PASS_HISTORY}`\n"
-                    f"**USE_GOOGLE:** `{config.USE_GOOGLE}`\n\n"
                     f"**API_URL:** `{config.API_URL}`\n\n"
                     f"**API:** `{config.API}`\n\n"
                     f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
@@ -228,18 +239,23 @@ async def button_press(update, context):
                     reply_markup=InlineKeyboardMarkup(buttons),
                     parse_mode='MarkdownV2'
                 )
-                # messageid = message.message_id
-                # thread = threading.Thread(target=run_async, args=(delete_message(update, context, messageid, delay=10),))
-                # thread.start()
             except Exception as e:
                 logger.info(e)
                 pass
-    elif "更换模型" in data:
+    elif "更换问答模型" in data:
         message = await callback_query.edit_message_text(
             text=escape(info_message + banner),
             reply_markup=InlineKeyboardMarkup(buttons),
             parse_mode='MarkdownV2'
         )
+        config.ENGINE_FLAG = True
+    elif "更换搜索模型" in data:
+        message = await callback_query.edit_message_text(
+            text=escape(info_message + banner),
+            reply_markup=InlineKeyboardMarkup(buttons),
+            parse_mode='MarkdownV2'
+        )
+        config.ENGINE_FLAG = False
     elif "返回" in data:
         message = await callback_query.edit_message_text(
             text=escape(info_message),
@@ -348,48 +364,6 @@ async def info(update, context):
 
     messageid = message.message_id
     await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
-
-
-async def search(update, context, has_command=True):
-    if has_command == False or len(context.args) > 0:
-        message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-        if has_command:
-            message = ' '.join(context.args)
-            print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
-        if message:
-            await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-            text = message
-            result = ''
-            modifytime = 0
-            lastresult = ''
-            message = await context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text="思考中💭",
-                parse_mode='MarkdownV2',
-                reply_to_message_id=update.message.message_id,
-            )
-            messageid = message.message_id
-            for data in search_summary(text, model=config.DEFAULT_SEARCH_MODEL, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
-                result = result + data
-                tmpresult = result
-                modifytime = modifytime + 1
-                if re.sub(r"```", '', result).count("`") % 2 != 0:
-                    tmpresult = result + "`"
-                if result.count("```") % 2 != 0:
-                    tmpresult = result + "\n```"
-                if modifytime % 20 == 0 and lastresult != tmpresult:
-                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
-                    lastresult = tmpresult
-            print(result)
-            if lastresult != result and messageid:
-                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
-    else:
-        message = await context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="请在命令后面放入文本。",
-            parse_mode='MarkdownV2',
-            reply_to_message_id=update.message.message_id,
-        )
 
 from agent import pdfQA, getmd5, persist_emdedding_pdf
 async def handle_pdf(update, context):
