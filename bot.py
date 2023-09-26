@@ -27,7 +27,7 @@ botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
-    if config.SEARCH_USE_GPT:
+    if config.SEARCH_USE_GPT and not has_command:
         title = f"`🤖️ {config.DEFAULT_SEARCH_MODEL}`\n\n"
     if update.message.reply_to_message is None:
         if has_command == False or len(context.args) > 0:
@@ -35,12 +35,12 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if has_command:
                 message = ' '.join(context.args)
             print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
-            if prompt:
+            if prompt and has_command:
                 prompt = prompt.format(language)
                 message = prompt + message
             if config.API and message:
                 await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-                await getChatGPT(update, context, title, robot, message, config.SEARCH_USE_GPT)
+                await getChatGPT(update, context, title, robot, message, config.SEARCH_USE_GPT, has_command=True)
         else:
             message = await context.bot.send_message(
                 chat_id=update.message.chat_id,
@@ -83,7 +83,7 @@ async def reset_chat(update, context):
         text="重置成功！",
     )
 
-async def getChatGPT(update, context, title, robot, message, use_search=config.SEARCH_USE_GPT):
+async def getChatGPT(update, context, title, robot, message, use_search=config.SEARCH_USE_GPT, has_command=True):
     result = title
     text = message
     modifytime = 0
@@ -96,7 +96,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
     )
     messageid = message.message_id
     try:
-        if use_search:
+        if use_search and not has_command:
             for data in search_summary(text, model=config.DEFAULT_SEARCH_MODEL, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
                 result = result + data
                 tmpresult = result
