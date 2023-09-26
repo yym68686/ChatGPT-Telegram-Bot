@@ -25,3 +25,7 @@ from chatgpt2api.V3 import Chatbot as GPT
 if API:
     ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
     Claude2bot = GPT(api_key=f"{API}", engine="claude-2-web")
+
+whitelist = os.environ.get('whitelist', None)
+if whitelist:
+    whitelist = [int(id) for id in whitelist.split(",")]

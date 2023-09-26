@@ -18,6 +18,8 @@ Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your use
 
 ✅ 支持流式输出，实现打字机效果
 
+✅ 支持白名单，防止滥用与信息泄漏
+
 ✅ 全平台，随时随地，只要有 telegram 就可以打破知识壁垒
 
 ✅ 支持一键 Zeabur，Replit 部署，真正的零成本，傻瓜式部署，支持 kuma 防睡眠。同时支持 docker，fly.io 部署
@@ -35,6 +37,7 @@ Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your use
 | PASS_HISTORY（可选）   | 默认为真，表示机器人会记住对话历史，下次回复时会考虑上下文。如果设置为假，机器人会忘记对话历史，只考虑当前对话。 |
 | GOOGLE_API_KEY（可选） | 如果需要谷歌搜索，则需要设置。如果不设置此环境变量，机器人默认提供 duckduckgo 搜索。在 Google cloud 的 [API 与服务](https://console.cloud.google.com/apis/api/customsearch.googleapis.com) 中创建凭据，在凭据页面 API Key 就是 GOOGLE_API_KEY。Google 搜索一天可以查询 100 次，轻度使用完全足够，达到限额，机器人会自动关闭 Google 搜索。 |
 | GOOGLE_CSE_ID（可选）  | 如果需要谷歌搜索，则需要与 GOOGLE_API_KEY 一起设置。在[可编程搜索引擎](https://programmablesearchengine.google.com/) 中新建搜索引擎，其中 搜索引擎 ID 就是 GOOGLE_CSE_ID 的值。 |
+| whitelist（可选）      | 设置哪些用户可以访问机器人，将授权使用机器人的用户 ID 用`,`连接起来。默认值为`None`，即对所有人开放机器人。 |
 
 ## Zeabur 远程部署 (推荐)
 

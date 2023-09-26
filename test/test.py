@@ -1,3 +1,3 @@
-a = "werc"
-if ("q" or "c") in a:
-    print(1)
+a = ["1", "2"]
+a = [int(i) for i in a]
+print(type(a[0]))

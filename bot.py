@@ -2,6 +2,7 @@ import re
 import os
 import config
 import logging
+import decorators
 from md2tgmd import escape
 from runasync import run_async
 from chatgpt2api.V3 import Chatbot as GPT
@@ -26,6 +27,7 @@ botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
+@decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
     if config.SEARCH_USE_GPT and not has_command:
         title = f"`🤖️ {config.DEFAULT_SEARCH_MODEL}`\n\n"
@@ -40,7 +42,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 message = prompt + message
             if config.API and message:
                 await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-                await getChatGPT(update, context, title, robot, message, config.SEARCH_USE_GPT, has_command=True)
+                await getChatGPT(update, context, title, robot, message, config.SEARCH_USE_GPT, has_command)
         else:
             message = await context.bot.send_message(
                 chat_id=update.message.chat_id,
@@ -75,6 +77,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         print(result)
         await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
+@decorators.Authorization
 async def reset_chat(update, context):
     if config.API:
         config.ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
@@ -351,7 +354,7 @@ async def button_press(update, context):
             parse_mode='MarkdownV2'
         )
 
-
+@decorators.Authorization
 async def info(update, context):
     info_message = (
         f"`Hi, {update.effective_user.username}!`\n\n"
@@ -368,6 +371,7 @@ async def info(update, context):
     await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
 
 from agent import pdfQA, getmd5, persist_emdedding_pdf
+@decorators.Authorization
 async def handle_pdf(update, context):
     # 获取接收到的文件
     pdf_file = update.message.document
@@ -397,6 +401,7 @@ async def handle_pdf(update, context):
     print(result)
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
+@decorators.Authorization
 async def qa(update, context):
     if (len(context.args) != 2):
         message = (
@@ -439,6 +444,7 @@ async def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
     await context.bot.send_message(chat_id=update.message.chat_id, text="出错啦！请重试。", parse_mode='MarkdownV2')
 
+@decorators.Authorization
 async def unknown(update, context): # 当用户输入未知命令时，返回文本
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
 
@@ -452,9 +458,6 @@ def setup(token):
         BotCommand('zh2en', 'translate to English'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
-        # BotCommand('gpt_use_search', 'open or close gpt use search'),
-        # BotCommand('history', 'open or close chat history'),
-        # BotCommand('google', 'open or close google search'),
     ]))
 
     application.add_handler(CommandHandler("start", start))
