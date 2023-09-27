@@ -40,7 +40,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if prompt and has_command:
                 prompt = prompt.format(language)
                 message = prompt + message
-            if config.API and message:
+            if message:
                 await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
                 await getChatGPT(update, context, title, robot, message, config.SEARCH_USE_GPT, has_command)
         else:
@@ -99,7 +99,31 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
     )
     messageid = message.message_id
     try:
-        if use_search and not has_command:
+        if not config.API:
+            result = f"`🤖️ {config.GPT_ENGINE}`\n\n"
+            import gpt4free
+            if "gpt-3.5" in config.GPT_ENGINE:
+                for data in gpt4free.get_response(text, config.GPT_ENGINE):
+                    result = result + data
+                    tmpresult = result
+                    modifytime = modifytime + 1
+                    if re.sub(r"```", '', result).count("`") % 2 != 0:
+                        tmpresult = result + "`"
+                    if result.count("```") % 2 != 0:
+                        tmpresult = result + "\n```"
+                    if modifytime % 20 == 0 and lastresult != tmpresult:
+                        if 'claude2' in title:
+                            tmpresult = re.sub(r",", '，', tmpresult)
+                        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
+                        lastresult = tmpresult
+            else:
+                result = f"`🤖️ {config.GPT_ENGINE}`\n\n"
+                import gpt4free
+                tmpresult = await gpt4free.get_async_response(text, config.GPT_ENGINE)
+                result = result + tmpresult
+                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
+                lastresult = result
+        elif use_search and not has_command:
             for data in search_summary(text, model=config.DEFAULT_SEARCH_MODEL, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
                 result = result + data
                 tmpresult = result
@@ -229,24 +253,24 @@ async def button_press(update, context):
         if config.API:
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
-            try:
-                info_message = (
-                    f"`Hi, {update.effective_user.username}!`\n\n"
-                    f"**Default engine:** `{config.GPT_ENGINE}`\n"
-                    f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
-                    f"**temperature:** `{config.temperature}`\n"
-                    f"**API_URL:** `{config.API_URL}`\n\n"
-                    f"**API:** `{config.API}`\n\n"
-                    f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-                )
-                message = await callback_query.edit_message_text(
-                    text=escape(info_message + banner),
-                    reply_markup=InlineKeyboardMarkup(buttons),
-                    parse_mode='MarkdownV2'
-                )
-            except Exception as e:
-                logger.info(e)
-                pass
+        try:
+            info_message = (
+                f"`Hi, {update.effective_user.username}!`\n\n"
+                f"**Default engine:** `{config.GPT_ENGINE}`\n"
+                f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
+                f"**temperature:** `{config.temperature}`\n"
+                f"**API_URL:** `{config.API_URL}`\n\n"
+                f"**API:** `{config.API}`\n\n"
+                f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+            )
+            message = await callback_query.edit_message_text(
+                text=escape(info_message + banner),
+                reply_markup=InlineKeyboardMarkup(buttons),
+                parse_mode='MarkdownV2'
+            )
+        except Exception as e:
+            logger.info(e)
+            pass
     elif "更换问答模型" in data:
         message = await callback_query.edit_message_text(
             text=escape(info_message + banner),

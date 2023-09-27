@@ -174,3 +174,9 @@ https://github.com/franalgaba/chatgpt-telegram-bot-serverless
 https://github.com/gpchelkin/scdlbot/blob/d64d14f6c6d357ba818e80b8a0a9291c2146d6fe/scdlbot/__main__.py#L8
 
 消息的 markdown 渲染用的是我的另一个项目：https://github.com/yym68686/md2tgmd
+
+## Star History
+
+<a href="https://github.com/yym68686/ChatGPT-Telegram-Bot/stargazers">
+        <img width="500" alt="Star History Chart" src="https://api.star-history.com/svg?repos=yym68686/ChatGPT-Telegram-Bot&type=Date">
+</a>
