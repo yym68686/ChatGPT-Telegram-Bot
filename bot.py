@@ -114,14 +114,14 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
                     if modifytime % 20 == 0 and lastresult != tmpresult:
                         if 'claude2' in title:
                             tmpresult = re.sub(r",", '，', tmpresult)
-                        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
+                        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
                         lastresult = tmpresult
             else:
                 result = f"`🤖️ {config.GPT_ENGINE}`\n\n"
                 import gpt4free
                 tmpresult = await gpt4free.get_async_response(text, config.GPT_ENGINE)
                 result = result + tmpresult
-                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
+                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
                 lastresult = result
         elif use_search and not has_command:
             for data in search_summary(text, model=config.DEFAULT_SEARCH_MODEL, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
@@ -135,7 +135,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
                 if modifytime % 20 == 0 and lastresult != tmpresult:
                     if 'claude2' in title:
                         tmpresult = re.sub(r",", '，', tmpresult)
-                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
+                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
                     lastresult = tmpresult
         else:
             for data in robot.ask_stream(text, convo_id=str(update.message.chat_id), pass_history=config.PASS_HISTORY):
@@ -149,7 +149,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
                 if modifytime % 20 == 0 and lastresult != tmpresult:
                     if 'claude2' in title:
                         tmpresult = re.sub(r",", '，', tmpresult)
-                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2')
+                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
                     lastresult = tmpresult
     except Exception as e:
         print('\033[31m')
@@ -168,7 +168,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
     if lastresult != result and messageid:
         if 'claude2' in title:
             result = re.sub(r",", '，', result)
-        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2')
+        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 import time
 import threading
@@ -389,7 +389,7 @@ async def info(update, context):
         f"**API:** `{config.API}`\n\n"
         f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
     )
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(first_buttons), parse_mode='MarkdownV2')
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(first_buttons), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
     messageid = message.message_id
     await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
@@ -462,11 +462,11 @@ async def start(update, context): # 当用户输入/start时，返回文本
         "有 bug 可以联系 @yym68686"
     )
     await update.message.reply_html(rf"Hi {user.mention_html()} ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",)
-    await update.message.reply_text(escape(message), parse_mode='MarkdownV2')
+    await update.message.reply_text(escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
-    await context.bot.send_message(chat_id=update.message.chat_id, text="出错啦！请重试。", parse_mode='MarkdownV2')
+    await context.bot.send_message(chat_id=update.message.chat_id, text="出错啦！请重试。", parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.Authorization
 async def unknown(update, context): # 当用户输入未知命令时，返回文本
