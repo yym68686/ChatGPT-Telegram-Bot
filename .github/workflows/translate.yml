@@ -19,4 +19,4 @@ jobs:
               with:
                 token: ${{ secrets.Action_Bot }} # Based on step2 name
                 g4f_provider: g4f.Provider.DeepAi # You can change this provider
-                langs: "en,zh-TW,French,Arabic" # You can define any langs
+                langs: "en,zh-CN,zh-TW" # You can define any langs
