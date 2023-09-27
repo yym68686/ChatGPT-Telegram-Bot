@@ -2,7 +2,7 @@
 
 Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your user experience or report Bugs.
 
-[English](./README.md) | [Simplified Chinese](./README.zh-CN.md) ｜ [Traditional Chinese](./README.zh-TW.md)
+[English](./README.md) | [Simplified Chinese](./README.zh-CN.md) | [Traditional Chinese](./README.zh-TW.md)
 
 ## ✨ Features
 
@@ -44,6 +44,7 @@ Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your use
 ## Zeabur Remote Deployment (Recommended)
 
 One-click deployment:
+
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/R5JY5O?referralCode=yym68686)
 
 If you need follow-up function updates, the following deployment method is recommended:
@@ -87,7 +88,6 @@ Set environment variables
 flyctl secrets set WEB_HOOK=https://flyio-app-name.fly.dev/
 flyctl secrets set BOT_TOKEN=bottoken
 flyctl secrets set API=
-flyctl secrets set COOKIES=
 # optional
 flyctl secrets set NICK=javis
 ```
