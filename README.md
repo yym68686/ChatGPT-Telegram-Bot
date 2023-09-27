@@ -2,7 +2,7 @@
 
 Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your user experience or report Bugs.
 
-[English](./README.md)|[Simplified Chinese](./README.zh-CN.md)|[Traditional Chinese](./README.zh-TW.md)
+[English](./README.md) | [Simplified Chinese](./README.zh-CN.md) | [Traditional Chinese](./README.zh-TW.md)
 
 ## ✨ Features
 

@@ -218,7 +218,7 @@ def Web_crawler(url: str) -> str:
         requests.packages.urllib3.disable_warnings()
         response = requests.get(url, headers=headers, verify=False, timeout=5, stream=True)
         content_length = int(response.headers.get('Content-Length', 0))
-        if content_length > 500000:
+        if content_length > 5000000:
             print("Skipping large file:", url)
             return result
         soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
