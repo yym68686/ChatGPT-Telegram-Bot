@@ -31,3 +31,5 @@ else:
 whitelist = os.environ.get('whitelist', None)
 if whitelist:
     whitelist = [int(id) for id in whitelist.split(",")]
+
+USE_G4F = False

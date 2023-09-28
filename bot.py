@@ -2,6 +2,7 @@ import re
 import os
 import config
 import logging
+import traceback
 import decorators
 from md2tgmd import escape
 from runasync import run_async
@@ -99,7 +100,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
     )
     messageid = message.message_id
     try:
-        if not config.API:
+        if not config.API or config.USE_G4F:
             result = f"`🤖️ {config.GPT_ENGINE}`\n\n"
             import gpt4free
             if "gpt-3.5" in config.GPT_ENGINE:
@@ -155,6 +156,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
         print('\033[31m')
         print("response_msg", result)
         print("error", e)
+        traceback.print_exc()
         print('\033[0m')
         if config.API:
             robot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
@@ -225,6 +227,9 @@ first_buttons = [
         InlineKeyboardButton("搜索已打开", callback_data="搜索"),
         InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf"),
     ],
+    [
+        InlineKeyboardButton("gpt4free已关闭", callback_data="gpt4free"),
+    ],
 ]
 if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
     first_buttons[1][1] = InlineKeyboardButton("google已关闭", callback_data="google")
@@ -245,7 +250,7 @@ async def button_press(update, context):
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
-    if ("gpt" or "cluade") in data:
+    if ("gpt-" or "cluade") in data:
         if config.ENGINE_FLAG:
             config.GPT_ENGINE = data
         else:
@@ -362,6 +367,28 @@ async def button_press(update, context):
             first_buttons[2][1] = InlineKeyboardButton("联网解析PDF已关闭", callback_data="pdf")
         else:
             first_buttons[2][1] = InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf")
+
+        info_message = (
+            f"`Hi, {update.effective_user.username}!`\n\n"
+            f"**Default engine:** `{config.GPT_ENGINE}`\n"
+            f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
+            f"**temperature:** `{config.temperature}`\n"
+            f"**API_URL:** `{config.API_URL}`\n\n"
+            f"**API:** `{config.API}`\n\n"
+            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+        )
+        message = await callback_query.edit_message_text(
+            text=escape(info_message),
+            reply_markup=InlineKeyboardMarkup(first_buttons),
+            parse_mode='MarkdownV2'
+        )
+    elif "gpt4free" in data:
+        config.USE_G4F = not config.USE_G4F
+        print(config.USE_G4F)
+        if config.USE_G4F == False:
+            first_buttons[3][0] = InlineKeyboardButton("gpt4free已关闭", callback_data="gpt4free")
+        else:
+            first_buttons[3][0] = InlineKeyboardButton("gpt4free已打开", callback_data="gpt4free")
 
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
