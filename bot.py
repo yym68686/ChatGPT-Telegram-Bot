@@ -121,6 +121,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
                 result = f"`🤖️ {config.GPT_ENGINE}`\n\n"
                 import gpt4free
                 tmpresult = await gpt4free.get_async_response(text, config.GPT_ENGINE)
+                tmpresult = gpt4free.bing(tmpresult)
                 result = result + tmpresult
                 await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
                 lastresult = result
@@ -384,7 +385,6 @@ async def button_press(update, context):
         )
     elif "gpt4free" in data:
         config.USE_G4F = not config.USE_G4F
-        print(config.USE_G4F)
         if config.USE_G4F == False:
             first_buttons[3][0] = InlineKeyboardButton("gpt4free已关闭", callback_data="gpt4free")
         else:

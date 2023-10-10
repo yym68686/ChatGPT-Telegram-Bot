@@ -1,4 +1,5 @@
 import g4f
+import re
 async def get_async_response(message, model="gpt-3.5-turbo"):
     response = await g4f.ChatCompletion.create_async(
         model=model,
@@ -28,18 +29,18 @@ def get_response(message, model="gpt-3.5-turbo"):
 # def handle_response(response):
 #     yield response
 
+def bing(response):
+    response = re.sub(r"\[\^\d+\^\]", "", response)
+    if len(response.split("\n\n")) >= 2:
+        result = "\n\n".join(response.split("\n\n")[1:])
+        return result
+    else:
+        return response
+
 if __name__ == "__main__":
     import asyncio
     message = r"""
-在多线程编程场景下，为了避免There is no current event loop in thread错误，怎么使用回调函数返回这个函数的结果：
-def get_response(message, model="gpt-3.5-turbo"):
-    response = g4f.ChatCompletion.create(
-        model=model,
-        messages=[{"role": "user", "content": message}],
-        stream=True,
-    )
-    for message in response:
-        yield message
+
     """
 
     # result = asyncio.run(get_response(message, "gpt-4"))
@@ -48,4 +49,5 @@ def get_response(message, model="gpt-3.5-turbo"):
     # for result in get_response(message, handle_response):
     #     print(result, flush=True, end='')
     for result in get_response(message, "gpt-4"):
-        print(result, flush=True, end='')
+    # for result in get_response(message, "claude-v2"):
+        print(bing(result), flush=True, end='')
