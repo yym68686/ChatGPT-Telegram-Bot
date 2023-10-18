@@ -1,3 +1,7 @@
-a = ["1", "2"]
-a = [int(i) for i in a]
-print(type(a[0]))
+my_list = [
+    {"role": "admin", "content": "This is admin content."},
+    {"role": "user", "content": "This is user content."}
+]
+
+content_list = [item["content"] for item in my_list]
+print(content_list)

@@ -6,9 +6,9 @@ import traceback
 import decorators
 from md2tgmd import escape
 from runasync import run_async
-from chatgpt2api.V3 import Chatbot as GPT
+from chatgpt2api.chatgpt2api import Chatbot as GPT
 from telegram.constants import ChatAction
-from agent import docQA, get_doc_from_local, search_summary
+from agent import docQA, get_doc_from_local
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler
 
@@ -30,8 +30,6 @@ print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
-    if config.SEARCH_USE_GPT and not has_command:
-        title = f"`🤖️ {config.DEFAULT_SEARCH_MODEL}`\n\n"
     if update.message.reply_to_message is None:
         if has_command == False or len(context.args) > 0:
             message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
@@ -99,48 +97,24 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
         reply_to_message_id=update.message.message_id,
     )
     messageid = message.message_id
+    if use_search and not has_command:
+        get_answer = robot.search_summary
+    else:
+        get_answer = robot.ask_stream
+    if not config.API or config.USE_G4F:
+        import gpt4free
+        get_answer = gpt4free.get_response
+
     try:
-        if not config.API or config.USE_G4F:
+        if (config.USE_G4F or not config.API) and "gpt-3.5" not in config.GPT_ENGINE:
             result = f"`🤖️ {config.GPT_ENGINE}`\n\n"
-            import gpt4free
-            if "gpt-3.5" in config.GPT_ENGINE:
-                for data in gpt4free.get_response(text, config.GPT_ENGINE):
-                    result = result + data
-                    tmpresult = result
-                    modifytime = modifytime + 1
-                    if re.sub(r"```", '', result).count("`") % 2 != 0:
-                        tmpresult = result + "`"
-                    if result.count("```") % 2 != 0:
-                        tmpresult = result + "\n```"
-                    if modifytime % 20 == 0 and lastresult != tmpresult:
-                        if 'claude2' in title:
-                            tmpresult = re.sub(r",", '，', tmpresult)
-                        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
-                        lastresult = tmpresult
-            else:
-                result = f"`🤖️ {config.GPT_ENGINE}`\n\n"
-                import gpt4free
-                tmpresult = await gpt4free.get_async_response(text, config.GPT_ENGINE)
-                tmpresult = gpt4free.bing(tmpresult)
-                result = result + tmpresult
-                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
-                lastresult = result
-        elif use_search and not has_command:
-            for data in search_summary(text, model=config.DEFAULT_SEARCH_MODEL, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
-                result = result + data
-                tmpresult = result
-                modifytime = modifytime + 1
-                if re.sub(r"```", '', result).count("`") % 2 != 0:
-                    tmpresult = result + "`"
-                if result.count("```") % 2 != 0:
-                    tmpresult = result + "\n```"
-                if modifytime % 20 == 0 and lastresult != tmpresult:
-                    if 'claude2' in title:
-                        tmpresult = re.sub(r",", '，', tmpresult)
-                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
-                    lastresult = tmpresult
+            tmpresult = await gpt4free.get_async_response(text, config.GPT_ENGINE)
+            tmpresult = gpt4free.bing(tmpresult)
+            result = result + tmpresult
+            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+            lastresult = result
         else:
-            for data in robot.ask_stream(text, convo_id=str(update.message.chat_id), pass_history=config.PASS_HISTORY):
+            for data in get_answer(text, convo_id=str(update.message.chat_id), pass_history=config.PASS_HISTORY):
                 result = result + data
                 tmpresult = result
                 modifytime = modifytime + 1
@@ -218,7 +192,6 @@ buttons = [
 first_buttons = [
     [
         InlineKeyboardButton("更换问答模型", callback_data="更换问答模型"),
-        InlineKeyboardButton("更换搜索模型", callback_data="更换搜索模型"),
     ],
     [
         InlineKeyboardButton("历史记录已关闭", callback_data="历史记录"),
@@ -242,7 +215,6 @@ async def button_press(update, context):
     info_message = (
         f"`Hi, {update.effective_user.username}!`\n\n"
         f"**Default engine:** `{config.GPT_ENGINE}`\n"
-        f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
         f"**temperature:** `{config.temperature}`\n"
         f"**API_URL:** `{config.API_URL}`\n\n"
         f"**API:** `{config.API}`\n\n"
@@ -252,10 +224,7 @@ async def button_press(update, context):
     await callback_query.answer()
     data = callback_query.data
     if ("gpt-" or "cluade") in data:
-        if config.ENGINE_FLAG:
-            config.GPT_ENGINE = data
-        else:
-            config.DEFAULT_SEARCH_MODEL = data
+        config.GPT_ENGINE = data
         if config.API:
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
@@ -263,7 +232,6 @@ async def button_press(update, context):
             info_message = (
                 f"`Hi, {update.effective_user.username}!`\n\n"
                 f"**Default engine:** `{config.GPT_ENGINE}`\n"
-                f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
                 f"**temperature:** `{config.temperature}`\n"
                 f"**API_URL:** `{config.API_URL}`\n\n"
                 f"**API:** `{config.API}`\n\n"
@@ -283,14 +251,6 @@ async def button_press(update, context):
             reply_markup=InlineKeyboardMarkup(buttons),
             parse_mode='MarkdownV2'
         )
-        config.ENGINE_FLAG = True
-    elif "更换搜索模型" in data:
-        message = await callback_query.edit_message_text(
-            text=escape(info_message + banner),
-            reply_markup=InlineKeyboardMarkup(buttons),
-            parse_mode='MarkdownV2'
-        )
-        config.ENGINE_FLAG = False
     elif "返回" in data:
         message = await callback_query.edit_message_text(
             text=escape(info_message),
@@ -306,7 +266,6 @@ async def button_press(update, context):
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
             f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
             f"**API:** `{config.API}`\n\n"
@@ -327,7 +286,6 @@ async def button_press(update, context):
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
             f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
             f"**API:** `{config.API}`\n\n"
@@ -351,7 +309,6 @@ async def button_press(update, context):
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
             f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
             f"**API:** `{config.API}`\n\n"
@@ -372,7 +329,6 @@ async def button_press(update, context):
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
             f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
             f"**API:** `{config.API}`\n\n"
@@ -393,7 +349,6 @@ async def button_press(update, context):
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
             f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
             f"**API:** `{config.API}`\n\n"
@@ -410,7 +365,6 @@ async def info(update, context):
     info_message = (
         f"`Hi, {update.effective_user.username}!`\n\n"
         f"**Default engine:** `{config.GPT_ENGINE}`\n"
-        f"**Default search model:** `{config.DEFAULT_SEARCH_MODEL}`\n"
         f"**temperature:** `{config.temperature}`\n"
         f"**API_URL:** `{config.API_URL}`\n\n"
         f"**API:** `{config.API}`\n\n"

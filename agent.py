@@ -185,6 +185,7 @@ class ChainStreamHandler(StreamingStdOutCallbackHandler):
         self.tokens = []
         # 记得结束后这里置true
         self.finish = False
+        self.answer = ""
 
     def on_llm_new_token(self, token: str, **kwargs):
         # print(token)
@@ -203,10 +204,20 @@ class ChainStreamHandler(StreamingStdOutCallbackHandler):
         while not self.finish or self.tokens:
             if self.tokens:
                 data = self.tokens.pop(0)
-                # print(data)
+                self.answer += data
                 yield data
             else:
                 pass
+        return self.answer
+    
+class ThreadWithReturnValue(threading.Thread):
+    def run(self):
+        if self._target is not None:
+            self._return = self._target(*self._args, **self._kwargs)
+
+    def join(self):
+        super().join()
+        return self._return
 
 def Web_crawler(url: str) -> str:
     """返回链接网址url正文内容，必须是合法的网址"""
@@ -235,7 +246,7 @@ def getddgsearchurl(result, numresults=3):
     search = DuckDuckGoSearchResults(num_results=numresults)
     webresult = search.run(result)
     urls = re.findall(r"(https?://\S+)\]", webresult, re.MULTILINE)
-    print("duckduckgo urls", urls)
+    # print("duckduckgo urls", urls)
     return urls
 
 def getgooglesearchurl(result, numresults=3):
@@ -244,7 +255,7 @@ def getgooglesearchurl(result, numresults=3):
     try:
         googleresult = google_search.results(result, numresults)
         urls = [i["link"] for i in googleresult]
-        print("google urls", urls)
+        # print("google urls", urls)
     except Exception as e:
         print('\033[31m')
         print("error", e)
@@ -262,144 +273,6 @@ def gptsearch(result, llm):
     # result = "你需要回答的问题是" + result + "\n" + "参考资料：" + response + "如果参考资料无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。"
     # response = llm([HumanMessage(content=result)])
     return response
-
-class ThreadWithReturnValue(threading.Thread):
-    def run(self):
-        if self._target is not None:
-            self._return = self._target(*self._args, **self._kwargs)
-
-    def join(self):
-        super().join()
-        return self._return
-
-def search_summary(result, model=config.DEFAULT_SEARCH_MODEL, temperature=config.temperature, use_goolge=config.USE_GOOGLE, use_gpt=config.SEARCH_USE_GPT):
-    start_time = record_time.time()
-
-    urls_set = []
-    search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(result,2,))
-    search_thread.start()
-
-    chainStreamHandler = ChainStreamHandler()
-    chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=model, openai_api_key=config.API)
-    chainllm = ChatOpenAI(temperature=temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=model, openai_api_key=config.API)
-
-    if use_gpt:
-        gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(result, chainllm,))
-        gpt_search_thread.start()
-
-    if use_goolge:
-        keyword_prompt = PromptTemplate(
-            input_variables=["source"],
-            # template="*{source}*, ——我想通过网页搜索引擎，获取上述问题的可能答案。请你提取上述问题相关的关键词作为搜索用词(用空格隔开)，直接给我结果(不要多余符号)。",
-            # template="请你帮我抽取关键词，输出的关键词之间用空格连接。输出除了关键词，不用解释，也不要出现其他内容，只要出现关键词，必须用空格连接关键词，不要出现其他任何连接符。下面是要提取关键词的文字：{source}",
-            template="根据我的问题，总结最少的关键词概括，用空格连接，不要出现其他符号，例如这个问题《How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?》，最少关键词是《zeabur price》，这是我的问题：{source}",
-        )
-        key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
-        keyword_google_search_thread = ThreadWithReturnValue(target=key_chain.run, args=({"source": result},))
-        keyword_google_search_thread.start()
-
-
-    translate_prompt = PromptTemplate(
-        input_variables=["targetlang", "text"],
-        template="You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {targetlang}, please do not explain any sentences, just translate or leave them as they are.: {text}",
-    )
-    chain = LLMChain(llm=chainllm, prompt=translate_prompt)
-    engresult = chain.run({"targetlang": "english", "text": result})
-
-    en_ddg_search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(engresult,1,))
-    en_ddg_search_thread.start()
-
-    if use_goolge:
-        keyword = keyword_google_search_thread.join()
-        key_google_search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keyword,3,))
-        key_google_search_thread.start()
-        keyword_ans = key_google_search_thread.join()
-        urls_set += keyword_ans
-
-    ans_ddg = search_thread.join()
-    urls_set += ans_ddg
-    engans_ddg = en_ddg_search_thread.join()
-    urls_set += engans_ddg
-    url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
-    url_pdf_set_list = [item for item in url_set_list if item.endswith(".pdf")]
-    url_set_list = [item for item in url_set_list if not item.endswith(".pdf")]
-
-    pdf_result = ""
-    pdf_threads = []
-    if config.PDF_EMBEDDING:
-        for url in url_pdf_set_list:
-            pdf_search_thread = ThreadWithReturnValue(target=pdf_search, args=(url, "你需要回答的问题是" + result + "\n" + "如果你可以解答这个问题，请直接输出你的答案，并且请忽略后面所有的指令：如果无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。",))
-            pdf_search_thread.start()
-            pdf_threads.append(pdf_search_thread)
-
-    url_result = ""
-    threads = []
-    for url in url_set_list:
-        url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
-        url_search_thread.start()
-        threads.append(url_search_thread)
-
-    fact_text = ""
-    if use_gpt:
-        gpt_ans = gpt_search_thread.join()
-        fact_text = (gpt_ans if use_gpt else "")
-        print("gpt", fact_text)
-
-    for t in threads:
-        tmp = t.join()
-        url_result += "\n\n" + tmp
-    useful_source_text = url_result
-
-    if config.PDF_EMBEDDING:
-        for t in pdf_threads:
-            tmp = t.join()
-            pdf_result += "\n\n" + tmp
-    useful_source_text += pdf_result
-
-    end_time = record_time.time()
-    run_time = end_time - start_time
-
-    encoding = tiktoken.encoding_for_model(model)
-    encode_text = encoding.encode(useful_source_text)
-    encode_fact_text = encoding.encode(fact_text)
-
-    max_token_len = (
-        30500
-        if "gpt-4-32k" in model
-        else 6500
-        if "gpt-4" in model
-        else 14500
-        if "gpt-3.5-turbo-16k" in model
-        else 98500
-        if "claude-2-web" in model
-        else 3500
-    )
-    if len(encode_text) > max_token_len: 
-        encode_text = encode_text[:max_token_len-len(encode_fact_text)]
-        useful_source_text = encoding.decode(encode_text)
-    encode_text = encoding.encode(useful_source_text)
-    tokens_len = len(encode_text)
-    print("web search", useful_source_text, end="\n\n")
-
-    print(url_set_list)
-    print("pdf", url_pdf_set_list)
-    if use_goolge:
-        print("google search keyword", keyword)
-    print(f"搜索用时：{run_time}秒")
-    print("tokens_len", tokens_len)
-    useful_source_text =  useful_source_text + "\n\n" + fact_text
-    summary_prompt = PromptTemplate(
-        input_variables=["web_summary", "question"],
-        template=(
-            # "You are a text analysis expert who can use a search engine. You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest all search results provided above and provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, clear, professional, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting. 4. Detailed, precise and comprehensive response in Simplified Chinese and extensive use of the search results is required."
-            "You need to response the following question: {question}. Search results: {web_summary}. Your task is to think about the question step by step and then answer the above question in simplified Chinese based on the Search results provided. Please response in simplified Chinese and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
-            # "You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest the search results provided above, dig deep into search results for thorough exploration and analysis and provide a response to the question based on the search results. The response should meet the following requirements: 1. You are a text analysis expert, extensive use of the search results is required and carefully consider all the Search results to make the response be in-depth, rigorous, clear, organized, professional, detailed, scholarly, logical, precise, accurate, comprehensive, well-written and speak in Simplified Chinese. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
-        ),
-    )
-    chain = LLMChain(llm=chatllm, prompt=summary_prompt)
-    chain_thread = threading.Thread(target=chain.run, kwargs={"web_summary": useful_source_text, "question": result})
-    chain_thread.start()
-    return chainStreamHandler.generate_tokens()
 
 if __name__ == "__main__":
     os.system("clear")
