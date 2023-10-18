@@ -106,27 +106,19 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
         get_answer = gpt4free.get_response
 
     try:
-        if (config.USE_G4F or not config.API) and "gpt-3.5" not in config.GPT_ENGINE:
-            result = f"`🤖️ {config.GPT_ENGINE}`\n\n"
-            tmpresult = await gpt4free.get_async_response(text, config.GPT_ENGINE)
-            tmpresult = gpt4free.bing(tmpresult)
-            result = result + tmpresult
-            await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
-            lastresult = result
-        else:
-            for data in get_answer(text, convo_id=str(update.message.chat_id), pass_history=config.PASS_HISTORY):
-                result = result + data
-                tmpresult = result
-                modifytime = modifytime + 1
-                if re.sub(r"```", '', result).count("`") % 2 != 0:
-                    tmpresult = result + "`"
-                if result.count("```") % 2 != 0:
-                    tmpresult = result + "\n```"
-                if modifytime % 20 == 0 and lastresult != tmpresult:
-                    if 'claude2' in title:
-                        tmpresult = re.sub(r",", '，', tmpresult)
-                    await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
-                    lastresult = tmpresult
+        for data in get_answer(text, convo_id=str(update.message.chat_id), pass_history=config.PASS_HISTORY):
+            result = result + data
+            tmpresult = result
+            modifytime = modifytime + 1
+            if re.sub(r"```", '', result).count("`") % 2 != 0:
+                tmpresult = result + "`"
+            if result.count("```") % 2 != 0:
+                tmpresult = result + "\n```"
+            if modifytime % 20 == 0 and lastresult != tmpresult:
+                if 'claude2' in title:
+                    tmpresult = re.sub(r",", '，', tmpresult)
+                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
+                lastresult = tmpresult
     except Exception as e:
         print('\033[31m')
         print("response_msg", result)
