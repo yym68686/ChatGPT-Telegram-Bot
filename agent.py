@@ -7,6 +7,7 @@ import tiktoken
 import requests
 import threading
 import traceback
+import urllib.parse
 from typing import Any
 import time
 from datetime import date
@@ -126,7 +127,7 @@ async def docQA(docpath, query_message, persist_db_path="db", model = "gpt-3.5-t
     return result
 
 def get_doc_from_url(url):
-    filename = url.split("/")[-1]
+    filename = urllib.parse.unquote(url.split("/")[-1])
     response = requests.get(url, stream=True)
     with open(filename, 'wb') as f:
         for chunk in response.iter_content(chunk_size=1024):
@@ -167,7 +168,11 @@ def pdf_search(docurl, query_message, model="gpt-3.5-turbo"):
     filename = get_doc_from_url(docurl)
     docpath = os.getcwd() + "/" + filename
     loader = UnstructuredPDFLoader(docpath)
-    documents = loader.load()
+    try:
+        documents = loader.load()
+    except:
+        print("pdf load error! docpath:", docpath)
+        return ""
     os.remove(docpath)
     # 初始化加载器
     text_splitter = CharacterTextSplitter(chunk_size=100, chunk_overlap=25)
