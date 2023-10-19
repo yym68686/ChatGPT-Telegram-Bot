@@ -1,9 +1,6 @@
-import g4f
 import re
-import os
+import g4f
 import config
-from rich.console import Console
-from rich.markdown import Markdown
 
 def get_response(message, **kwargs):
     response = g4f.ChatCompletion.create(
@@ -24,14 +21,9 @@ def bing(response):
 
 if __name__ == "__main__":
 
-    console = Console()
     message = rf"""
 
     """
     answer = ""
     for result in get_response(message, "gpt-4"):
-        os.system("clear")
-        answer += result
-        md = Markdown(answer)
-        console.print(md)
-
+        print(result, end="")
