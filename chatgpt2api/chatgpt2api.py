@@ -13,7 +13,7 @@ from typing import Set
 import config
 import threading
 import time as record_time
-from agent import ThreadWithReturnValue, Web_crawler, pdf_search, getddgsearchurl, getgooglesearchurl, gptsearch, ChainStreamHandler, ChatOpenAI, CallbackManager, PromptTemplate, LLMChain
+from agent import ThreadWithReturnValue, Web_crawler, pdf_search, getddgsearchurl, getgooglesearchurl, gptsearch, ChainStreamHandler, ChatOpenAI, CallbackManager, PromptTemplate, LLMChain, EducationalLLM
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
     """
@@ -433,8 +433,12 @@ class Chatbot:
         search_thread.start()
 
         chainStreamHandler = ChainStreamHandler()
-        chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=config.temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=self.engine, openai_api_key=config.API)
-        chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=config.GPT_ENGINE, openai_api_key=config.API)
+        if config.USE_G4F:
+            chatllm = EducationalLLM(callback_manager=CallbackManager([chainStreamHandler]))
+            chainllm = EducationalLLM()
+        else:
+            chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=config.temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=self.engine, openai_api_key=config.API)
+            chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=config.GPT_ENGINE, openai_api_key=config.API)
 
         if config.SEARCH_USE_GPT:
             gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(prompt, chainllm,))

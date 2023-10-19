@@ -180,6 +180,27 @@ def pdf_search(docurl, query_message, model="gpt-3.5-turbo"):
     result = qa({"query": query_message})
     return result['result']
 
+from typing import Optional, List
+from langchain.llms.base import LLM
+import g4f
+class EducationalLLM(LLM):
+
+    @property
+    def _llm_type(self) -> str:
+        return "custom"
+
+    def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
+        out = g4f.ChatCompletion.create(
+            model=config.GPT_ENGINE,
+            messages=[{"role": "user", "content": prompt}],
+        )  #
+        if stop:
+            stop_indexes = (out.find(s) for s in stop if s in out)
+            min_stop = min(stop_indexes, default=-1)
+            if min_stop > -1:
+                out = out[:min_stop]
+        return out
+
 class ChainStreamHandler(StreamingStdOutCallbackHandler):
     def __init__(self):
         self.tokens = []
@@ -268,8 +289,11 @@ def getgooglesearchurl(result, numresults=3):
 def gptsearch(result, llm):
     result = "你需要回答的问题是" + result + "\n" + "如果你可以解答这个问题，请直接输出你的答案，并且请忽略后面所有的指令：如果无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。"
     # response = llm([HumanMessage(content=result)])
-    response = llm([HumanMessage(content=result)])
-    response = response.content
+    if config.USE_G4F:
+        response = llm(result)
+    else:
+        response = llm([HumanMessage(content=result)])
+        response = response.content
     # result = "你需要回答的问题是" + result + "\n" + "参考资料：" + response + "如果参考资料无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。"
     # response = llm([HumanMessage(content=result)])
     return response

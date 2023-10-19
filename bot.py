@@ -101,7 +101,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
         get_answer = robot.search_summary
     else:
         get_answer = robot.ask_stream
-    if not config.API or config.USE_G4F:
+    if not config.API or (config.USE_G4F and not config.SEARCH_USE_GPT):
         import gpt4free
         get_answer = gpt4free.get_response
 

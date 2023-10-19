@@ -23,9 +23,11 @@ class EducationalLLM(LLM):
 
 
 llm = EducationalLLM()
+# print(llm("今天的微博热搜有哪些？"))
 tools = load_tools(["ddg-search", "llm-math"], llm=llm)
 agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
 agent.run("今天的微博热搜有哪些？")
+
 
 # def duckduckgo_search(searchtext, model="gpt-3.5-turbo", temperature=0.5):
 #     llm = ChatOpenAI(temperature=temperature, openai_api_base='https://api.ohmygpt.com/v1/', model_name=model, openai_api_key=API)
