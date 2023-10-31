@@ -16,4 +16,4 @@ unstructured[pdf]
 duckduckgo-search==3.8.5
 langchain==0.0.271
 oauth2client==3.0.0
-g4f==0.1.7.7
+g4f==0.1.7.9

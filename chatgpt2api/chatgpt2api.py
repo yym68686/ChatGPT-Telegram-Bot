@@ -98,7 +98,7 @@ class Chatbot:
             if "gpt-3.5-turbo-16k" in engine
             else 98500
             if "claude-2-web" in engine
-            else 3500
+            else 3400
         )
         self.temperature: float = temperature
         self.top_p: float = top_p
@@ -520,11 +520,11 @@ class Chatbot:
         encode_text = encoding.encode(useful_source_text)
         encode_fact_text = encoding.encode(fact_text)
 
-        if len(encode_text) > self.max_tokens: 
-            encode_text = encode_text[:self.max_tokens-len(encode_fact_text)]
+        if len(encode_text) > self.truncate_limit:
+            encode_text = encode_text[:self.truncate_limit-len(encode_fact_text)]
             useful_source_text = encoding.decode(encode_text)
         encode_text = encoding.encode(useful_source_text)
-        tokens_len = len(encode_text)
+        search_tokens_len = len(encode_text)
         print("web search", useful_source_text, end="\n\n")
 
         print(url_set_list)
@@ -532,8 +532,10 @@ class Chatbot:
         if config.USE_GOOGLE:
             print("google search keyword", keyword)
         print(f"搜索用时：{run_time}秒")
-        print("tokens_len", tokens_len)
+        print("search tokens len", search_tokens_len)
         useful_source_text =  useful_source_text + "\n\n" + fact_text
+        text_len = len(encoding.encode(useful_source_text))
+        print("text len", text_len)
         summary_prompt = PromptTemplate(
             input_variables=["web_summary", "question"],
             template=(
