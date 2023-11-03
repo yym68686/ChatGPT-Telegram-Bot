@@ -254,6 +254,9 @@ def Web_crawler(url: str) -> str:
     try:
         requests.packages.urllib3.disable_warnings()
         response = requests.get(url, headers=headers, verify=False, timeout=5, stream=True)
+        if response.status_code == 404:
+            print("Page not found:", url)
+            return ""
         content_length = int(response.headers.get('Content-Length', 0))
         if content_length > 5000000:
             print("Skipping large file:", url)
