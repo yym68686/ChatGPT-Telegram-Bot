@@ -156,24 +156,29 @@ buttons = [
         InlineKeyboardButton("gpt-3.5-turbo-16k", callback_data="gpt-3.5-turbo-16k"),
     ],
     [
-        InlineKeyboardButton("gpt-3.5-turbo-0301", callback_data="gpt-3.5-turbo-0301"),
+        InlineKeyboardButton("gpt-3.5-turbo-1106", callback_data="gpt-3.5-turbo-1106"),
     ],
-    [
-        InlineKeyboardButton("gpt-3.5-turbo-0613", callback_data="gpt-3.5-turbo-0613"),
-    ],
+    # [
+    #     InlineKeyboardButton("gpt-3.5-turbo-0301", callback_data="gpt-3.5-turbo-0301"),
+    # ],
+    # [
+    #     InlineKeyboardButton("gpt-3.5-turbo-0613", callback_data="gpt-3.5-turbo-0613"),
+    # ],
     [
         InlineKeyboardButton("gpt-4", callback_data="gpt-4"),
-        InlineKeyboardButton("gpt-4-0314", callback_data="gpt-4-0314"),
-    ],
-    [
         InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
-        InlineKeyboardButton("gpt-4-32k-0314", callback_data="gpt-4-32k-0314"),
+        # InlineKeyboardButton("gpt-4-0314", callback_data="gpt-4-0314"),
     ],
+    # [
+    #     InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
+    #     InlineKeyboardButton("gpt-4-32k-0314", callback_data="gpt-4-32k-0314"),
+    # ],
+    # [
+    #     InlineKeyboardButton("gpt-4-0613", callback_data="gpt-4-0613"),
+    #     InlineKeyboardButton("gpt-4-32k-0613", callback_data="gpt-4-32k-0613"),
+    # ],
     [
-        InlineKeyboardButton("gpt-4-0613", callback_data="gpt-4-0613"),
-        InlineKeyboardButton("gpt-4-32k-0613", callback_data="gpt-4-32k-0613"),
-    ],
-    [
+        InlineKeyboardButton("claude-2", callback_data="claude-2"),
         InlineKeyboardButton("claude-2-web", callback_data="claude-2-web"),
     ],
     [

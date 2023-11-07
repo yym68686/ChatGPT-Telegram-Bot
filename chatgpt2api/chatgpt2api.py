@@ -41,6 +41,7 @@ ENGINES = [
     "gpt-3.5-turbo-16k",
     "gpt-3.5-turbo-0301",
     "gpt-3.5-turbo-0613",
+    "gpt-3.5-turbo-1106",
     "gpt-3.5-turbo-16k-0613",
     "gpt-4",
     "gpt-4-0314",
@@ -49,6 +50,7 @@ ENGINES = [
     "gpt-4-0613",
     "gpt-4-32k-0613",
     "claude-2-web",
+    "claude-2",
 ]
 
 
@@ -84,9 +86,9 @@ class Chatbot:
             else 7000
             if "gpt-4" in engine
             else 15000
-            if "gpt-3.5-turbo-16k" in engine
+            if "gpt-3.5-turbo-16k" in engine or "gpt-3.5-turbo-1106" in engine
             else 99000
-            if "claude-2-web" in engine
+            if "claude-2-web" in engine or "claude-2" in engine
             else 4000
         )
         self.truncate_limit: int = truncate_limit or (
@@ -95,9 +97,9 @@ class Chatbot:
             else 6500
             if "gpt-4" in engine
             else 14500
-            if "gpt-3.5-turbo-16k" in engine
+            if "gpt-3.5-turbo-16k" in engine or "gpt-3.5-turbo-1106" in engine
             else 98500
-            if "claude-2-web" in engine
+            if "claude-2-web" in engine or "claude-2" in engine
             else 3400
         )
         self.temperature: float = temperature
@@ -178,6 +180,7 @@ class Chatbot:
             )
         tiktoken.model.MODEL_TO_ENCODING["gpt-4"] = "cl100k_base"
         tiktoken.model.MODEL_TO_ENCODING["claude-2-web"] = "cl100k_base"
+        tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
 
         encoding = tiktoken.encoding_for_model(self.engine)
 
