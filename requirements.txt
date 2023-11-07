@@ -6,10 +6,10 @@ flask[async]
 python-telegram-bot==20.4
 
 # langchain
-openai==0.28.1
 chromadb
 wikipedia
 fake_useragent
+openai==0.28.1
 google-api-python-client
 unstructured[md]
 unstructured[pdf]

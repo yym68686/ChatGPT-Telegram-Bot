@@ -164,8 +164,6 @@ docker push yym68686/chatgpt:1.0
 
 ## Reference
 
-Reference Projects:
-
 https://core.telegram.org/bots/api
 
 https://github.com/acheong08/ChatGPT
