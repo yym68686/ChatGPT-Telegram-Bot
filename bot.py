@@ -169,10 +169,11 @@ buttons = [
         InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
         # InlineKeyboardButton("gpt-4-0314", callback_data="gpt-4-0314"),
     ],
-    # [
-    #     InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
-    #     InlineKeyboardButton("gpt-4-32k-0314", callback_data="gpt-4-32k-0314"),
-    # ],
+    [
+        InlineKeyboardButton("gpt-4-1106-preview", callback_data="gpt-4-1106-preview"),
+        # InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
+        # InlineKeyboardButton("gpt-4-32k-0314", callback_data="gpt-4-32k-0314"),
+    ],
     # [
     #     InlineKeyboardButton("gpt-4-0613", callback_data="gpt-4-0613"),
     #     InlineKeyboardButton("gpt-4-32k-0613", callback_data="gpt-4-32k-0613"),
