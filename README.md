@@ -123,7 +123,7 @@ https://api.telegram.org/bot<token>/getWebhookInfo
 Start the container
 
 ```bash
-docker run -p 80:8080 -dit \
+docker run -p 80:8080 --name chatbot -dit \
     -e BOT_TOKEN="telegram bot token" \
     -e WEB_HOOK="https://your_host.com/" \
     -e API="" \

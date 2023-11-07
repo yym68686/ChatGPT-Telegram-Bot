@@ -6,7 +6,7 @@ flask[async]
 python-telegram-bot==20.4
 
 # langchain
-openai
+openai==0.28.1
 chromadb
 wikipedia
 fake_useragent
