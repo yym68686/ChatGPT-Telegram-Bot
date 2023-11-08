@@ -3,7 +3,7 @@ import threading
 from bot import setup
 from urllib import parse
 from waitress import serve
-from runasync import run_async
+from utils.runasync import run_async
 from flask import Flask, request, jsonify
 from config import BOT_TOKEN, WEB_HOOK, PORT
 

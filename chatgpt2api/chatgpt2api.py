@@ -13,7 +13,8 @@ from typing import Set
 import config
 import threading
 import time as record_time
-from agent import ThreadWithReturnValue, Web_crawler, pdf_search, getddgsearchurl, getgooglesearchurl, gptsearch, ChainStreamHandler, ChatOpenAI, CallbackManager, PromptTemplate, LLMChain, EducationalLLM
+from utils.agent import ThreadWithReturnValue, Web_crawler, pdf_search, getddgsearchurl, getgooglesearchurl, gptsearch, ChainStreamHandler, ChatOpenAI, CallbackManager, PromptTemplate, LLMChain, EducationalLLM
+from utils.function_call import function_call_list
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
     """
@@ -240,10 +241,8 @@ class Chatbot:
                 or "https://api.openai.com/v1/chat/completions"
             )
             headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
-        response = self.session.post(
-            url,
-            headers=headers,
-            json={
+
+        json_post = {
                 "model": os.environ.get("MODEL_NAME") or model or self.engine,
                 "messages": self.conversation[convo_id] if pass_history else [{"role": "system","content": self.system_prompt},{"role": role, "content": prompt}],
                 "stream": True,
@@ -264,7 +263,13 @@ class Chatbot:
                     self.get_max_tokens(convo_id=convo_id),
                     kwargs.get("max_tokens", self.max_tokens),
                 ),
-            },
+        }
+        if config.SEARCH_USE_GPT:
+            json_post.update(function_call_list["web_search"])
+        response = self.session.post(
+            url,
+            headers=headers,
+            json=json_post,
             timeout=kwargs.get("timeout", self.timeout),
             stream=True,
         )
@@ -274,6 +279,7 @@ class Chatbot:
             )
         response_role: str or None = None
         full_response: str = ""
+        need_function_call = False
         for line in response.iter_lines():
             if not line:
                 continue
@@ -290,11 +296,20 @@ class Chatbot:
                 continue
             if "role" in delta:
                 response_role = delta["role"]
-            if "content" in delta:
+            if "content" in delta and delta["content"]:
+                need_function_call = False
                 content = delta["content"]
                 full_response += content
                 yield content
-        self.add_to_conversation(full_response, response_role, convo_id=convo_id)
+            if "function_call" in delta and config.SEARCH_USE_GPT:
+                need_function_call = True
+                function_call_content = delta["function_call"]["arguments"]
+                full_response += function_call_content
+        if need_function_call:
+            keywords = json.loads(full_response)["prompt"]
+            yield from self.search_summary(keywords, convo_id=convo_id, need_function_call=True)
+        else:
+            self.add_to_conversation(full_response, response_role, convo_id=convo_id)
 
     async def ask_stream_async(
         self,
@@ -426,13 +441,15 @@ class Chatbot:
             convo_id: str = "default",
             model: str = None,
             pass_history: bool = True,
+            need_function_call: bool = False,
             **kwargs,
         ):
 
         if convo_id not in self.conversation:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
-        self.add_to_conversation(prompt, "user", convo_id=convo_id)
-        self.__truncate_conversation(convo_id=convo_id)
+        if need_function_call == False:
+            self.add_to_conversation(prompt, "user", convo_id=convo_id)
+            self.__truncate_conversation(convo_id=convo_id)
 
         start_time = record_time.time()
 

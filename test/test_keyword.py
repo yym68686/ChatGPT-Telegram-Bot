@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
-from googlesearch import GoogleSearchAPIWrapper
+from utils.googlesearch import GoogleSearchAPIWrapper
 
 
 def getgooglesearchurl(result, numresults=3):

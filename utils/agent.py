@@ -34,7 +34,7 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.tools import DuckDuckGoSearchRun, DuckDuckGoSearchResults, Tool
 from langchain.utilities import WikipediaAPIWrapper
-from googlesearch import GoogleSearchAPIWrapper
+from utils.googlesearch import GoogleSearchAPIWrapper
 from langchain.document_loaders import UnstructuredPDFLoader
 
 def getmd5(string):
@@ -44,7 +44,7 @@ def getmd5(string):
     md5_hex = md5_hash.hexdigest()
     return md5_hex
 
-from sitemap import SitemapLoader
+from utils.sitemap import SitemapLoader
 async def get_doc_from_sitemap(url):
     # https://www.langchain.asia/modules/indexes/document_loaders/examples/sitemap#%E8%BF%87%E6%BB%A4%E7%AB%99%E7%82%B9%E5%9C%B0%E5%9B%BE-url-
     sitemap_loader = SitemapLoader(web_path=url)

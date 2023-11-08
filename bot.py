@@ -3,17 +3,18 @@ import os
 import config
 import logging
 import traceback
-import decorators
-from md2tgmd import escape
-from runasync import run_async
+import utils.decorators as decorators
+from utils.md2tgmd import escape
+from utils.runasync import run_async
 from chatgpt2api.chatgpt2api import Chatbot as GPT
 from telegram.constants import ChatAction
-from agent import docQA, get_doc_from_local
+from utils.agent import docQA, get_doc_from_local
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+# logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 
 # 获取 httpx 的 logger
@@ -97,12 +98,65 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
         reply_to_message_id=update.message.message_id,
     )
     messageid = message.message_id
-    if use_search and not has_command:
-        get_answer = robot.search_summary
-    else:
-        get_answer = robot.ask_stream
+    get_answer = robot.ask_stream
+    # if use_search and not has_command:
+    #     get_answer = robot.search_summary
+    # else:
+    #     get_answer = robot.ask_stream
     if not config.API or (config.USE_G4F and not config.SEARCH_USE_GPT):
-        import gpt4free
+        import utils.gpt4free as gpt4free
+        get_answer = gpt4free.get_response
+
+    try:
+        for data in get_answer(text, convo_id=str(update.message.chat_id), pass_history=config.PASS_HISTORY):
+            result = result + data
+            tmpresult = result
+            modifytime = modifytime + 1
+            if re.sub(r"```", '', result).count("`") % 2 != 0:
+                tmpresult = result + "`"
+            if result.count("```") % 2 != 0:
+                tmpresult = result + "\n```"
+            if modifytime % 20 == 0 and lastresult != tmpresult:
+                if 'claude2' in title:
+                    tmpresult = re.sub(r",", '，', tmpresult)
+                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
+                lastresult = tmpresult
+    except Exception as e:
+        print('\033[31m')
+        print("response_msg", result)
+        print("error", e)
+        traceback.print_exc()
+        print('\033[0m')
+        if config.API:
+            robot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
+        if "You exceeded your current quota, please check your plan and billing details." in str(e):
+            print("OpenAI api 已过期！")
+            await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
+            messageid = ''
+            config.API = ''
+        result += f"`出错啦！{e}`"
+    print(result)
+    if lastresult != result and messageid:
+        if 'claude2' in title:
+            result = re.sub(r",", '，', result)
+        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+
+async def search(update, context, title, robot):
+    message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+    result = title
+    text = message
+    modifytime = 0
+    lastresult = ''
+    message = await context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text="搜索中💭",
+        parse_mode='MarkdownV2',
+        reply_to_message_id=update.message.message_id,
+    )
+    messageid = message.message_id
+    get_answer = robot.search_summary
+    if not config.API or (config.USE_G4F and not config.SEARCH_USE_GPT):
+        import utils.gpt4free as gpt4free
         get_answer = gpt4free.get_response
 
     try:
@@ -165,14 +219,14 @@ buttons = [
     #     InlineKeyboardButton("gpt-3.5-turbo-0613", callback_data="gpt-3.5-turbo-0613"),
     # ],
     [
-        InlineKeyboardButton("gpt-4", callback_data="gpt-4"),
-        InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
-        # InlineKeyboardButton("gpt-4-0314", callback_data="gpt-4-0314"),
-    ],
-    [
         InlineKeyboardButton("gpt-4-1106-preview", callback_data="gpt-4-1106-preview"),
         # InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
         # InlineKeyboardButton("gpt-4-32k-0314", callback_data="gpt-4-32k-0314"),
+    ],
+    [
+        InlineKeyboardButton("gpt-4", callback_data="gpt-4"),
+        InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
+        # InlineKeyboardButton("gpt-4-0314", callback_data="gpt-4-0314"),
     ],
     # [
     #     InlineKeyboardButton("gpt-4-0613", callback_data="gpt-4-0613"),
@@ -373,7 +427,7 @@ async def info(update, context):
     messageid = message.message_id
     await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
 
-from agent import pdfQA, getmd5, persist_emdedding_pdf
+from utils.agent import pdfQA, getmd5, persist_emdedding_pdf
 @decorators.Authorization
 async def handle_pdf(update, context):
     # 获取接收到的文件
@@ -456,14 +510,16 @@ def setup(token):
     
     run_async(application.bot.set_my_commands([
         BotCommand('info', 'basic information'),
-        BotCommand('qa', 'Document Q&A with Embedding Database Search'),
+        BotCommand('search', 'search Google or duckduckgo'),
         BotCommand('en2zh', 'translate to Chinese'),
         BotCommand('zh2en', 'translate to English'),
+        BotCommand('qa', 'Document Q&A with Embedding Database Search'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
     ]))
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("search", lambda update, context: search(update, context, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot)))
     application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(CommandHandler("reset", reset_chat))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "simplified chinese", robot=config.ChatGPTbot)))
