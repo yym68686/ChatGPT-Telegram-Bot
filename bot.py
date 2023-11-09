@@ -260,6 +260,8 @@ first_buttons = [
 if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
     first_buttons[1][1] = InlineKeyboardButton("google已关闭", callback_data="google")
 
+def replace_with_asterisk(string, start=10, end=45):
+    return string[:start] + '*' * (end - start) + string[end:]
 
 banner = "👇下面可以随时更改默认 gpt 模型："
 async def button_press(update, context):
@@ -269,7 +271,7 @@ async def button_press(update, context):
         f"**Default engine:** `{config.GPT_ENGINE}`\n"
         f"**temperature:** `{config.temperature}`\n"
         f"**API_URL:** `{config.API_URL}`\n\n"
-        f"**API:** `{config.API}`\n\n"
+        f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
         f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
     )
     callback_query = update.callback_query
@@ -286,7 +288,7 @@ async def button_press(update, context):
                 f"**Default engine:** `{config.GPT_ENGINE}`\n"
                 f"**temperature:** `{config.temperature}`\n"
                 f"**API_URL:** `{config.API_URL}`\n\n"
-                f"**API:** `{config.API}`\n\n"
+                f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
                 f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
             )
             message = await callback_query.edit_message_text(
@@ -320,7 +322,7 @@ async def button_press(update, context):
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
             f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{config.API}`\n\n"
+            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
             f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
         )
         message = await callback_query.edit_message_text(
@@ -340,7 +342,7 @@ async def button_press(update, context):
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
             f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{config.API}`\n\n"
+            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
             f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
         )
 
@@ -363,7 +365,7 @@ async def button_press(update, context):
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
             f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{config.API}`\n\n"
+            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
             f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
         )
         message = await callback_query.edit_message_text(
@@ -383,7 +385,7 @@ async def button_press(update, context):
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
             f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{config.API}`\n\n"
+            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
             f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
         )
         message = await callback_query.edit_message_text(
@@ -403,7 +405,7 @@ async def button_press(update, context):
             f"**Default engine:** `{config.GPT_ENGINE}`\n"
             f"**temperature:** `{config.temperature}`\n"
             f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{config.API}`\n\n"
+            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
             f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
         )
         message = await callback_query.edit_message_text(
@@ -419,7 +421,7 @@ async def info(update, context):
         f"**Default engine:** `{config.GPT_ENGINE}`\n"
         f"**temperature:** `{config.temperature}`\n"
         f"**API_URL:** `{config.API_URL}`\n\n"
-        f"**API:** `{config.API}`\n\n"
+        f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
         f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
     )
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(first_buttons), parse_mode='MarkdownV2', disable_web_page_preview=True)
