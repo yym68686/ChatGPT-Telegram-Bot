@@ -89,8 +89,10 @@ class Chatbot:
             if "gpt-4-32k" in engine
             else 7000
             if "gpt-4" in engine
+            else 4000
+            if "gpt-3.5-turbo-1106" in engine
             else 15000
-            if "gpt-3.5-turbo-16k" in engine or "gpt-3.5-turbo-1106" in engine
+            if "gpt-3.5-turbo-16k" in engine
             else 99000
             if "claude-2-web" in engine or "claude-2" in engine
             else 4000
