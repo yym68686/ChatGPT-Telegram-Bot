@@ -193,6 +193,47 @@ async def search(update, context, title, robot):
             result = re.sub(r",", '，', result)
         await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
+async def image(update, context):
+    print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
+    if (len(context.args) == 0):
+        message = (
+            f"格式错误哦~，示例：\n\n"
+            f"`/pic 一只可爱长毛金渐层在趴在路由器上`\n\n"
+            f"👆点击上方命令复制格式\n\n"
+        )
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        return
+    message = ' '.join(context.args)
+    result = ""
+    robot = config.dallbot
+    text = message
+    message = await context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text="生成中💭",
+        parse_mode='MarkdownV2',
+        reply_to_message_id=update.message.message_id,
+    )
+    messageid = message.message_id
+
+    try:
+        for data in robot.dall_e_3(text):
+            result = data
+            await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
+            await context.bot.send_photo(chat_id=update.message.chat_id, photo=result, reply_to_message_id=update.message.message_id)
+    except Exception as e:
+        print('\033[31m')
+        print("response_msg", result)
+        print("error", e)
+        traceback.print_exc()
+        print('\033[0m')
+        if "You exceeded your current quota, please check your plan and billing details." in str(e):
+            print("OpenAI api 已过期！")
+            await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
+            messageid = ''
+            config.API = ''
+        result += f"`出错啦！{e}`"
+    print(result)
+
 import time
 import threading
 async def delete_message(update, context, messageid, delay=10):
@@ -512,6 +553,7 @@ def setup(token):
     
     run_async(application.bot.set_my_commands([
         BotCommand('info', 'basic information'),
+        BotCommand('pic', 'Generate image'),
         BotCommand('search', 'search Google or duckduckgo'),
         BotCommand('en2zh', 'translate to Chinese'),
         BotCommand('zh2en', 'translate to English'),
@@ -521,6 +563,7 @@ def setup(token):
     ]))
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("pic", image))
     application.add_handler(CommandHandler("search", lambda update, context: search(update, context, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot)))
     application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(CommandHandler("reset", reset_chat))

@@ -55,6 +55,51 @@ ENGINES = [
     "claude-2",
 ]
 
+class Imagebot:
+    def __init__(
+        self,
+        api_key: str,
+        timeout: float = None,
+    ):
+        self.api_key: str = api_key
+        self.engine: str = "dall-e-3"
+        self.session = requests.Session()
+        self.timeout: float = timeout
+
+    def dall_e_3(
+        self,
+        prompt: str,
+        model: str = None,
+        **kwargs,
+    ):
+        url = (
+            os.environ.get("API_URL").split("chat")[0] + "images/generations"
+            or "https://api.openai.com/v1/images/generations"
+        )
+        headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
+
+        json_post = {
+                "model": os.environ.get("IMAGE_MODEL_NAME") or model or self.engine,
+                "prompt": prompt,
+                "stream": True,
+                "n": 1,
+                "size": "1024x1024",
+        }
+        response = self.session.post(
+            url,
+            headers=headers,
+            json=json_post,
+            timeout=kwargs.get("timeout", self.timeout),
+            stream=True,
+        )
+        if response.status_code != 200:
+            raise t.APIConnectionError(
+                f"{response.status_code} {response.reason} {response.text}",
+            )
+        for line in response.iter_lines():
+            json_data = json.loads(line.decode("utf-8"))
+            url = json_data["data"][0]["url"]
+            yield url
 
 class Chatbot:
     """
