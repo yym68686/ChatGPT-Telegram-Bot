@@ -179,3 +179,8 @@ The markdown rendering of the message used is another [project](https://github.c
 <a href="https://github.com/yym68686/ChatGPT-Telegram-Bot/stargazers">
         <img width="500" alt="Star History Chart" src="https://api.star-history.com/svg?repos=yym68686/ChatGPT-Telegram-Bot&type=Date">
 </a>
+
+## License
+
+This project is licensed under GPLv3, which means you are free to copy, distribute, and modify the software, as long as all modifications and derivative works are also released under the same license
+   
