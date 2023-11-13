@@ -182,5 +182,5 @@ The markdown rendering of the message used is another [project](https://github.c
 
 ## License
 
-This project is licensed under GPLv3, which means you are free to copy, distribute, and modify the software, as long as all modifications and derivative works are also released under the same license
+This project is licensed under GPLv3, which means you are free to copy, distribute, and modify the software, as long as all modifications and derivative works are also released under the same license.
    

@@ -24,7 +24,6 @@ from chatgpt2api.chatgpt2api import Chatbot as GPT
 from chatgpt2api.chatgpt2api import Imagebot
 if API:
     ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
-    Claude2bot = GPT(api_key=f"{API}", engine="claude-2-web")
     dallbot = Imagebot(api_key=f"{API}")
 else:
     ChatGPTbot = None
