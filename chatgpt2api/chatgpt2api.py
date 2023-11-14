@@ -143,7 +143,8 @@ class Chatbot:
             else 4000
         )
         self.truncate_limit: int = truncate_limit or (
-            126500
+            16000
+            # 126500 Control the number of search characters to prevent excessive spending
             if "gpt-4-1106-preview" in engine
             else 30500
             if "gpt-4-32k" in engine
@@ -530,7 +531,7 @@ class Chatbot:
 
         translate_prompt = PromptTemplate(
             input_variables=["targetlang", "text"],
-            template="You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {targetlang}, please do not explain any sentences, just translate or leave them as they are.: {text}",
+            template="You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {targetlang}, if all the text is in English, then do nothing to it, return it as is. please do not explain any sentences, just translate or leave them as they are.: {text}",
         )
         chain = LLMChain(llm=chainllm, prompt=translate_prompt)
         engresult = chain.run({"targetlang": "english", "text": prompt})

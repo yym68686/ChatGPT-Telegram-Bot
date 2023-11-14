@@ -272,8 +272,10 @@ def Web_crawler(url: str) -> str:
     return result
 
 def getddgsearchurl(result, numresults=3):
+    # print("ddg-search", result)
     search = DuckDuckGoSearchResults(num_results=numresults)
     webresult = search.run(result)
+    # print("ddgwebresult", webresult)
     urls = re.findall(r"(https?://\S+)\]", webresult, re.MULTILINE)
     # print("duckduckgo urls", urls)
     return urls
