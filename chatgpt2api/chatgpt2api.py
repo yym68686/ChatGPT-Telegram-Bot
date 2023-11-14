@@ -81,7 +81,6 @@ class Imagebot:
         json_post = {
                 "model": os.environ.get("IMAGE_MODEL_NAME") or model or self.engine,
                 "prompt": prompt,
-                "stream": True,
                 "n": 1,
                 "size": "1024x1024",
         }
@@ -96,10 +95,9 @@ class Imagebot:
             raise t.APIConnectionError(
                 f"{response.status_code} {response.reason} {response.text}",
             )
-        for line in response.iter_lines():
-            json_data = json.loads(line.decode("utf-8"))
-            url = json_data["data"][0]["url"]
-            yield url
+        json_data = json.loads(response.text)
+        url = json_data["data"][0]["url"]
+        yield url
 
 class Chatbot:
     """
