@@ -10,7 +10,7 @@ from telegram.constants import ChatAction
 from utils.agent import docQA, get_doc_from_local
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter
-from config import WEB_HOOK, PORT
+from config import WEB_HOOK, PORT, BOT_TOKEN
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -563,7 +563,7 @@ async def post_init(application: Application) -> None:
 if __name__ == '__main__':
     application = (
         ApplicationBuilder()
-        .token("5898265830:AAGJFGstJD21VjQRWHdg5XSnJGoc7m4Yvvw")
+        .token(BOT_TOKEN)
         .concurrent_updates(True)
         .rate_limiter(AIORateLimiter(max_retries=5))
         .post_init(post_init)
