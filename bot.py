@@ -5,12 +5,12 @@ import logging
 import traceback
 import utils.decorators as decorators
 from utils.md2tgmd import escape
-from utils.runasync import run_async
 from chatgpt2api.chatgpt2api import Chatbot as GPT
 from telegram.constants import ChatAction
 from utils.agent import docQA, get_doc_from_local
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler
+from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter
+from config import WEB_HOOK, PORT
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -548,10 +548,8 @@ async def error(update, context):
 async def unknown(update, context): # 当用户输入未知命令时，返回文本
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
 
-def setup(token):
-    application = ApplicationBuilder().read_timeout(10).connection_pool_size(50000).pool_timeout(1200.0).token(token).build()
-    
-    run_async(application.bot.set_my_commands([
+async def post_init(application: Application) -> None:
+    await application.bot.set_my_commands([
         BotCommand('info', 'basic information'),
         BotCommand('pic', 'Generate image'),
         BotCommand('search', 'search Google or duckduckgo'),
@@ -560,7 +558,17 @@ def setup(token):
         BotCommand('qa', 'Document Q&A with Embedding Database Search'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
-    ]))
+    ])
+
+if __name__ == '__main__':
+    application = (
+        ApplicationBuilder()
+        .token("5898265830:AAGJFGstJD21VjQRWHdg5XSnJGoc7m4Yvvw")
+        .concurrent_updates(True)
+        .rate_limiter(AIORateLimiter(max_retries=5))
+        .post_init(post_init)
+        .build()
+    )
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("pic", image))
@@ -576,4 +584,7 @@ def setup(token):
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
 
-    return application
+    if WEB_HOOK:
+        application.run_webhook("127.0.0.1", PORT, webhook_url=WEB_HOOK)
+    else:
+        application.run_polling()

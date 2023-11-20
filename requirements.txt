@@ -1,9 +1,7 @@
 --index-url https://pypi.python.org/simple/
 tiktoken
 requests
-waitress
-flask[async]
-python-telegram-bot==20.4
+python-telegram-bot[webhook,rate-limiter]==20.4
 
 # langchain
 chromadb
@@ -16,4 +14,4 @@ unstructured[pdf]
 duckduckgo-search==3.8.5
 langchain==0.0.271
 oauth2client==3.0.0
-g4f==0.1.8.2
+g4f==0.1.8.7

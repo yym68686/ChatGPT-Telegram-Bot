@@ -2,4 +2,4 @@
 set -eu
 rm -rf ChatGPT-Telegram-Bot/
 git clone --depth 1 -b main https://github.com/yym68686/ChatGPT-Telegram-Bot.git
-python -u /home/ChatGPT-Telegram-Bot/main.py
+python -u /home/ChatGPT-Telegram-Bot/bot.py

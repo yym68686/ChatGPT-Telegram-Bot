@@ -5,7 +5,6 @@ services:
     image: yym68686/chatgpt:1.0
     environment:
       - BOT_TOKEN=
-      - WEB_HOOK=
       - API=
       - API_URL=
     ports:

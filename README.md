@@ -6,7 +6,7 @@ Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your use
 
 ## ✨ Features
 
-✅ Supports ChatGPT and GPT4 API
+✅ Supports GPT3.5 and GPT4/GPT4 Turbo API, DALLE 3
 
 ✅ Supports online search using duckduckgo and Google🔍. DuckDuckGo search is provided by default, and the official API for Google search needs to be applied by the user. It can provide real-time information that GPT could not answer before, such as Weibo hot search today, weather in a certain place today, and the progress of a certain person or news.
 
@@ -31,8 +31,8 @@ Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your use
 | Variable Name           | Comment                                                      |
 | ---------------------- | ------------------------------------------------------------ |
 | **BOT_TOKEN (required)** | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. |
-| **WEB_HOOK (required)**  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. |
 | **API (required)**       | OpenAI or third-party API key.                              |
+| WEB_HOOK  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. |
 | API_URL(optional)       | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions |
 | GPT_ENGINE (optional)    | Set the default QA model; the default is:`gpt-3.5-turbo`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. |
 | NICK (optional)          | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. |
@@ -183,4 +183,3 @@ The markdown rendering of the message used is another [project](https://github.c
 ## License
 
 This project is licensed under GPLv3, which means you are free to copy, distribute, and modify the software, as long as all modifications and derivative works are also released under the same license.
-   
