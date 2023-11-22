@@ -7,6 +7,7 @@ on:
     paths:
       - Dockerfile.build
       - requirements.txt
+      - setup.sh
       - .github/workflows/main.yml
 
 jobs:
