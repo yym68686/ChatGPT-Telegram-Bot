@@ -41,6 +41,25 @@ function_call_list = {
         ],
         "function_call": "auto"
   },
+  "url_fetch": {
+      "functions": [
+          {
+            "name": "get_url_content",
+            "description": "Get the webpage content of a URL",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "description": "The url to get the webpage content"
+                }
+              },
+              "required": ["url"]
+            }
+          }
+        ],
+        "function_call": "auto"
+  },
   # "web_search": {
   #     "functions": [
   #         {
