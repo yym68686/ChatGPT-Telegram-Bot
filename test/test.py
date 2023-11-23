@@ -5,7 +5,7 @@
 a = {"role": "admin"}
 b = {"content": "This is user content."}
 a.update(b)
-print(a)
+# print(a)
 
 # content_list = [item["content"] for item in my_list]
 # print(content_list)
@@ -24,3 +24,11 @@ print(a)
 # )
 
 # print(truncate_limit)
+import os
+import sys
+import json
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.function_call import function_call_list
+
+print(json.dumps(function_call_list["web_search"], indent=4))

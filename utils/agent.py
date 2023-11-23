@@ -308,6 +308,115 @@ def gptsearch(result, llm):
     # response = llm([HumanMessage(content=result)])
     return response
 
+
+def get_google_search_results(prompt: str, context_max_tokens: int):
+    start_time = record_time.time()
+
+    urls_set = []
+    search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(prompt,2,))
+    search_thread.start()
+
+    if config.USE_G4F:
+        chainllm = EducationalLLM()
+    else:
+        chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=config.GPT_ENGINE, openai_api_key=config.API)
+
+    if config.SEARCH_USE_GPT:
+        gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(prompt, chainllm,))
+        gpt_search_thread.start()
+
+    if config.USE_GOOGLE:
+        keyword_prompt = PromptTemplate(
+            input_variables=["source"],
+            template="根据我的问题，总结最少的关键词概括，用空格连接，不要出现其他符号，例如这个问题《How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?》，最少关键词是《zeabur price》，这是我的问题：{source}",
+        )
+        key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
+        keyword_google_search_thread = ThreadWithReturnValue(target=key_chain.run, args=({"source": prompt},))
+        keyword_google_search_thread.start()
+
+
+    translate_prompt = PromptTemplate(
+        input_variables=["targetlang", "text"],
+        template="You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {targetlang}, if all the text is in English, then do nothing to it, return it as is. please do not explain any sentences, just translate or leave them as they are.: {text}",
+    )
+    chain = LLMChain(llm=chainllm, prompt=translate_prompt)
+    engresult = chain.run({"targetlang": "english", "text": prompt})
+
+    en_ddg_search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(engresult,1,))
+    en_ddg_search_thread.start()
+
+    if config.USE_GOOGLE:
+        keyword = keyword_google_search_thread.join()
+        key_google_search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keyword,3,))
+        key_google_search_thread.start()
+        keyword_ans = key_google_search_thread.join()
+        urls_set += keyword_ans
+
+    ans_ddg = search_thread.join()
+    urls_set += ans_ddg
+    engans_ddg = en_ddg_search_thread.join()
+    urls_set += engans_ddg
+    url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
+    url_pdf_set_list = [item for item in url_set_list if item.endswith(".pdf")]
+    url_set_list = [item for item in url_set_list if not item.endswith(".pdf")]
+
+    pdf_result = ""
+    pdf_threads = []
+    if config.PDF_EMBEDDING:
+        for url in url_pdf_set_list:
+            pdf_search_thread = ThreadWithReturnValue(target=pdf_search, args=(url, "你需要回答的问题是" + prompt + "\n" + "如果你可以解答这个问题，请直接输出你的答案，并且请忽略后面所有的指令：如果无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。",))
+            pdf_search_thread.start()
+            pdf_threads.append(pdf_search_thread)
+
+    url_result = ""
+    threads = []
+    for url in url_set_list:
+        url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
+        url_search_thread.start()
+        threads.append(url_search_thread)
+
+    fact_text = ""
+    if config.SEARCH_USE_GPT:
+        gpt_ans = gpt_search_thread.join()
+        fact_text = (gpt_ans if config.SEARCH_USE_GPT else "")
+        print("gpt", fact_text)
+
+    for t in threads:
+        tmp = t.join()
+        url_result += "\n\n" + tmp
+    useful_source_text = url_result
+
+    if config.PDF_EMBEDDING:
+        for t in pdf_threads:
+            tmp = t.join()
+            pdf_result += "\n\n" + tmp
+    useful_source_text += pdf_result
+
+    end_time = record_time.time()
+    run_time = end_time - start_time
+
+    encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
+    encode_text = encoding.encode(useful_source_text)
+    encode_fact_text = encoding.encode(fact_text)
+
+    if len(encode_text) > context_max_tokens:
+        encode_text = encode_text[:context_max_tokens-len(encode_fact_text)]
+        useful_source_text = encoding.decode(encode_text)
+    encode_text = encoding.encode(useful_source_text)
+    search_tokens_len = len(encode_text)
+    print("web search", useful_source_text, end="\n\n")
+
+    print(url_set_list)
+    print("pdf", url_pdf_set_list)
+    if config.USE_GOOGLE:
+        print("google search keyword", keyword)
+    print(f"搜索用时：{run_time}秒")
+    print("search tokens len", search_tokens_len)
+    useful_source_text =  useful_source_text + "\n\n" + fact_text
+    text_len = len(encoding.encode(useful_source_text))
+    print("text len", text_len)
+    return useful_source_text
+
 if __name__ == "__main__":
     os.system("clear")
     

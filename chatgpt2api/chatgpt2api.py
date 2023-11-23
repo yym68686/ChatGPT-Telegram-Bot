@@ -13,7 +13,7 @@ from typing import Set
 import config
 import threading
 import time as record_time
-from utils.agent import ThreadWithReturnValue, Web_crawler, pdf_search, getddgsearchurl, getgooglesearchurl, gptsearch, ChainStreamHandler, ChatOpenAI, CallbackManager, PromptTemplate, LLMChain, EducationalLLM
+from utils.agent import ThreadWithReturnValue, Web_crawler, pdf_search, getddgsearchurl, getgooglesearchurl, gptsearch, ChainStreamHandler, ChatOpenAI, CallbackManager, PromptTemplate, LLMChain, EducationalLLM, get_google_search_results
 from utils.function_call import function_call_list
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
@@ -72,10 +72,10 @@ class Imagebot:
         model: str = None,
         **kwargs,
     ):
-        url = (
-            os.environ.get("API_URL").split("chat")[0] + "images/generations"
-            or "https://api.openai.com/v1/images/generations"
-        )
+        if os.environ.get("API_URL") and "v1" in os.environ.get("API_URL"):
+            url = os.environ.get("API_URL").split("v1")[0] + "v1/images/generations"
+        else:
+            url = "https://api.openai.com/v1/images/generations"
         headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
 
         json_post = {
@@ -319,9 +319,10 @@ class Chatbot:
                 #     kwargs.get("max_tokens", self.max_tokens),
                 # ),
         }
+        json_post.update(function_call_list["base"])
         if config.SEARCH_USE_GPT:
-            json_post.update(function_call_list["web_search"])
-        json_post.update(function_call_list["url_fetch"])
+            json_post["functions"].append(function_call_list["web_search"])
+        json_post["functions"].append(function_call_list["url_fetch"])
         response = self.session.post(
             url,
             headers=headers,
@@ -365,13 +366,21 @@ class Chatbot:
                     function_call_name = delta["function_call"]["name"]
                 full_response += function_call_content
         if need_function_call:
+            max_context_tokens = self.truncate_limit - self.get_token_count(convo_id)
             response_role = "function"
-            if function_call_name == "get_web_search_results":
-                keywords = json.loads(full_response)["prompt"]
-                yield from self.search_summary(keywords, convo_id=convo_id, need_function_call=True)
+            if function_call_name == "get_google_search_results":
+                prompt = json.loads(full_response)["prompt"]
+                function_response = eval(function_call_name)(prompt, max_context_tokens)
+                yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
+                # yield from self.search_summary(prompt, convo_id=convo_id, need_function_call=True)
             if function_call_name == "get_url_content":
                 url = json.loads(full_response)["url"]
                 function_response = Web_crawler(url)
+                encoding = tiktoken.encoding_for_model(self.engine)
+                encode_text = encoding.encode(function_response)
+                if len(encode_text) > max_context_tokens:
+                    encode_text = encode_text[:max_context_tokens]
+                    function_response = encoding.decode(encode_text)
                 yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
         else:
             self.add_to_conversation(full_response, response_role, convo_id=convo_id)

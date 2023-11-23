@@ -1,64 +1,53 @@
 function_call_list = {
+  "base": {
+    "functions": [],
+    "function_call": "auto"
+  },
   "current_weather": {
-      "functions": [
-          {
-            "name": "get_current_weather",
-            "description": "Get the current weather in a given location",
-            "parameters": {
-              "type": "object",
-              "properties": {
-                "location": {
-                  "type": "string",
-                  "description": "The city and state, e.g. San Francisco, CA"
-                },
-                "unit": {
-                  "type": "string",
-                  "enum": ["celsius", "fahrenheit"]
-                }
-              },
-              "required": ["location"]
-            }
-          }
-        ],
-        "function_call": "auto"
+    "name": "get_current_weather",
+    "description": "Get the current weather in a given location",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string",
+          "description": "The city and state, e.g. San Francisco, CA"
+        },
+        "unit": {
+          "type": "string",
+          "enum": ["celsius", "fahrenheit"]
+        }
+      },
+      "required": ["location"]
+    }
   },
   "web_search": {
-      "functions": [
-          {
-            "name": "get_web_search_results",
-            "description": "Search Google to enhance knowledge.",
-            "parameters": {
-              "type": "object",
-              "properties": {
-                "prompt": {
-                  "type": "string",
-                  "description": "The prompt to search."
-                }
-              },
-              "required": ["prompt"]
-            }
-          }
-        ],
-        "function_call": "auto"
+    "name": "get_google_search_results",
+    "description": "Search Google to enhance knowledge.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "description": "The prompt to search."
+        }
+      },
+      "required": ["prompt"]
+    }
   },
   "url_fetch": {
-      "functions": [
-          {
-            "name": "get_url_content",
-            "description": "Get the webpage content of a URL",
-            "parameters": {
-              "type": "object",
-              "properties": {
-                "url": {
-                  "type": "string",
-                  "description": "The url to get the webpage content"
-                }
-              },
-              "required": ["url"]
-            }
-          }
-        ],
-        "function_call": "auto"
+    "name": "get_url_content",
+    "description": "Get the webpage content of a URL",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "the URL to request"
+        }
+      },
+      "required": ["url"]
+    }
   },
   # "web_search": {
   #     "functions": [
