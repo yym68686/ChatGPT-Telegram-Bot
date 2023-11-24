@@ -232,6 +232,7 @@ async def image(update, context):
             messageid = ''
             config.API = ''
         result += f"`出错啦！{e}`"
+        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text="当前语言未能成功生成图片😣换句话试试吧～", parse_mode='MarkdownV2', disable_web_page_preview=True)
     print(result)
 
 import time
