@@ -13,7 +13,7 @@ from typing import Set
 import config
 import threading
 import time as record_time
-from utils.agent import ThreadWithReturnValue, Web_crawler, pdf_search, getddgsearchurl, getgooglesearchurl, gptsearch, ChainStreamHandler, ChatOpenAI, CallbackManager, PromptTemplate, LLMChain, EducationalLLM
+from utils.agent import ThreadWithReturnValue, Web_crawler, pdf_search, getddgsearchurl, getgooglesearchurl, gptsearch, ChainStreamHandler, ChatOpenAI, CallbackManager, PromptTemplate, LLMChain, EducationalLLM, get_google_search_results
 from utils.function_call import function_call_list
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
@@ -72,10 +72,10 @@ class Imagebot:
         model: str = None,
         **kwargs,
     ):
-        url = (
-            os.environ.get("API_URL").split("chat")[0] + "images/generations"
-            or "https://api.openai.com/v1/images/generations"
-        )
+        if os.environ.get("API_URL") and "v1" in os.environ.get("API_URL"):
+            url = os.environ.get("API_URL").split("v1")[0] + "v1/images/generations"
+        else:
+            url = "https://api.openai.com/v1/images/generations"
         headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
 
         json_post = {
@@ -126,7 +126,7 @@ class Chatbot:
         self.api_key: str = api_key
         self.system_prompt: str = system_prompt
         self.max_tokens: int = max_tokens or (
-            4000
+            4096
             if "gpt-4-1106-preview" in engine
             else 31000
             if "gpt-4-32k" in engine
@@ -140,6 +140,7 @@ class Chatbot:
             if "claude-2-web" in engine or "claude-2" in engine
             else 4000
         )
+        # context max tokens
         self.truncate_limit: int = truncate_limit or (
             16000
             # 126500 Control the number of search characters to prevent excessive spending
@@ -201,11 +202,15 @@ class Chatbot:
         message: str,
         role: str,
         convo_id: str = "default",
+        function_name: str = "",
     ) -> None:
         """
         Add a message to the conversation
         """
-        self.conversation[convo_id].append({"role": role, "content": message})
+        if function_name == "":
+            self.conversation[convo_id].append({"role": role, "content": message})
+        else:
+            self.conversation[convo_id].append({"role": role, "name": function_name, "content": message})
 
     def __truncate_conversation(self, convo_id: str = "default") -> None:
         """
@@ -252,6 +257,7 @@ class Chatbot:
         """
         Get max tokens
         """
+        # print(self.max_tokens, self.get_token_count(convo_id))
         return self.max_tokens - self.get_token_count(convo_id)
 
     def ask_stream(
@@ -261,6 +267,7 @@ class Chatbot:
         convo_id: str = "default",
         model: str = None,
         pass_history: bool = True,
+        function_name: str = "",
         **kwargs,
     ):
         """
@@ -269,8 +276,9 @@ class Chatbot:
         # Make conversation if it doesn't exist
         if convo_id not in self.conversation or pass_history == False:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
-        self.add_to_conversation(prompt, "user", convo_id=convo_id)
+        self.add_to_conversation(prompt, role, convo_id=convo_id, function_name=function_name)
         self.__truncate_conversation(convo_id=convo_id)
+        # print(self.conversation[convo_id])
         # Get response
         if os.environ.get("API_URL") and os.environ.get("MODEL_NAME"):
             # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/chatgpt-quickstart?tabs=command-line&pivots=rest-api
@@ -305,13 +313,16 @@ class Chatbot:
                 ),
                 "n": kwargs.get("n", self.reply_count),
                 "user": role,
-                "max_tokens": min(
-                    self.get_max_tokens(convo_id=convo_id),
-                    kwargs.get("max_tokens", self.max_tokens),
-                ),
+                "max_tokens": kwargs.get("max_tokens", self.max_tokens),
+                # "max_tokens": min(
+                #     self.get_max_tokens(convo_id=convo_id),
+                #     kwargs.get("max_tokens", self.max_tokens),
+                # ),
         }
+        json_post.update(function_call_list["base"])
         if config.SEARCH_USE_GPT:
-            json_post.update(function_call_list["web_search"])
+            json_post["functions"].append(function_call_list["web_search"])
+        json_post["functions"].append(function_call_list["url_fetch"])
         response = self.session.post(
             url,
             headers=headers,
@@ -325,7 +336,8 @@ class Chatbot:
             )
         response_role: str or None = None
         full_response: str = ""
-        need_function_call = False
+        function_call_name: str = ""
+        need_function_call: bool = False
         for line in response.iter_lines():
             if not line:
                 continue
@@ -347,13 +359,29 @@ class Chatbot:
                 content = delta["content"]
                 full_response += content
                 yield content
-            if "function_call" in delta and config.SEARCH_USE_GPT:
+            if "function_call" in delta:
                 need_function_call = True
                 function_call_content = delta["function_call"]["arguments"]
+                if "name" in delta["function_call"]:
+                    function_call_name = delta["function_call"]["name"]
                 full_response += function_call_content
         if need_function_call:
-            keywords = json.loads(full_response)["prompt"]
-            yield from self.search_summary(keywords, convo_id=convo_id, need_function_call=True)
+            max_context_tokens = self.truncate_limit - self.get_token_count(convo_id)
+            response_role = "function"
+            if function_call_name == "get_google_search_results":
+                prompt = json.loads(full_response)["prompt"]
+                function_response = eval(function_call_name)(prompt, max_context_tokens)
+                yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
+                # yield from self.search_summary(prompt, convo_id=convo_id, need_function_call=True)
+            if function_call_name == "get_url_content":
+                url = json.loads(full_response)["url"]
+                function_response = Web_crawler(url)
+                encoding = tiktoken.encoding_for_model(self.engine)
+                encode_text = encoding.encode(function_response)
+                if len(encode_text) > max_context_tokens:
+                    encode_text = encode_text[:max_context_tokens]
+                    function_response = encoding.decode(encode_text)
+                yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
         else:
             self.add_to_conversation(full_response, response_role, convo_id=convo_id)
 
@@ -396,10 +424,11 @@ class Chatbot:
                 ),
                 "n": kwargs.get("n", self.reply_count),
                 "user": role,
-                "max_tokens": min(
-                    self.get_max_tokens(convo_id=convo_id),
-                    kwargs.get("max_tokens", self.max_tokens),
-                ),
+                "max_tokens": kwargs.get("max_tokens", self.max_tokens),
+                # "max_tokens": min(
+                #     self.get_max_tokens(convo_id=convo_id),
+                #     kwargs.get("max_tokens", self.max_tokens),
+                # ),
             },
             timeout=kwargs.get("timeout", self.timeout),
         ) as response:

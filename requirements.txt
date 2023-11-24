@@ -1,7 +1,7 @@
 --index-url https://pypi.python.org/simple/
 tiktoken
 requests
-python-telegram-bot[webhook,rate-limiter]==20.4
+python-telegram-bot[webhook,rate-limiter]==20.6
 
 # langchain
 chromadb
@@ -9,9 +9,9 @@ wikipedia
 fake_useragent
 openai==0.28.1
 google-api-python-client
-unstructured[md]
-unstructured[pdf]
-duckduckgo-search==3.8.5
+unstructured[md,pdf]
+duckduckgo-search==3.9.6
+# duckduckgo-search==3.8.5
 langchain==0.0.271
 oauth2client==3.0.0
-g4f==0.1.8.7
+g4f==0.1.8.8
