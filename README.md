@@ -45,8 +45,7 @@ Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your use
 
 One-click deployment:
 
-[![Deployed on Zeabur](https://zeabur.com/deployed-on-zeabur-dark.svg)](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss)
-<!-- [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/R5JY5O?referralCode=yym68686) -->
+[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/R5JY5O?referralCode=yym68686)
 
 If you need follow-up function updates, the following deployment method is recommended:
 
@@ -180,6 +179,10 @@ The markdown rendering of the message used is another [project](https://github.c
 <a href="https://github.com/yym68686/ChatGPT-Telegram-Bot/stargazers">
         <img width="500" alt="Star History Chart" src="https://api.star-history.com/svg?repos=yym68686/ChatGPT-Telegram-Bot&type=Date">
 </a>
+
+## Sponsor
+
+[![Deployed on Zeabur](https://zeabur.com/deployed-on-zeabur-dark.svg)](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss)
 
 ## License
 
