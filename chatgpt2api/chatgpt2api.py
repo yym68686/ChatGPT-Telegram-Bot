@@ -296,6 +296,10 @@ class Chatbot:
             )
             headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
 
+        if self.engine == "gpt-4-1106-preview":
+            model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        else:
+            model_max_tokens = min(self.get_max_tokens(convo_id=convo_id) - 500, kwargs.get("max_tokens", self.max_tokens))
         json_post = {
                 "model": os.environ.get("MODEL_NAME") or model or self.engine,
                 "messages": self.conversation[convo_id] if pass_history else [{"role": "system","content": self.system_prompt},{"role": role, "content": prompt}],
@@ -313,7 +317,7 @@ class Chatbot:
                 ),
                 "n": kwargs.get("n", self.reply_count),
                 "user": role,
-                "max_tokens": kwargs.get("max_tokens", self.max_tokens),
+                "max_tokens": model_max_tokens,
                 # "max_tokens": min(
                 #     self.get_max_tokens(convo_id=convo_id),
                 #     kwargs.get("max_tokens", self.max_tokens),
@@ -402,6 +406,10 @@ class Chatbot:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
         self.add_to_conversation(prompt, "user", convo_id=convo_id)
         self.__truncate_conversation(convo_id=convo_id)
+        if self.engine == "gpt-4-1106-preview":
+            model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        else:
+            model_max_tokens = min(self.get_max_tokens(convo_id=convo_id) - 500, kwargs.get("max_tokens", self.max_tokens))
         # Get response
         async with self.aclient.stream(
             "post",
@@ -424,7 +432,7 @@ class Chatbot:
                 ),
                 "n": kwargs.get("n", self.reply_count),
                 "user": role,
-                "max_tokens": kwargs.get("max_tokens", self.max_tokens),
+                "max_tokens": model_max_tokens,
                 # "max_tokens": min(
                 #     self.get_max_tokens(convo_id=convo_id),
                 #     kwargs.get("max_tokens", self.max_tokens),

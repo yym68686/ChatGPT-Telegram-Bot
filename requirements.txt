@@ -1,7 +1,7 @@
 --index-url https://pypi.python.org/simple/
 tiktoken
 requests
-python-telegram-bot[webhook,rate-limiter]==20.6
+python-telegram-bot[webhooks,rate-limiter]==20.6
 
 # langchain
 chromadb

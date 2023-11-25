@@ -31,7 +31,7 @@ print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
-    if update.message.reply_to_message is None:
+    if update.message.reply_to_message is None or update.message.reply_to_message.text:
         if has_command == False or len(context.args) > 0:
             message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
             if has_command:

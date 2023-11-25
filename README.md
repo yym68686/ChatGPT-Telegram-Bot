@@ -45,7 +45,8 @@ Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your use
 
 One-click deployment:
 
-[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/R5JY5O?referralCode=yym68686)
+[![Deployed on Zeabur](https://zeabur.com/deployed-on-zeabur-dark.svg)](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss)
+<!-- [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/R5JY5O?referralCode=yym68686) -->
 
 If you need follow-up function updates, the following deployment method is recommended:
 
