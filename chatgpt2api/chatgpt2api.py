@@ -64,6 +64,7 @@ class openaiAPI:
         self.source_api_url: str = api_url
         parsed_url = urlparse(self.source_api_url)
         self.base_url: str = urlunparse(parsed_url[:2] + ("",) * 4)
+        self.v1_url: str = urlunparse(parsed_url[:2] + ("/v1",) + ("",) * 3)
         self.chat_url: str = urlunparse(parsed_url[:2] + ("/v1/chat/completions",) + ("",) * 3)
         self.image_url: str = urlunparse(parsed_url[:2] + ("/v1/images/generations",) + ("",) * 3)
 
@@ -545,8 +546,8 @@ class Chatbot:
             chatllm = EducationalLLM(callback_manager=CallbackManager([chainStreamHandler]))
             chainllm = EducationalLLM()
         else:
-            chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=config.temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=self.engine, openai_api_key=config.API)
-            chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=config.GPT_ENGINE, openai_api_key=config.API)
+            chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=config.temperature, openai_api_base=bot_api_url.v1_url, model_name=self.engine, openai_api_key=config.API)
+            chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
 
         if config.SEARCH_USE_GPT:
             gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(prompt, chainllm,))

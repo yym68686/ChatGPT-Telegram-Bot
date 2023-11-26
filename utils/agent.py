@@ -36,6 +36,7 @@ from langchain.tools import DuckDuckGoSearchRun, DuckDuckGoSearchResults, Tool
 from langchain.utilities import WikipediaAPIWrapper
 from utils.googlesearch import GoogleSearchAPIWrapper
 from langchain.document_loaders import UnstructuredPDFLoader
+from chatgpt2api.chatgpt2api import bot_api_url
 
 def getmd5(string):
     import hashlib
@@ -95,8 +96,8 @@ def get_chain(store, llm):
     return chain
 
 async def docQA(docpath, query_message, persist_db_path="db", model = "gpt-3.5-turbo"):
-    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=config.API_URL.split("chat")[0], model_name=model, openai_api_key=config.API)
-    embeddings = OpenAIEmbeddings(openai_api_base=config.API_URL.split("chat")[0], openai_api_key=config.API)
+    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=bot_api_url.v1_url, model_name=model, openai_api_key=config.API)
+    embeddings = OpenAIEmbeddings(openai_api_base=bot_api_url.v1_url, openai_api_key=config.API)
 
     sitemap = "sitemap.xml"
     match = re.match(r'^(https?|ftp)://[^\s/$.?#].[^\s]*$', docpath)
@@ -135,7 +136,7 @@ def get_doc_from_url(url):
     return filename
 
 def persist_emdedding_pdf(docurl, persist_db_path):
-    embeddings = OpenAIEmbeddings(openai_api_base=config.API_URL.split("chat")[0], openai_api_key=os.environ.get('API', None))
+    embeddings = OpenAIEmbeddings(openai_api_base=bot_api_url.v1_url, openai_api_key=os.environ.get('API', None))
     filename = get_doc_from_url(docurl)
     docpath = os.getcwd() + "/" + filename
     loader = UnstructuredPDFLoader(docpath)
@@ -150,8 +151,8 @@ def persist_emdedding_pdf(docurl, persist_db_path):
     return vector_store
 
 async def pdfQA(docurl, docpath, query_message, model="gpt-3.5-turbo"):
-    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=config.API_URL.split("chat")[0], model_name=model, openai_api_key=os.environ.get('API', None))
-    embeddings = OpenAIEmbeddings(openai_api_base=config.API_URL.split("chat")[0], openai_api_key=os.environ.get('API', None))
+    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=bot_api_url.v1_url, model_name=model, openai_api_key=os.environ.get('API', None))
+    embeddings = OpenAIEmbeddings(openai_api_base=bot_api_url.v1_url, openai_api_key=os.environ.get('API', None))
     persist_db_path = getmd5(docpath)
     if not os.path.exists(persist_db_path):
         vector_store = persist_emdedding_pdf(docurl, persist_db_path)
@@ -163,8 +164,8 @@ async def pdfQA(docurl, docpath, query_message, model="gpt-3.5-turbo"):
     return result['result']
 
 def pdf_search(docurl, query_message, model="gpt-3.5-turbo"):
-    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=config.API_URL.split("chat")[0], model_name=model, openai_api_key=os.environ.get('API', None))
-    embeddings = OpenAIEmbeddings(openai_api_base=config.API_URL.split("chat")[0], openai_api_key=os.environ.get('API', None))
+    chatllm = ChatOpenAI(temperature=0.5, openai_api_base=bot_api_url.v1_url, model_name=model, openai_api_key=os.environ.get('API', None))
+    embeddings = OpenAIEmbeddings(openai_api_base=bot_api_url.v1_url, openai_api_key=os.environ.get('API', None))
     filename = get_doc_from_url(docurl)
     docpath = os.getcwd() + "/" + filename
     loader = UnstructuredPDFLoader(docpath)
@@ -319,7 +320,7 @@ def get_google_search_results(prompt: str, context_max_tokens: int):
     if config.USE_G4F:
         chainllm = EducationalLLM()
     else:
-        chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.API_URL.split("chat")[0], model_name=config.GPT_ENGINE, openai_api_key=config.API)
+        chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
 
     if config.SEARCH_USE_GPT:
         gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(prompt, chainllm,))
