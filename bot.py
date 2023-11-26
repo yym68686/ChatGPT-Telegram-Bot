@@ -589,6 +589,7 @@ if __name__ == '__main__':
     application.add_error_handler(error)
 
     if WEB_HOOK:
+        print("WEB_HOOK:", WEB_HOOK)
         application.run_webhook("127.0.0.1", PORT, webhook_url=WEB_HOOK)
     else:
         application.run_polling()

@@ -25,10 +25,26 @@ a.update(b)
 
 # print(truncate_limit)
 import os
-import sys
-import json
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# import sys
+# import json
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.function_call import function_call_list
+# from utils.function_call import function_call_list
 
-print(json.dumps(function_call_list["web_search"], indent=4))
+# print(json.dumps(function_call_list["web_search"], indent=4))
+
+class openaiAPI:
+    def __init__(
+        self,
+        api_url: str = (os.environ.get("API_URL") or "https://api.openai.com/v1/chat/completions"),
+    ):
+        from urllib.parse import urlparse, urlunparse
+        self.source_api_url: str = api_url
+        parsed_url = urlparse(self.source_api_url)
+        self.base_url: str = urlunparse(parsed_url[:2] + ("",) * 4)
+        self.chat_url: str = urlunparse(parsed_url[:2] + ("/v1/chat/completions",) + ("",) * 3)
+        self.image_url: str = urlunparse(parsed_url[:2] + ("/v1/images/generations",) + ("",) * 3)
+
+
+a = openaiAPI()
+print(a.chat_url)

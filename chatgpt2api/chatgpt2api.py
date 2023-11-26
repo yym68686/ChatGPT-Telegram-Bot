@@ -55,6 +55,20 @@ ENGINES = [
     "claude-2",
 ]
 
+class openaiAPI:
+    def __init__(
+        self,
+        api_url: str = (os.environ.get("API_URL") or "https://api.openai.com/v1/chat/completions"),
+    ):
+        from urllib.parse import urlparse, urlunparse
+        self.source_api_url: str = api_url
+        parsed_url = urlparse(self.source_api_url)
+        self.base_url: str = urlunparse(parsed_url[:2] + ("",) * 4)
+        self.chat_url: str = urlunparse(parsed_url[:2] + ("/v1/chat/completions",) + ("",) * 3)
+        self.image_url: str = urlunparse(parsed_url[:2] + ("/v1/images/generations",) + ("",) * 3)
+
+bot_api_url = openaiAPI()
+
 class Imagebot:
     def __init__(
         self,
@@ -72,10 +86,7 @@ class Imagebot:
         model: str = None,
         **kwargs,
     ):
-        if os.environ.get("API_URL") and "v1" in os.environ.get("API_URL"):
-            url = os.environ.get("API_URL").split("v1")[0] + "v1/images/generations"
-        else:
-            url = "https://api.openai.com/v1/images/generations"
+        url = bot_api_url.image_url
         headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
 
         json_post = {
@@ -280,21 +291,8 @@ class Chatbot:
         self.__truncate_conversation(convo_id=convo_id)
         # print(self.conversation[convo_id])
         # Get response
-        if os.environ.get("API_URL") and os.environ.get("MODEL_NAME"):
-            # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/chatgpt-quickstart?tabs=command-line&pivots=rest-api
-            url = (
-                os.environ.get("API_URL")
-                + "openai/deployments/"
-                + os.environ.get("MODEL_NAME")
-                + "/chat/completions?api-version=2023-05-15"
-            )
-            headers = {"Content-Type": "application/json", "api-key": self.api_key}
-        else:
-            url = (
-                os.environ.get("API_URL")
-                or "https://api.openai.com/v1/chat/completions"
-            )
-            headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
+        url = bot_api_url.chat_url
+        headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
 
         if self.engine == "gpt-4-1106-preview":
             model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
@@ -388,6 +386,7 @@ class Chatbot:
                 yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
         else:
             self.add_to_conversation(full_response, response_role, convo_id=convo_id)
+            print("total tokens:", self.get_token_count(convo_id))
 
     async def ask_stream_async(
         self,
@@ -413,7 +412,7 @@ class Chatbot:
         # Get response
         async with self.aclient.stream(
             "post",
-            os.environ.get("API_URL") or "https://api.openai.com/v1/chat/completions",
+            bot_api_url.chat_url,
             headers={"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"},
             json={
                 "model": model or self.engine,
@@ -472,6 +471,7 @@ class Chatbot:
                     full_response += content
                     yield content
         self.add_to_conversation(full_response, response_role, convo_id=convo_id)
+        print("total tokens:", self.get_token_count(convo_id))
 
     async def ask_async(
         self,
@@ -662,6 +662,7 @@ class Chatbot:
         chain_thread.start()
         full_response = yield from chainStreamHandler.generate_tokens()
         self.add_to_conversation(full_response, "assistant", convo_id=convo_id)
+        print("total tokens:", self.get_token_count(convo_id))
 
     def rollback(self, n: int = 1, convo_id: str = "default") -> None:
         """
