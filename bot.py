@@ -143,6 +143,16 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
 
 async def search(update, context, title, robot):
     message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+    print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
+    if (len(context.args) == 0):
+        message = (
+            f"格式错误哦~，示例：\n\n"
+            f"`/search 今天的微博热搜有哪些？`\n\n"
+            f"👆点击上方命令复制格式\n\n"
+        )
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        return
+    message = ' '.join(context.args)
     result = title
     text = message
     modifytime = 0
