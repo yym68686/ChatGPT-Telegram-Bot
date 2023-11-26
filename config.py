@@ -33,3 +33,18 @@ if whitelist:
     whitelist = [int(id) for id in whitelist.split(",")]
 
 USE_G4F = False
+
+class openaiAPI:
+    def __init__(
+        self,
+        api_url: str = (os.environ.get("API_URL") or "https://api.openai.com/v1/chat/completions"),
+    ):
+        from urllib.parse import urlparse, urlunparse
+        self.source_api_url: str = api_url
+        parsed_url = urlparse(self.source_api_url)
+        self.base_url: str = urlunparse(parsed_url[:2] + ("",) * 4)
+        self.v1_url: str = urlunparse(parsed_url[:2] + ("/v1",) + ("",) * 3)
+        self.chat_url: str = urlunparse(parsed_url[:2] + ("/v1/chat/completions",) + ("",) * 3)
+        self.image_url: str = urlunparse(parsed_url[:2] + ("/v1/images/generations",) + ("",) * 3)
+
+bot_api_url = openaiAPI()

@@ -55,21 +55,6 @@ ENGINES = [
     "claude-2",
 ]
 
-class openaiAPI:
-    def __init__(
-        self,
-        api_url: str = (os.environ.get("API_URL") or "https://api.openai.com/v1/chat/completions"),
-    ):
-        from urllib.parse import urlparse, urlunparse
-        self.source_api_url: str = api_url
-        parsed_url = urlparse(self.source_api_url)
-        self.base_url: str = urlunparse(parsed_url[:2] + ("",) * 4)
-        self.v1_url: str = urlunparse(parsed_url[:2] + ("/v1",) + ("",) * 3)
-        self.chat_url: str = urlunparse(parsed_url[:2] + ("/v1/chat/completions",) + ("",) * 3)
-        self.image_url: str = urlunparse(parsed_url[:2] + ("/v1/images/generations",) + ("",) * 3)
-
-bot_api_url = openaiAPI()
-
 class Imagebot:
     def __init__(
         self,
@@ -87,7 +72,7 @@ class Imagebot:
         model: str = None,
         **kwargs,
     ):
-        url = bot_api_url.image_url
+        url = config.bot_api_url.image_url
         headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
 
         json_post = {
@@ -292,7 +277,7 @@ class Chatbot:
         self.__truncate_conversation(convo_id=convo_id)
         # print(self.conversation[convo_id])
         # Get response
-        url = bot_api_url.chat_url
+        url = config.bot_api_url.chat_url
         headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
 
         if self.engine == "gpt-4-1106-preview":
@@ -413,7 +398,7 @@ class Chatbot:
         # Get response
         async with self.aclient.stream(
             "post",
-            bot_api_url.chat_url,
+            config.bot_api_url.chat_url,
             headers={"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"},
             json={
                 "model": model or self.engine,
@@ -546,8 +531,8 @@ class Chatbot:
             chatllm = EducationalLLM(callback_manager=CallbackManager([chainStreamHandler]))
             chainllm = EducationalLLM()
         else:
-            chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=config.temperature, openai_api_base=bot_api_url.v1_url, model_name=self.engine, openai_api_key=config.API)
-            chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
+            chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=self.engine, openai_api_key=config.API)
+            chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
 
         if config.SEARCH_USE_GPT:
             gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(prompt, chainllm,))
