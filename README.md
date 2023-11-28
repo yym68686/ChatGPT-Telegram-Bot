@@ -32,7 +32,7 @@ Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your use
 | ---------------------- | ------------------------------------------------------------ |
 | **BOT_TOKEN (required)** | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. |
 | **API (required)**       | OpenAI or third-party API key.                              |
-| WEB_HOOK  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. |
+| WEB_HOOK (optional)  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. |
 | API_URL(optional)       | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions |
 | GPT_ENGINE (optional)    | Set the default QA model; the default is:`gpt-3.5-turbo`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. |
 | NICK (optional)          | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. |
@@ -85,10 +85,10 @@ Follow the prompts to deploy. A secondary domain name will be provided in the of
 Set environment variables
 
 ```bash
-flyctl secrets set WEB_HOOK=https://flyio-app-name.fly.dev/
 flyctl secrets set BOT_TOKEN=bottoken
 flyctl secrets set API=
 # optional
+flyctl secrets set WEB_HOOK=https://flyio-app-name.fly.dev/
 flyctl secrets set NICK=javis
 ```
 
@@ -125,7 +125,6 @@ Start the container
 ```bash
 docker run -p 80:8080 --name chatbot -dit \
     -e BOT_TOKEN="telegram bot token" \
-    -e WEB_HOOK="https://your_host.com/" \
     -e API="" \
     -e API_URL= \
     yym68686/chatgpt:1.0
@@ -141,7 +140,6 @@ services:
     image: yym68686/chatgpt:1.0
     environment:
       - BOT_TOKEN=
-      - WEB_HOOK=
       - API=
       - API_URL=
     ports:

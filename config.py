@@ -20,13 +20,17 @@ current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]"
 
-from chatgpt2api.chatgpt2api import Chatbot as GPT
-from chatgpt2api.chatgpt2api import Imagebot
+from utils.chatgpt2api import Chatbot as GPT
+from utils.chatgpt2api import Imagebot, claudebot
 if API:
     ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
     dallbot = Imagebot(api_key=f"{API}")
 else:
     ChatGPTbot = None
+
+ClaudeAPI = os.environ.get('claude_api_key', None)
+if ClaudeAPI:
+    claudeBot = claudebot(api_key=f"{ClaudeAPI}")
 
 whitelist = os.environ.get('whitelist', None)
 if whitelist:

@@ -5,7 +5,8 @@ import logging
 import traceback
 import utils.decorators as decorators
 from utils.md2tgmd import escape
-from chatgpt2api.chatgpt2api import Chatbot as GPT
+from utils.chatgpt2api import Chatbot as GPT
+from utils.chatgpt2api import claudebot
 from telegram.constants import ChatAction
 from utils.agent import docQA, get_doc_from_local
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
@@ -285,7 +286,7 @@ buttons = [
     #     InlineKeyboardButton("gpt-4-32k-0613", callback_data="gpt-4-32k-0613"),
     # ],
     [
-        InlineKeyboardButton("claude-2", callback_data="claude-2"),
+        InlineKeyboardButton("claude-2.1", callback_data="claude-2.1"),
         InlineKeyboardButton("claude-2-web", callback_data="claude-2-web"),
     ],
     [
@@ -329,11 +330,15 @@ async def button_press(update, context):
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
-    if ("gpt-" or "cluade") in data:
+    print(data)
+    if "gpt-" in data or "claude" in data:
         config.GPT_ENGINE = data
-        if config.API:
+        if config.API and "gpt-" in data:
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
+        if config.ClaudeAPI and "claude" in data:
+            config.ChatGPTbot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+        print(config.GPT_ENGINE)
         try:
             info_message = (
                 f"`Hi, {update.effective_user.username}!`\n\n"
