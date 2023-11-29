@@ -1,17 +1,19 @@
 # ChatGPT Telegram 機器人
 
-加入 [Telegram 群組](https://t.me/+_01cz9tAkUc1YzZl) 進行用戶體驗分享或回報錯誤。
+加入 [Telegram 群組](https://t.me/+_01cz9tAkUc1YzZl) 以分享您的使用者體驗或回報錯誤。
 
-[英文](./README.md) | [簡體中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
+[English](./README.md) | [簡體中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 
 ## ✨ 功能
 
-✅ 支援 GPT3.5 和 GPT4/GPT4 Turbo API，DALLE 3
+✅ 支援 GPT3.5、GPT4/GPT4 Turbo 和 Claude2.1 API，DALLE 3
 
-✅ 支援使用 duckduckgo 和 Google🔍 進行線上搜索。默認提供 DuckDuckGo 搜索，Google 搜索需要用戶申請官方 API。它能提供 GPT 以前無法回答的實時信息，如微博熱搜、某地天氣、某人或新聞的進展等。
+✅ 支援使用 duckduckgo 和 Google🔍 進行線上搜尋。默認提供 DuckDuckGo 搜尋，使用者需申請 Google 搜尋的官方 API。可提供 GPT 以前無法回答的即時資訊，如今日微博熱搜、某地天氣、某人或新聞的進展等。
 
-✅ 支援基於嵌入式向量數據庫的文檔 QA。在搜索中，對於搜索到的 PDF，將執行 PDF 文檔的自動向量語義搜索，並基於向量數據庫提取 PDF 相關內容。支援使用 "qa" 命令將整個網站向量化，使用 "sitemap.xml" 文件回答基於向量數據庫的問題，特別適用於一些項目的文檔網站和維基網站。
+✅ 支援基於內嵌向量資料庫的文件問答。在搜尋時，對搜尋的 PDF 進行自動向量語義搜索，並基於向量資料庫提取 PDF 相關內容。支援使用 "qa" 指令將整個網站向量化，並基於向量資料庫回答問題，特別適用於文件網站和一些專案的 wiki 網站。
 
-✅ 通過聊天窗口中的 "info" 命令支援在 GPT3.5、GPT4 和其他模型之間切換
+✅ 支援在聊天窗口通過 "info" 指令切換 GPT3.5、GPT4 和其他模型
 
-✅ 異步處理消息，多線程回答問題，支援隔離對話，不同用戶
+✅ 異步處理消息，多線程回答問題，支援隔離對話，不同使用者有不同對話
+
+✅ 支援準確
