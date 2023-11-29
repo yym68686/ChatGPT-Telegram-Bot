@@ -8,7 +8,7 @@ from utils.md2tgmd import escape
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import claudebot
 from telegram.constants import ChatAction
-from utils.agent import docQA, get_doc_from_local
+from utils.agent import docQA, get_doc_from_local, claudeQA
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter
 from config import WEB_HOOK, PORT, BOT_TOKEN
@@ -32,7 +32,7 @@ print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
-    if update.message.reply_to_message is None or update.message.reply_to_message.text:
+    if update.message.reply_to_message is None or update.message.reply_to_message.text or update.message.reply_to_message.document is None:
         if has_command == False or len(context.args) > 0:
             message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
             if has_command:
@@ -52,15 +52,15 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 reply_to_message_id=update.message.message_id,
             )
     else:
-        if update.message.reply_to_message.document is None:
-            message = (
-                f"格式错误哦~，需要回复一个文件，我才知道你要针对哪个文件提问，注意命令与问题之间的空格\n\n"
-                f"请输入 `要问的问题`\n\n"
-                f"例如已经上传某文档 ，问题是 蘑菇怎么分类？\n\n"
-                f"先左滑文档进入回复模式，在聊天框里面输入 `蘑菇怎么分类？`\n\n"
-            )
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-            return
+        # if update.message.reply_to_message.document is None:
+        #     message = (
+        #         f"格式错误哦~，需要回复一个文件，我才知道你要针对哪个文件提问，注意命令与问题之间的空格\n\n"
+        #         f"请输入 `要问的问题`\n\n"
+        #         f"例如已经上传某文档 ，问题是 蘑菇怎么分类？\n\n"
+        #         f"先左滑文档进入回复模式，在聊天框里面输入 `蘑菇怎么分类？`\n\n"
+        #     )
+        #     await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        #     return
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
         pdf_file = update.message.reply_to_message.document
@@ -74,7 +74,10 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 
         file_name = pdf_file.file_name
         docpath = os.getcwd() + "/" + file_name
-        result = await pdfQA(file_url, docpath, question)
+        if  "cluade" in config.GPT_ENGINE:
+            result = await claudeQA(file_url, question)
+        else:
+            result = await pdfQA(file_url, docpath, question)
         print(result)
         await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
@@ -307,6 +310,9 @@ first_buttons = [
         InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf"),
     ],
     [
+        InlineKeyboardButton("🇨🇳 中文", callback_data="language"),
+    ],
+    [
         InlineKeyboardButton("gpt4free已关闭", callback_data="gpt4free"),
     ],
 ]
@@ -330,7 +336,6 @@ async def button_press(update, context):
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
-    print(data)
     if "gpt-" in data or "claude" in data:
         config.GPT_ENGINE = data
         if config.API and "gpt-" in data:
@@ -450,12 +455,39 @@ async def button_press(update, context):
             reply_markup=InlineKeyboardMarkup(first_buttons),
             parse_mode='MarkdownV2'
         )
+    elif "language" in data:
+        if config.LANGUAGE == "Simplified Chinese":
+            first_buttons[3][0] = InlineKeyboardButton("🇺🇸 English", callback_data="language")
+            config.LANGUAGE = "English"
+        else:
+            first_buttons[3][0] = InlineKeyboardButton("🇨🇳 中文", callback_data="language")
+            config.LANGUAGE = "Simplified Chinese"
+        config.systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {config.LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {config.Current_Date} ]"
+        if config.API:
+            config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
+        if config.ClaudeAPI:
+            config.ChatGPTbot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+
+        info_message = (
+            f"`Hi, {update.effective_user.username}!`\n\n"
+            f"**Default engine:** `{config.GPT_ENGINE}`\n"
+            f"**temperature:** `{config.temperature}`\n"
+            f"**API_URL:** `{config.API_URL}`\n\n"
+            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
+            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+        )
+        message = await callback_query.edit_message_text(
+            text=escape(info_message),
+            reply_markup=InlineKeyboardMarkup(first_buttons),
+            parse_mode='MarkdownV2'
+        )
     elif "gpt4free" in data:
         config.USE_G4F = not config.USE_G4F
         if config.USE_G4F == False:
-            first_buttons[3][0] = InlineKeyboardButton("gpt4free已关闭", callback_data="gpt4free")
+            first_buttons[4][0] = InlineKeyboardButton("gpt4free已关闭", callback_data="gpt4free")
         else:
-            first_buttons[3][0] = InlineKeyboardButton("gpt4free已打开", callback_data="gpt4free")
+            first_buttons[4][0] = InlineKeyboardButton("gpt4free已打开", callback_data="gpt4free")
 
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
@@ -594,7 +626,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("search", lambda update, context: search(update, context, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot)))
     application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(CommandHandler("reset", reset_chat))
-    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "simplified chinese", robot=config.ChatGPTbot)))
+    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, config.LANGUAGE, robot=config.ChatGPTbot)))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.ChatGPTbot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(CommandHandler("qa", qa))

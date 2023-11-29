@@ -159,8 +159,16 @@ async def pdfQA(docurl, docpath, query_message, model="gpt-3.5-turbo"):
         vector_store = Chroma(persist_directory=persist_db_path, embedding_function=embeddings)
     qa = RetrievalQA.from_chain_type(llm=chatllm, chain_type="stuff", retriever=vector_store.as_retriever(), return_source_documents=True)
     result = qa({"query": query_message})
-    print(2)
     return result['result']
+
+async def claudeQA(docurl, query_message):
+    from pdfminer.high_level import extract_text
+    filename = get_doc_from_url(docurl)
+    docpath = os.getcwd() + "/" + filename
+    text = extract_text(docpath)
+    print(text)
+    prompt = f"""你需要回答的问题是：{query_message}"""
+    return text
 
 def pdf_search(docurl, query_message, model="gpt-3.5-turbo"):
     chatllm = ChatOpenAI(temperature=0.5, openai_api_base=config.bot_api_url.v1_url, model_name=model, openai_api_key=os.environ.get('API', None))
@@ -309,7 +317,7 @@ def gptsearch(result, llm):
     return response
 
 
-def get_google_search_results(prompt: str, context_max_tokens: int):
+def get_search_results(prompt: str, context_max_tokens: int):
     start_time = record_time.time()
 
     urls_set = []
@@ -417,6 +425,29 @@ def get_google_search_results(prompt: str, context_max_tokens: int):
     print("text len", text_len)
     return useful_source_text
 
+def search_web_and_summary(
+        prompt: str,
+        engine: str = "gpt-3.5-turbo",
+        context_max_tokens: int = 4096,
+    ):
+    chainStreamHandler = ChainStreamHandler()
+    if config.USE_G4F:
+        chatllm = EducationalLLM(callback_manager=CallbackManager([chainStreamHandler]))
+    else:
+        chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=engine, openai_api_key=config.API)
+    useful_source_text = get_search_results(prompt, context_max_tokens)
+    summary_prompt = PromptTemplate(
+        input_variables=["web_summary", "question"],
+        template=(
+            # "You are a text analysis expert who can use a search engine. You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest all search results provided above and provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, clear, professional, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting. 4. Detailed, precise and comprehensive response in Simplified Chinese and extensive use of the search results is required."
+            "You need to response the following question: {question}. Search results: {web_summary}. Your task is to think about the question step by step and then answer the above question in {language} based on the Search results provided. Please response in {language} and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Directly response markdown format, without using markdown code blocks"
+            # "You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest the search results provided above, dig deep into search results for thorough exploration and analysis and provide a response to the question based on the search results. The response should meet the following requirements: 1. You are a text analysis expert, extensive use of the search results is required and carefully consider all the Search results to make the response be in-depth, rigorous, clear, organized, professional, detailed, scholarly, logical, precise, accurate, comprehensive, well-written and speak in Simplified Chinese. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
+        ),
+    )
+    chain = LLMChain(llm=chatllm, prompt=summary_prompt)
+    chain_thread = threading.Thread(target=chain.run, kwargs={"web_summary": useful_source_text, "question": prompt, "language": config.LANGUAGE})
+    chain_thread.start()
+    yield from chainStreamHandler.generate_tokens()
 if __name__ == "__main__":
     os.system("clear")
     
@@ -426,6 +457,7 @@ if __name__ == "__main__":
     # # 搜索
 
     # # for i in search_summary("今天的微博热搜有哪些？"):
+    # # for i in search_summary("macos 13.6 有什么新功能"):
     # # for i in search_summary("用python写个网络爬虫给我"):
     # # for i in search_summary("消失的她主要讲了什么？"):
     # # for i in search_summary("奥巴马的全名是什么？"):

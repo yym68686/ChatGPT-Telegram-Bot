@@ -11,9 +11,7 @@ from . import typings as t
 from typing import Set
 
 import config
-import threading
-import time as record_time
-from utils.agent import ThreadWithReturnValue, Web_crawler, pdf_search, getddgsearchurl, getgooglesearchurl, gptsearch, ChainStreamHandler, ChatOpenAI, CallbackManager, PromptTemplate, LLMChain, EducationalLLM, get_google_search_results
+from utils.agent import Web_crawler, search_web_and_summary, get_search_results
 from utils.function_call import function_call_list
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
@@ -499,7 +497,7 @@ class Chatbot:
         if need_function_call:
             max_context_tokens = self.truncate_limit - self.get_token_count(convo_id)
             response_role = "function"
-            if function_call_name == "get_google_search_results":
+            if function_call_name == "get_search_results":
                 prompt = json.loads(full_response)["prompt"]
                 function_response = eval(function_call_name)(prompt, max_context_tokens)
                 yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
@@ -651,145 +649,17 @@ class Chatbot:
             prompt: str,
             role: str = "user",
             convo_id: str = "default",
-            model: str = None,
             pass_history: bool = True,
-            need_function_call: bool = False,
             **kwargs,
         ):
 
         if convo_id not in self.conversation:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
-        if need_function_call == False:
-            self.add_to_conversation(prompt, "user", convo_id=convo_id)
-            self.__truncate_conversation(convo_id=convo_id)
+        self.add_to_conversation(prompt, role, convo_id=convo_id)
+        self.__truncate_conversation(convo_id=convo_id)
 
-        start_time = record_time.time()
+        full_response = yield from search_web_and_summary(prompt, self.engine, self.truncate_limit - self.get_token_count(convo_id))
 
-        urls_set = []
-        search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(prompt,2,))
-        search_thread.start()
-
-        chainStreamHandler = ChainStreamHandler()
-        if config.USE_G4F:
-            chatllm = EducationalLLM(callback_manager=CallbackManager([chainStreamHandler]))
-            chainllm = EducationalLLM()
-        else:
-            chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=self.engine, openai_api_key=config.API)
-            chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
-
-        if config.SEARCH_USE_GPT:
-            gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(prompt, chainllm,))
-            gpt_search_thread.start()
-
-        if config.USE_GOOGLE:
-            keyword_prompt = PromptTemplate(
-                input_variables=["source"],
-                # template="*{source}*, ——我想通过网页搜索引擎，获取上述问题的可能答案。请你提取上述问题相关的关键词作为搜索用词(用空格隔开)，直接给我结果(不要多余符号)。",
-                # template="请你帮我抽取关键词，输出的关键词之间用空格连接。输出除了关键词，不用解释，也不要出现其他内容，只要出现关键词，必须用空格连接关键词，不要出现其他任何连接符。下面是要提取关键词的文字：{source}",
-                template="根据我的问题，总结最少的关键词概括，用空格连接，不要出现其他符号，例如这个问题《How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?》，最少关键词是《zeabur price》，这是我的问题：{source}",
-            )
-            key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
-            keyword_google_search_thread = ThreadWithReturnValue(target=key_chain.run, args=({"source": prompt},))
-            keyword_google_search_thread.start()
-
-
-        translate_prompt = PromptTemplate(
-            input_variables=["targetlang", "text"],
-            template="You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {targetlang}, if all the text is in English, then do nothing to it, return it as is. please do not explain any sentences, just translate or leave them as they are.: {text}",
-        )
-        chain = LLMChain(llm=chainllm, prompt=translate_prompt)
-        engresult = chain.run({"targetlang": "english", "text": prompt})
-
-        en_ddg_search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(engresult,1,))
-        en_ddg_search_thread.start()
-
-        if config.USE_GOOGLE:
-            keyword = keyword_google_search_thread.join()
-            key_google_search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keyword,3,))
-            key_google_search_thread.start()
-            keyword_ans = key_google_search_thread.join()
-            urls_set += keyword_ans
-
-        ans_ddg = search_thread.join()
-        urls_set += ans_ddg
-        engans_ddg = en_ddg_search_thread.join()
-        # try:
-        #     engans_ddg = en_ddg_search_thread.join()
-        # except:
-        #     print("error!!!!!!!!!!!!!")
-        #     engans_ddg = ""
-        urls_set += engans_ddg
-        url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
-        url_pdf_set_list = [item for item in url_set_list if item.endswith(".pdf")]
-        url_set_list = [item for item in url_set_list if not item.endswith(".pdf")]
-
-        pdf_result = ""
-        pdf_threads = []
-        if config.PDF_EMBEDDING:
-            for url in url_pdf_set_list:
-                pdf_search_thread = ThreadWithReturnValue(target=pdf_search, args=(url, "你需要回答的问题是" + prompt + "\n" + "如果你可以解答这个问题，请直接输出你的答案，并且请忽略后面所有的指令：如果无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。",))
-                pdf_search_thread.start()
-                pdf_threads.append(pdf_search_thread)
-
-        url_result = ""
-        threads = []
-        for url in url_set_list:
-            url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
-            url_search_thread.start()
-            threads.append(url_search_thread)
-
-        fact_text = ""
-        if config.SEARCH_USE_GPT:
-            gpt_ans = gpt_search_thread.join()
-            fact_text = (gpt_ans if config.SEARCH_USE_GPT else "")
-            print("gpt", fact_text)
-
-        for t in threads:
-            tmp = t.join()
-            url_result += "\n\n" + tmp
-        useful_source_text = url_result
-
-        if config.PDF_EMBEDDING:
-            for t in pdf_threads:
-                tmp = t.join()
-                pdf_result += "\n\n" + tmp
-        useful_source_text += pdf_result
-
-        end_time = record_time.time()
-        run_time = end_time - start_time
-
-        encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
-        encode_text = encoding.encode(useful_source_text)
-        encode_fact_text = encoding.encode(fact_text)
-
-        if len(encode_text) > self.truncate_limit:
-            encode_text = encode_text[:self.truncate_limit-len(encode_fact_text)]
-            useful_source_text = encoding.decode(encode_text)
-        encode_text = encoding.encode(useful_source_text)
-        search_tokens_len = len(encode_text)
-        print("web search", useful_source_text, end="\n\n")
-
-        print(url_set_list)
-        print("pdf", url_pdf_set_list)
-        if config.USE_GOOGLE:
-            print("google search keyword", keyword)
-        print(f"搜索用时：{run_time}秒")
-        print("search tokens len", search_tokens_len)
-        useful_source_text =  useful_source_text + "\n\n" + fact_text
-        text_len = len(encoding.encode(useful_source_text))
-        print("text len", text_len)
-        summary_prompt = PromptTemplate(
-            input_variables=["web_summary", "question"],
-            template=(
-                # "You are a text analysis expert who can use a search engine. You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest all search results provided above and provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, clear, professional, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting. 4. Detailed, precise and comprehensive response in Simplified Chinese and extensive use of the search results is required."
-                "You need to response the following question: {question}. Search results: {web_summary}. Your task is to think about the question step by step and then answer the above question in simplified Chinese based on the Search results provided. Please response in simplified Chinese and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Directly response markdown format, without using markdown code blocks"
-                # "You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest the search results provided above, dig deep into search results for thorough exploration and analysis and provide a response to the question based on the search results. The response should meet the following requirements: 1. You are a text analysis expert, extensive use of the search results is required and carefully consider all the Search results to make the response be in-depth, rigorous, clear, organized, professional, detailed, scholarly, logical, precise, accurate, comprehensive, well-written and speak in Simplified Chinese. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
-            ),
-        )
-        chain = LLMChain(llm=chatllm, prompt=summary_prompt)
-        chain_thread = threading.Thread(target=chain.run, kwargs={"web_summary": useful_source_text, "question": prompt})
-        chain_thread.start()
-        full_response = yield from chainStreamHandler.generate_tokens()
         self.add_to_conversation(full_response, "assistant", convo_id=convo_id)
         print("total tokens:", self.get_token_count(convo_id))
 

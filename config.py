@@ -14,11 +14,12 @@ GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4-1106-preview')
 SEARCH_USE_GPT = (os.environ.get('SEARCH_USE_GPT', "True") == "False") == False
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
+LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
 
 from datetime import datetime
 current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
-systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]"
+systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]"
 
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import Imagebot, claudebot

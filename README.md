@@ -6,7 +6,7 @@ Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your use
 
 ## ✨ Features
 
-✅ Supports GPT3.5 and GPT4/GPT4 Turbo API, DALLE 3
+✅ Supports GPT3.5, GPT4/GPT4 Turbo and Claude2.1 API, DALLE 3
 
 ✅ Supports online search using duckduckgo and Google🔍. DuckDuckGo search is provided by default, and the official API for Google search needs to be applied by the user. It can provide real-time information that GPT could not answer before, such as Weibo hot search today, weather in a certain place today, and the progress of a certain person or news.
 

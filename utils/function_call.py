@@ -22,7 +22,7 @@ function_call_list = {
     }
   },
   "web_search": {
-    "name": "get_google_search_results",
+    "name": "get_search_results",
     "description": "Search Google to enhance knowledge.",
     "parameters": {
       "type": "object",
