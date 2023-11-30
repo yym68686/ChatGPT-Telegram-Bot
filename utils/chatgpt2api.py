@@ -345,7 +345,7 @@ class Chatbot:
         """
         Add a message to the conversation
         """
-        if function_name == "":
+        if function_name == "" and message != "":
             self.conversation[convo_id].append({"role": role, "content": message})
         else:
             self.conversation[convo_id].append({"role": role, "name": function_name, "content": message})
@@ -495,11 +495,12 @@ class Chatbot:
                     function_call_name = delta["function_call"]["name"]
                 full_response += function_call_content
         if need_function_call:
-            max_context_tokens = self.truncate_limit - self.get_token_count(convo_id)
+            max_context_tokens = self.truncate_limit - self.get_token_count(convo_id) - 500
             response_role = "function"
             if function_call_name == "get_search_results":
                 prompt = json.loads(full_response)["prompt"]
                 function_response = eval(function_call_name)(prompt, max_context_tokens)
+                function_response = "web search results: \n" + function_response
                 yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
                 # yield from self.search_summary(prompt, convo_id=convo_id, need_function_call=True)
             if function_call_name == "get_url_content":

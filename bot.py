@@ -339,7 +339,6 @@ async def button_press(update, context):
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
         if config.ClaudeAPI and "claude" in data and not config.API:
             config.ChatGPTbot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
-        print(config.GPT_ENGINE)
         try:
             info_message = (
                 f"`Hi, {update.effective_user.username}!`\n\n"

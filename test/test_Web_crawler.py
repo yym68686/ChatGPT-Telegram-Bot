@@ -118,7 +118,11 @@ start_time = time.time()
 # for url in ['https://www.lifewire.com/403-forbidden-error-explained-2617989']:
 # for url in ['https://www.usnews.com/news/best-countries/articles/2022-02-24/explainer-why-did-russia-invade-ukraine']:
 # for url in ['https://github.com/EAimTY/tuic/issues/107']:
-for url in ['https://mp.weixin.qq.com/s/Itad7Y-QBcr991JkF3SrIg']:
+# TODO 没办法访问
+# for url in ['https://s.weibo.com/top/summary?cate=realtimehot']:
+# for url in ['https://tophub.today/n/KqndgxeLl9']:
+for url in ['https://support.apple.com/zh-cn/HT213931']:
+# for url in ['https://mp.weixin.qq.com/s/Itad7Y-QBcr991JkF3SrIg']:
 # for url in ['https://zhidao.baidu.com/question/317577832.html']:
 # for url in ['https://www.cnn.com/2023/09/06/tech/huawei-mate-60-pro-phone/index.html']:
 # for url in ['https://www.reddit.com/r/China_irl/comments/15qojkh/46%E6%9C%88%E5%A4%96%E8%B5%84%E5%AF%B9%E4%B8%AD%E5%9B%BD%E7%9B%B4%E6%8E%A5%E6%8A%95%E8%B5%84%E5%87%8F87/', 'https://www.apple.com.cn/job-creation/Apple_China_CSR_Report_2020.pdf', 'https://hdr.undp.org/system/files/documents/hdr2013chpdf.pdf']:

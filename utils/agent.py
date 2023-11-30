@@ -1,16 +1,17 @@
 import os
 import re
+
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
-import chardet
+
 import asyncio
 import tiktoken
 import requests
 import threading
-import traceback
+
 import urllib.parse
 from typing import Any
-import time
-from datetime import date
 import time as record_time
 from bs4 import BeautifulSoup
 
@@ -293,8 +294,10 @@ def getgooglesearchurl(result, numresults=3):
     urls = []
     try:
         googleresult = google_search.results(result, numresults)
-        urls = [i["link"] for i in googleresult]
-        # print("google urls", urls)
+        for i in googleresult:
+            if "No good Google Search Result was found" in i:
+                continue
+            urls.append(i["link"])
     except Exception as e:
         print('\033[31m')
         print("error", e)
@@ -316,14 +319,90 @@ def gptsearch(result, llm):
     # response = llm([HumanMessage(content=result)])
     return response
 
+def get_search_url(prompt, chainllm):
+    urls_set = []
+    keyword_prompt = PromptTemplate(
+        input_variables=["source"],
+        template=(
+            "根据我的问题，总结最少的关键词概括，给出三行不同的关键词组合，每行的关键词用空格连接，至少有一行关键词里面有中文，至少有一行关键词里面有英文，不要出现其他符号。"
+            "下面是示例："
+            "问题1：How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"
+            "三行关键词是："
+            "zeabur price"
+            "zeabur documentation"
+            "zeabur 价格"
+            "问题2：pplx API 怎么使用？"
+            "三行关键词是："
+            "pplx API demo"
+            "pplx API"
+            "pplx API 使用方法"
+            "这是我的问题：{source}"
+        ),
+    )
+    key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
+    keyword_google_search_thread = ThreadWithReturnValue(target=key_chain.run, args=({"source": prompt},))
+    keyword_google_search_thread.start()
+    keywords = keyword_google_search_thread.join().split('\n')
+    print("keywords", keywords)
+
+    search_threads = []
+    urls_set = []
+    if config.USE_GOOGLE:
+        search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keywords[0],4,))
+        search_thread.start()
+        search_threads.append(search_thread)
+        keywords = keywords[1:]
+
+    for keyword in keywords:
+        search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(keyword,4,))
+        search_thread.start()
+        search_threads.append(search_thread)
+
+    for t in search_threads:
+        tmp = t.join()
+        urls_set += tmp
+    url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
+    url_pdf_set_list = [item for item in url_set_list if item.endswith(".pdf")]
+    url_set_list = [item for item in url_set_list if not item.endswith(".pdf")]
+    return url_set_list, url_pdf_set_list
+
+def concat_url(threads):
+    url_result = ""
+    for t in threads:
+        tmp = t.join()
+        url_result += "\n\n" + tmp
+    return url_result
+
+def summary_each_url(threads, chainllm):
+    summary_prompt = PromptTemplate(
+        input_variables=["web_summary", "question", "language"],
+        template=(
+            "You need to response the following question: {question}."
+            "Your task is answer the above question in {language} based on the Search results provided. Provide a detailed and in-depth response"
+            "If there is no relevant content in the search results, just answer None, do not make any explanations."
+            "Search results: {web_summary}."
+        ),
+    )
+    summary_threads = []
+
+    for t in threads:
+        tmp = t.join()
+        print(tmp)
+        chain = LLMChain(llm=chainllm, prompt=summary_prompt)
+        chain_thread = ThreadWithReturnValue(target=chain.run, args=({"web_summary": tmp, "question": prompt, "language": config.LANGUAGE},))
+        chain_thread.start()
+        summary_threads.append(chain_thread)
+
+    url_result = ""
+    for t in summary_threads:
+        tmp = t.join()
+        print("summary", tmp)
+        if tmp != "None":
+            url_result += "\n\n" + tmp
+    return url_result
 
 def get_search_results(prompt: str, context_max_tokens: int):
     start_time = record_time.time()
-
-    urls_set = []
-    search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(prompt,2,))
-    search_thread.start()
-
     if config.USE_G4F:
         chainllm = EducationalLLM()
     else:
@@ -333,40 +412,7 @@ def get_search_results(prompt: str, context_max_tokens: int):
         gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(prompt, chainllm,))
         gpt_search_thread.start()
 
-    if config.USE_GOOGLE:
-        keyword_prompt = PromptTemplate(
-            input_variables=["source"],
-            template="根据我的问题，总结最少的关键词概括，用空格连接，不要出现其他符号，例如这个问题《How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?》，最少关键词是《zeabur price》，这是我的问题：{source}",
-        )
-        key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
-        keyword_google_search_thread = ThreadWithReturnValue(target=key_chain.run, args=({"source": prompt},))
-        keyword_google_search_thread.start()
-
-
-    translate_prompt = PromptTemplate(
-        input_variables=["targetlang", "text"],
-        template="You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {targetlang}, if all the text is in English, then do nothing to it, return it as is. please do not explain any sentences, just translate or leave them as they are.: {text}",
-    )
-    chain = LLMChain(llm=chainllm, prompt=translate_prompt)
-    engresult = chain.run({"targetlang": "english", "text": prompt})
-
-    en_ddg_search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(engresult,1,))
-    en_ddg_search_thread.start()
-
-    if config.USE_GOOGLE:
-        keyword = keyword_google_search_thread.join()
-        key_google_search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keyword,3,))
-        key_google_search_thread.start()
-        keyword_ans = key_google_search_thread.join()
-        urls_set += keyword_ans
-
-    ans_ddg = search_thread.join()
-    urls_set += ans_ddg
-    engans_ddg = en_ddg_search_thread.join()
-    urls_set += engans_ddg
-    url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
-    url_pdf_set_list = [item for item in url_set_list if item.endswith(".pdf")]
-    url_set_list = [item for item in url_set_list if not item.endswith(".pdf")]
+    url_set_list, url_pdf_set_list = get_search_url(prompt, chainllm)
 
     pdf_result = ""
     pdf_threads = []
@@ -376,29 +422,27 @@ def get_search_results(prompt: str, context_max_tokens: int):
             pdf_search_thread.start()
             pdf_threads.append(pdf_search_thread)
 
-    url_result = ""
     threads = []
     for url in url_set_list:
         url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
         url_search_thread.start()
         threads.append(url_search_thread)
 
-    fact_text = ""
-    if config.SEARCH_USE_GPT:
-        gpt_ans = gpt_search_thread.join()
-        fact_text = (gpt_ans if config.SEARCH_USE_GPT else "")
-        print("gpt", fact_text)
-
-    for t in threads:
-        tmp = t.join()
-        url_result += "\n\n" + tmp
-    useful_source_text = url_result
+    useful_source_text = concat_url(threads)
+    # useful_source_text = summary_each_url(threads, chainllm)
 
     if config.PDF_EMBEDDING:
         for t in pdf_threads:
             tmp = t.join()
             pdf_result += "\n\n" + tmp
     useful_source_text += pdf_result
+
+    fact_text = ""
+    if config.SEARCH_USE_GPT:
+        gpt_ans = gpt_search_thread.join()
+        if gpt_ans != "None":
+            fact_text = (gpt_ans if config.SEARCH_USE_GPT else "")
+        print("gpt", fact_text)
 
     end_time = record_time.time()
     run_time = end_time - start_time
@@ -412,12 +456,10 @@ def get_search_results(prompt: str, context_max_tokens: int):
         useful_source_text = encoding.decode(encode_text)
     encode_text = encoding.encode(useful_source_text)
     search_tokens_len = len(encode_text)
-    print("web search", useful_source_text, end="\n\n")
+    # print("web search", useful_source_text, end="\n\n")
 
-    print(url_set_list)
+    print("urls", url_set_list)
     print("pdf", url_pdf_set_list)
-    if config.USE_GOOGLE:
-        print("google search keyword", keyword)
     print(f"搜索用时：{run_time}秒")
     print("search tokens len", search_tokens_len)
     useful_source_text =  useful_source_text + "\n\n" + fact_text
@@ -427,8 +469,9 @@ def get_search_results(prompt: str, context_max_tokens: int):
 
 def search_web_and_summary(
         prompt: str,
-        engine: str = "gpt-3.5-turbo",
-        context_max_tokens: int = 4096,
+        engine: str = "gpt-3.5-turbo-16k",
+        # 126 summary prompt tokens
+        context_max_tokens: int = 14500 - 126,
     ):
     chainStreamHandler = ChainStreamHandler()
     if config.USE_G4F:
@@ -456,33 +499,33 @@ if __name__ == "__main__":
 
     # # 搜索
 
-    # # for i in search_summary("今天的微博热搜有哪些？"):
-    # # for i in search_summary("macos 13.6 有什么新功能"):
-    # # for i in search_summary("用python写个网络爬虫给我"):
-    # # for i in search_summary("消失的她主要讲了什么？"):
-    # # for i in search_summary("奥巴马的全名是什么？"):
-    # # for i in search_summary("华为mate60怎么样？"):
-    # # for i in search_summary("慈禧养的猫叫什么名字?"):
-    # # for i in search_summary("民进党当初为什么支持柯文哲选台北市长？"):
-    # # for i in search_summary("Has the United States won the china US trade war？"):
-    # # for i in search_summary("What does 'n+2' mean in Huawei's 'Mate 60 Pro' chipset? Please conduct in-depth analysis."):
-    # # for i in search_summary("AUTOMATIC1111 是什么？"):
-    # for i in search_summary("python telegram bot 怎么接收pdf文件"):
-    # # for i in search_summary("中国利用外资指标下降了 87% ？真的假的。"):
-    # # for i in search_summary("How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"):
-    # # for i in search_summary("英国脱欧没有好处，为什么英国人还是要脱欧？"):
-    # # for i in search_summary("2022年俄乌战争为什么发生？"):
-    # # for i in search_summary("卡罗尔与星期二讲的啥？"):
-    # # for i in search_summary("金砖国家会议有哪些决定？"):
-    # for i in search_summary("iphone15有哪些新功能？"):
-    # # for i in search_summary("python函数开头：def time(text: str) -> str:每个部分有什么用？"):
-        # print(i, end="")
+    # for i in search_web_and_summary("今天的微博热搜有哪些？"):
+    # for i in search_web_and_summary("macos 13.6 有什么新功能"):
+    # for i in search_web_and_summary("用python写个网络爬虫给我"):
+    # for i in search_web_and_summary("消失的她主要讲了什么？"):
+    # for i in search_web_and_summary("奥巴马的全名是什么？"):
+    # for i in search_web_and_summary("华为mate60怎么样？"):
+    # for i in search_web_and_summary("慈禧养的猫叫什么名字?"):
+    for i in search_web_and_summary("民进党当初为什么支持柯文哲选台北市长？"):
+    # for i in search_web_and_summary("Has the United States won the china US trade war？"):
+    # for i in search_web_and_summary("What does 'n+2' mean in Huawei's 'Mate 60 Pro' chipset? Please conduct in-depth analysis."):
+    # for i in search_web_and_summary("AUTOMATIC1111 是什么？"):
+    # for i in search_web_and_summary("python telegram bot 怎么接收pdf文件"):
+    # for i in search_web_and_summary("中国利用外资指标下降了 87% ？真的假的。"):
+    # for i in search_web_and_summary("How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"):
+    # for i in search_web_and_summary("英国脱欧没有好处，为什么英国人还是要脱欧？"):
+    # for i in search_web_and_summary("2022年俄乌战争为什么发生？"):
+    # for i in search_web_and_summary("卡罗尔与星期二讲的啥？"):
+    # for i in search_web_and_summary("金砖国家会议有哪些决定？"):
+    # for i in search_web_and_summary("iphone15有哪些新功能？"):
+    # for i in search_web_and_summary("python函数开头：def time(text: str) -> str:每个部分有什么用？"):
+        print(i, end="")
 
     # 问答
     # result = asyncio.run(docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？"))
     # result = asyncio.run(docQA("https://yym68686.top", "说一下HSTL pipeline"))
-    result = asyncio.run(docQA("https://wiki.yym68686.top", "PyTorch to MindSpore翻译思路是什么？"))
-    print(result['answer'])
+    # result = asyncio.run(docQA("https://wiki.yym68686.top", "PyTorch to MindSpore翻译思路是什么？"))
+    # print(result['answer'])
     # result = asyncio.run(pdfQA("https://api.telegram.org/file/bot5569497961:AAHobhUuydAwD8SPkXZiVFybvZJOmGrST_w/documents/file_1.pdf", "HSTL的pipeline详细讲一下"))
     # print(result)
     # source_url = set([i.metadata['source'] for i in result["source_documents"]])
