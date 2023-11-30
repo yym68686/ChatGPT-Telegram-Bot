@@ -42,6 +42,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 prompt = prompt.format(language)
                 message = prompt + message
             if message:
+                if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
+                    robot = config.claudeBot
                 await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
                 await getChatGPT(update, context, title, robot, message, config.SEARCH_USE_GPT, has_command)
         else:
@@ -337,8 +339,8 @@ async def button_press(update, context):
         if config.API and "gpt-" in data:
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
-        if config.ClaudeAPI and "claude" in data and not config.API:
-            config.ChatGPTbot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+        if config.ClaudeAPI and "claude" in data:
+            config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         try:
             info_message = (
                 f"`Hi, {update.effective_user.username}!`\n\n"
@@ -461,8 +463,8 @@ async def button_press(update, context):
         if config.API:
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
-        if config.ClaudeAPI and not config.API:
-            config.ChatGPTbot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+        if config.ClaudeAPI:
+            config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
 
         info_message = (
             f"`Hi, {update.effective_user.username}!`\n\n"
@@ -513,36 +515,58 @@ async def info(update, context):
     messageid = message.message_id
     await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
 
-from utils.agent import pdfQA, getmd5, persist_emdedding_pdf
+from utils.agent import pdfQA, getmd5, persist_emdedding_pdf, get_doc_from_url
+from pdfminer.high_level import extract_text
 @decorators.Authorization
 async def handle_pdf(update, context):
     # 获取接收到的文件
     pdf_file = update.message.document
     # 得到文件的url
-    file_name = pdf_file.file_name
-    docpath = os.getcwd() + "/" + file_name
-    persist_db_path = getmd5(docpath)
-    match_embedding = os.path.exists(persist_db_path)
+    # file_name = pdf_file.file_name
+    # docpath = os.getcwd() + "/" + file_name
     file_id = pdf_file.file_id
     new_file = await context.bot.get_file(file_id)
     file_url = new_file.file_path
-
-    question = update.message.caption
-    if question is None:
-        if not match_embedding:
-            persist_emdedding_pdf(file_url, persist_db_path)
-        message = (
-            f"已成功解析文档！\n\n"
-            f"请输入 `要问的问题`\n\n"
-            f"例如已经上传某文档 ，问题是 蘑菇怎么分类？\n\n"
-            f"先左滑文档进入回复模式，并在聊天框里面输入 `蘑菇怎么分类？`\n\n"
+    filename = get_doc_from_url(file_url)
+    docpath = os.getcwd() + "/" + filename
+    if config.ClaudeAPI:
+        text = extract_text(docpath)
+        prompt = (
+            "Here is the document, inside <document></document> XML tags:"
+            "<document>"
+            "{}"
+            "</document>"
         )
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-        return
+        # print(prompt.format(text))
+        config.claudeBot.add_to_conversation(prompt.format(text), "Human", str(update.effective_chat.id))
+        message = (
+            f"文档上传成功！\n\n"
+        )
+        os.remove(docpath)
+        await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
-    result = await pdfQA(file_url, docpath, question)
-    print(result)
-    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    # persist_db_path = getmd5(docpath)
+    # match_embedding = os.path.exists(persist_db_path)
+    # file_id = pdf_file.file_id
+    # new_file = await context.bot.get_file(file_id)
+    # file_url = new_file.file_path
+
+    # question = update.message.caption
+    # if question is None:
+    #     if not match_embedding:
+            # persist_emdedding_pdf(file_url, persist_db_path)
+    #     message = (
+    #         f"已成功解析文档！\n\n"
+    #         f"请输入 `要问的问题`\n\n"
+    #         f"例如已经上传某文档 ，问题是 蘑菇怎么分类？\n\n"
+    #         f"先左滑文档进入回复模式，并在聊天框里面输入 `蘑菇怎么分类？`\n\n"
+    #     )
+    #     await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    #     return
+
+    # result = await pdfQA(file_url, docpath, question)
+    # print(result)
+    # await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.Authorization
 async def qa(update, context):

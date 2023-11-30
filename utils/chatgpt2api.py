@@ -50,7 +50,7 @@ ENGINES = [
     "gpt-4-32k-0613",
     "gpt-4-1106-preview",
     "claude-2-web",
-    "claude-2",
+    "claude-2.1",
 ]
 
 class claudeConversation(dict):
@@ -68,6 +68,7 @@ class claudebot:
         top_p: float = 0.7,
         chat_url: str = "https://api.anthropic.com/v1/complete",
         timeout: float = None,
+        system_prompt: str = "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally",
         **kwargs,
     ):
         self.api_key: str = api_key
@@ -78,17 +79,21 @@ class claudebot:
         self.timeout = timeout
         self.session = requests.Session()
         self.conversation = claudeConversation()
+        self.system_prompt = system_prompt
 
     def add_to_conversation(
         self,
         message: str,
         role: str,
         convo_id: str = "default",
-
+        pass_history: bool = True,
     ) -> None:
         """
         Add a message to the conversation
         """
+
+        if convo_id not in self.conversation or pass_history == False:
+            self.reset(convo_id=convo_id)
         self.conversation[convo_id].append({"role": role, "content": message})
 
     def reset(self, convo_id: str = "default") -> None:
@@ -147,6 +152,7 @@ class claudebot:
         model_max_tokens: int = 4096,
         **kwargs,
     ):
+        pass_history = True
         if convo_id not in self.conversation or pass_history == False:
             self.reset(convo_id=convo_id)
         self.add_to_conversation(prompt, role, convo_id=convo_id)
@@ -191,7 +197,7 @@ class claudebot:
             full_response += content
             yield content
         self.add_to_conversation(full_response, response_role, convo_id=convo_id)
-        print(repr(self.conversation.Conversation(convo_id)))
+        # print(repr(self.conversation.Conversation(convo_id)))
         # print("total tokens:", self.get_token_count(convo_id))
 
 
