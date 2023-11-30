@@ -96,7 +96,7 @@ class claudebot:
             self.reset(convo_id=convo_id)
         self.conversation[convo_id].append({"role": role, "content": message})
 
-    def reset(self, convo_id: str = "default") -> None:
+    def reset(self, convo_id: str = "default", system_prompt: str = None) -> None:
         """
         Reset the conversation
         """

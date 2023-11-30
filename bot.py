@@ -87,6 +87,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 async def reset_chat(update, context):
     if config.API:
         config.ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
+    if config.ClaudeAPI:
+        config.claudeBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
     await context.bot.send_message(
         chat_id=update.message.chat_id,
         text="重置成功！",
