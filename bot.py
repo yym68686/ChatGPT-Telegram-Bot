@@ -103,10 +103,6 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
     )
     messageid = message.message_id
     get_answer = robot.ask_stream
-    # if use_search and not has_command:
-    #     get_answer = robot.search_summary
-    # else:
-    #     get_answer = robot.ask_stream
     if not config.API or (config.USE_G4F and not config.SEARCH_USE_GPT):
         import utils.gpt4free as gpt4free
         get_answer = gpt4free.get_response
@@ -341,7 +337,7 @@ async def button_press(update, context):
         if config.API and "gpt-" in data:
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
-        if config.ClaudeAPI and "claude" in data:
+        if config.ClaudeAPI and "claude" in data and not config.API:
             config.ChatGPTbot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         print(config.GPT_ENGINE)
         try:
@@ -466,7 +462,7 @@ async def button_press(update, context):
         if config.API:
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
-        if config.ClaudeAPI:
+        if config.ClaudeAPI and not config.API:
             config.ChatGPTbot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
 
         info_message = (
