@@ -324,7 +324,7 @@ def get_search_url(prompt, chainllm):
     keyword_prompt = PromptTemplate(
         input_variables=["source"],
         template=(
-            "根据我的问题，总结最少的关键词概括，给出三行不同的关键词组合，每行的关键词用空格连接，至少有一行关键词里面有中文，至少有一行关键词里面有英文，不要出现其他符号。"
+            "根据我的问题，总结最少的关键词概括，给出三行不同的关键词组合，每行的关键词用空格连接，至少有一行关键词里面有中文，至少有一行关键词里面有英文。只要直接给出这三行关键词，不需要其他任何解释，不要出现其他符号。"
             "下面是示例："
             "问题1：How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"
             "三行关键词是："
@@ -336,14 +336,21 @@ def get_search_url(prompt, chainllm):
             "pplx API demo"
             "pplx API"
             "pplx API 使用方法"
+            "问题3：以色列哈马斯的最新情况"
+            "三行关键词是："
+            "以色列 哈马斯 最新情况"
+            "Israel Hamas situation"
+            "哈马斯 以色列 冲突"
             "这是我的问题：{source}"
         ),
     )
     key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
     keyword_google_search_thread = ThreadWithReturnValue(target=key_chain.run, args=({"source": prompt},))
     keyword_google_search_thread.start()
-    keywords = keyword_google_search_thread.join().split('\n')
+    keywords = keyword_google_search_thread.join().split('\n')[-3:]
     print("keywords", keywords)
+    keywords = [item.replace("三行关键词是：", "") for item in keywords if "\\x" not in item]
+    print("select keywords", keywords)
 
     search_threads = []
     urls_set = []

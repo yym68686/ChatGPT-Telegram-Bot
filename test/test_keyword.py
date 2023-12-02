@@ -17,7 +17,7 @@ def getgooglesearchurl(result, numresults=1):
         urls.append(i["link"])
     return urls
 
-chainllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name="gpt-4-1106-preview", openai_api_key=os.environ.get('API', None))
+chainllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL', None).split("chat")[0], model_name="gpt-3.5-turbo-1106", openai_api_key=os.environ.get('API', None))
 # keyword_prompt = PromptTemplate(
 #     input_variables=["source"],
 #     # template="*{source}*, ——我想通过网页搜索引擎，获取上述问题的可能答案。请你提取上述问题相关的关键词作为搜索用词(用空格隔开)，直接给我结果(不要多余符号)。",
@@ -29,7 +29,7 @@ chainllm = ChatOpenAI(temperature=0.5, openai_api_base=os.environ.get('API_URL',
 keyword_prompt = PromptTemplate(
     input_variables=["source"],
     template=(
-        "根据我的问题，总结最少的关键词概括，给出三行不同的关键词组合，每行的关键词用空格连接，至少有一行关键词里面有中文，至少有一行关键词里面有英文，不要出现其他符号。"
+        "根据我的问题，总结最少的关键词概括，给出三行不同的关键词组合，每行的关键词用空格连接，至少有一行关键词里面有中文，至少有一行关键词里面有英文。只要直接给出这三行关键词，不需要其他任何解释，不要出现其他符号。"
         "下面是示例："
         "问题1：How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"
         "三行关键词是："
@@ -41,11 +41,17 @@ keyword_prompt = PromptTemplate(
         "pplx API demo"
         "pplx API"
         "pplx API 使用方法"
+        "问题3：以色列哈马斯的最新情况"
+        "三行关键词是："
+        "以色列 哈马斯 最新情况"
+        "Israel Hamas situation"
+        "哈马斯 以色列 冲突"
         "这是我的问题：{source}"
     ),
 )
 key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
-result = key_chain.run("今天的微博热搜有哪些？").split('\n')
+result = key_chain.run("以色列哈马斯的最新情况").split('\n')
+# result = key_chain.run("今天的微博热搜有哪些？").split('\n')
 # result = key_chain.run("鸿蒙是安卓套壳吗？")
 # result = key_chain.run("How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?")
 print(result)

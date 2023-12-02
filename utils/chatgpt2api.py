@@ -276,7 +276,7 @@ class Chatbot:
             if "gpt-4-32k" in engine
             else 7000
             if "gpt-4" in engine
-            else 4000
+            else 4096
             if "gpt-3.5-turbo-1106" in engine
             else 15000
             if "gpt-3.5-turbo-16k" in engine
@@ -401,7 +401,7 @@ class Chatbot:
         """
         Get max tokens
         """
-        # print(self.max_tokens, self.get_token_count(convo_id))
+        # print("self.max_tokens, self.get_token_count(convo_id)", self.max_tokens, self.get_token_count(convo_id))
         return self.max_tokens - self.get_token_count(convo_id)
 
     def ask_stream(
@@ -429,6 +429,8 @@ class Chatbot:
 
         if self.engine == "gpt-4-1106-preview":
             model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        elif self.engine == "gpt-3.5-turbo-1106":
+            model_max_tokens = min(kwargs.get("max_tokens", self.max_tokens), self.truncate_limit - self.get_token_count(convo_id))
         else:
             model_max_tokens = min(self.get_max_tokens(convo_id=convo_id) - 500, kwargs.get("max_tokens", self.max_tokens))
         json_post = {
@@ -505,6 +507,7 @@ class Chatbot:
             response_role = "function"
             if function_call_name == "get_search_results":
                 prompt = json.loads(full_response)["prompt"]
+                # print(self.truncate_limit, self.get_token_count(convo_id), max_context_tokens)
                 function_response = eval(function_call_name)(prompt, max_context_tokens)
                 function_response = "web search results: \n" + function_response
                 yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
