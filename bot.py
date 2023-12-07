@@ -8,7 +8,7 @@ from utils.md2tgmd import escape
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import claudebot
 from telegram.constants import ChatAction
-from utils.agent import docQA, get_doc_from_local, claudeQA
+from utils.agent import docQA, get_doc_from_local, Document_extract, pdfQA
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter
 from config import WEB_HOOK, PORT, BOT_TOKEN
@@ -76,10 +76,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 
         file_name = pdf_file.file_name
         docpath = os.getcwd() + "/" + file_name
-        if  "cluade" in config.GPT_ENGINE:
-            result = await claudeQA(file_url, question)
-        else:
-            result = await pdfQA(file_url, docpath, question)
+        result = await pdfQA(file_url, docpath, question)
         print(result)
         await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
@@ -517,58 +514,27 @@ async def info(update, context):
     messageid = message.message_id
     await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
 
-from utils.agent import pdfQA, getmd5, persist_emdedding_pdf, get_doc_from_url
-from pdfminer.high_level import extract_text
 @decorators.Authorization
 async def handle_pdf(update, context):
     # 获取接收到的文件
     pdf_file = update.message.document
     # 得到文件的url
-    # file_name = pdf_file.file_name
-    # docpath = os.getcwd() + "/" + file_name
     file_id = pdf_file.file_id
     new_file = await context.bot.get_file(file_id)
     file_url = new_file.file_path
-    filename = get_doc_from_url(file_url)
-    docpath = os.getcwd() + "/" + filename
-    if config.ClaudeAPI:
-        text = extract_text(docpath)
-        prompt = (
-            "Here is the document, inside <document></document> XML tags:"
-            "<document>"
-            "{}"
-            "</document>"
-        )
-        # print(prompt.format(text))
-        config.claudeBot.add_to_conversation(prompt.format(text), "Human", str(update.effective_chat.id))
-        message = (
-            f"文档上传成功！\n\n"
-        )
-        os.remove(docpath)
-        await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-
-    # persist_db_path = getmd5(docpath)
-    # match_embedding = os.path.exists(persist_db_path)
-    # file_id = pdf_file.file_id
-    # new_file = await context.bot.get_file(file_id)
-    # file_url = new_file.file_path
-
-    # question = update.message.caption
-    # if question is None:
-    #     if not match_embedding:
-            # persist_emdedding_pdf(file_url, persist_db_path)
-    #     message = (
-    #         f"已成功解析文档！\n\n"
-    #         f"请输入 `要问的问题`\n\n"
-    #         f"例如已经上传某文档 ，问题是 蘑菇怎么分类？\n\n"
-    #         f"先左滑文档进入回复模式，并在聊天框里面输入 `蘑菇怎么分类？`\n\n"
-    #     )
-    #     await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-    #     return
-
-    # result = await pdfQA(file_url, docpath, question)
-    # print(result)
-    # await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    extracted_text_with_prompt = Document_extract(file_url)
+    # print(extracted_text_with_prompt)
+    if config.ClaudeAPI and "claude" in config.GPT_ENGINE:
+        robot = config.claudeBot
+        role = "Human"
+    else:
+        robot = config.ChatGPTbot
+        role = "user"
+    robot.add_to_conversation(extracted_text_with_prompt, role, str(update.effective_chat.id))
+    message = (
+        f"文档上传成功！\n\n"
+    )
+    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.Authorization
 async def qa(update, context):
@@ -651,7 +617,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.ChatGPTbot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(CommandHandler("qa", qa))
-    application.add_handler(MessageHandler(filters.Document.MimeType('application/pdf'), handle_pdf))
+    application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC, handle_pdf))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)

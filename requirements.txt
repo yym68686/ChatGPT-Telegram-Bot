@@ -4,12 +4,13 @@ requests
 python-telegram-bot[webhooks,rate-limiter]==20.6
 
 # langchain
-chromadb
+# chromadb
+# unstructured[md,pdf]
+# unstructured[md,pdf]
 wikipedia
 fake_useragent
 openai==0.28.1
 google-api-python-client
-unstructured[md,pdf]
 duckduckgo-search==3.9.6
 # duckduckgo-search==3.8.5
 langchain==0.0.271

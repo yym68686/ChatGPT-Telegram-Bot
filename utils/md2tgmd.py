@@ -44,6 +44,10 @@ def escape(text, flag=0):
     # In all other places characters
     # _ * [ ] ( ) ~ ` > # + - = | { } . !
     # must be escaped with the preceding character '\'.
+    text = re.sub(r"\\\[", '@->@', text)
+    text = re.sub(r"\\\]", '@<-@', text)
+    text = re.sub(r"\\\(", '@-->@', text)
+    text = re.sub(r"\\\)", '@<--@', text)
     if flag:
         text = re.sub(r"\\\\", '@@@', text)
     text = re.sub(r"\\", r"\\\\", text)
@@ -59,6 +63,10 @@ def escape(text, flag=0):
     text = re.sub(r"\]", '\]', text)
     text = re.sub(r"\(", '\(', text)
     text = re.sub(r"\)", '\)', text)
+    text = re.sub(r"\@\-\>\@", '\[', text)
+    text = re.sub(r"\@\<\-\@", '\]', text)
+    text = re.sub(r"\@\-\-\>\@", '\(', text)
+    text = re.sub(r"\@\<\-\-\@", '\)', text)
     text = re.sub(r"\@{3}(.*?)\@{3}\^{3}(.*?)\^{3}", '[\\1](\\2)', text)
     text = re.sub(r"~", '\~', text)
     text = re.sub(r">", '\>', text)
@@ -130,6 +138,7 @@ print("Hello, World!") -
 Cxy = abs (Pxy)**2/ (Pxx*Pyy)
 
 `a`a-b-c`n`
+\[ E[X^4] = \int_{-\infty}^{\infty} x^4 f(x) dx \]
 
 `-a----++++`++a-b-c`-n-`
 `[^``]*`a``b-c``d``

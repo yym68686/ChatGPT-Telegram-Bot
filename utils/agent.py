@@ -162,15 +162,6 @@ async def pdfQA(docurl, docpath, query_message, model="gpt-3.5-turbo"):
     result = qa({"query": query_message})
     return result['result']
 
-async def claudeQA(docurl, query_message):
-    from pdfminer.high_level import extract_text
-    filename = get_doc_from_url(docurl)
-    docpath = os.getcwd() + "/" + filename
-    text = extract_text(docpath)
-    print(text)
-    prompt = f"""你需要回答的问题是：{query_message}"""
-    return text
-
 def pdf_search(docurl, query_message, model="gpt-3.5-turbo"):
     chatllm = ChatOpenAI(temperature=0.5, openai_api_base=config.bot_api_url.v1_url, model_name=model, openai_api_key=os.environ.get('API', None))
     embeddings = OpenAIEmbeddings(openai_api_base=config.bot_api_url.v1_url, openai_api_key=os.environ.get('API', None))
@@ -193,6 +184,24 @@ def pdf_search(docurl, query_message, model="gpt-3.5-turbo"):
     # 进行问答
     result = qa({"query": query_message})
     return result['result']
+
+def Document_extract(docurl):
+    filename = get_doc_from_url(docurl)
+    docpath = os.getcwd() + "/" + filename
+    if filename[-3:] == "pdf":
+        from pdfminer.high_level import extract_text
+        text = extract_text(docpath)
+    if filename[-3:] == "txt":
+        with open(docpath, 'r') as f:
+            text = f.read()
+    prompt = (
+        "Here is the document, inside <document></document> XML tags:"
+        "<document>"
+        "{}"
+        "</document>"
+    ).format(text)
+    os.remove(docpath)
+    return prompt
 
 from typing import Optional, List
 from langchain.llms.base import LLM

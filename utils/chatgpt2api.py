@@ -351,6 +351,8 @@ class Chatbot:
         """
         Add a message to the conversation
         """
+        if convo_id not in self.conversation:
+            self.reset(convo_id=convo_id)
         if function_name == "" and message != "":
             self.conversation[convo_id].append({"role": role, "content": message})
         else:
