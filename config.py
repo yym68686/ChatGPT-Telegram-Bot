@@ -15,7 +15,7 @@ SEARCH_USE_GPT = (os.environ.get('SEARCH_USE_GPT', "True") == "False") == False
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
 LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
-PRIVATECHAT = (os.environ.get('PRIVATECHAT', "True") == "False") == False
+ALLOWPRIVATECHAT = (os.environ.get('ALLOWPRIVATECHAT', "True") == "False") == False
 
 from datetime import datetime
 current_date = datetime.now()

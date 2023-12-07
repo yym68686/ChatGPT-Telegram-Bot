@@ -32,7 +32,7 @@ print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
-    if config.PRIVATECHAT and update.message.chat.type == "private":
+    if not config.ALLOWPRIVATECHAT and update.message.chat.type == "private":
         return
     if has_command == False or len(context.args) > 0:
         message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
@@ -487,8 +487,8 @@ async def info(update, context):
     )
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(first_buttons), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
-    messageid = message.message_id
-    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
+    # messageid = message.message_id
+    # await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
 
 @decorators.Authorization
 async def handle_pdf(update, context):
