@@ -19,9 +19,9 @@ def Authorization(func):
 # 判断是否是管理员
 def AdminAuthorization(func):
     async def wrapper(*args, **kwargs):
-        if config.ADMIN == None:
+        if config.ADMIN_LIST == None:
             return await func(*args, **kwargs)
-        if (args[0].effective_chat.id not in config.ADMIN):
+        if (args[0].effective_chat.id not in config.ADMIN_LIST):
             message = (
                 f"`Hi, {args[0].effective_user.username}!`\n\n"
                 f"id: `{args[0].effective_user.id}`\n\n"
