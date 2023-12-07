@@ -575,7 +575,8 @@ async def error(update, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def unknown(update, context): # 当用户输入未知命令时，返回文本
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
+    return
+    # await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
 
 async def post_init(application: Application) -> None:
     await application.bot.set_my_commands([
