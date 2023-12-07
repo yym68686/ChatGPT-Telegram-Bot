@@ -15,16 +15,18 @@ SEARCH_USE_GPT = (os.environ.get('SEARCH_USE_GPT', "True") == "False") == False
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
 LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
+PRIVATECHAT = (os.environ.get('PRIVATECHAT', "True") == "False") == False
 
 from datetime import datetime
 current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
-systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]"
+systemprompt = os.environ.get('SYSTEMPROMPT', f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]")
 
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import Imagebot, claudebot
 if API:
     ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
+    translate_bot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
     dallbot = Imagebot(api_key=f"{API}")
 else:
     ChatGPTbot = None
@@ -34,6 +36,7 @@ if ClaudeAPI:
     claudeBot = claudebot(api_key=f"{ClaudeAPI}")
 
 whitelist = os.environ.get('whitelist', None)
+ADMIN = os.environ.get('ADMIN', None)
 if whitelist:
     whitelist = [int(id) for id in whitelist.split(",")]
 

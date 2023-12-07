@@ -32,53 +32,28 @@ print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
-    if update.message.reply_to_message is None or update.message.reply_to_message.text or update.message.reply_to_message.document is None:
-        if has_command == False or len(context.args) > 0:
-            message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-            if has_command:
-                message = ' '.join(context.args)
-            print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
-            if prompt and has_command:
-                prompt = prompt.format(language)
-                message = prompt + message
-            if message:
-                if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
-                    robot = config.claudeBot
-                await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-                await getChatGPT(update, context, title, robot, message, config.SEARCH_USE_GPT, has_command)
-        else:
-            message = await context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text="请在命令后面放入文本。",
-                parse_mode='MarkdownV2',
-                reply_to_message_id=update.message.message_id,
-            )
-    else:
-        # if update.message.reply_to_message.document is None:
-        #     message = (
-        #         f"格式错误哦~，需要回复一个文件，我才知道你要针对哪个文件提问，注意命令与问题之间的空格\n\n"
-        #         f"请输入 `要问的问题`\n\n"
-        #         f"例如已经上传某文档 ，问题是 蘑菇怎么分类？\n\n"
-        #         f"先左滑文档进入回复模式，在聊天框里面输入 `蘑菇怎么分类？`\n\n"
-        #     )
-        #     await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-        #     return
+    if config.PRIVATECHAT and update.message.chat.type == "private":
+        return
+    if has_command == False or len(context.args) > 0:
+        message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+        if has_command:
+            message = ' '.join(context.args)
         print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
-        await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        pdf_file = update.message.reply_to_message.document
-
-        file_id = pdf_file.file_id
-        new_file = await context.bot.get_file(file_id)
-
-        file_url = new_file.file_path
-
-        question = update.message.text
-
-        file_name = pdf_file.file_name
-        docpath = os.getcwd() + "/" + file_name
-        result = await pdfQA(file_url, docpath, question)
-        print(result)
-        await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        if prompt and has_command:
+            prompt = prompt.format(language)
+            message = prompt + message
+        if message:
+            if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
+                robot = config.claudeBot
+            await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
+            await getChatGPT(update, context, title, robot, message, config.SEARCH_USE_GPT, has_command)
+    else:
+        message = await context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="请在命令后面放入文本。",
+            parse_mode='MarkdownV2',
+            reply_to_message_id=update.message.message_id,
+        )
 
 @decorators.Authorization
 async def reset_chat(update, context):
@@ -499,6 +474,7 @@ async def button_press(update, context):
             parse_mode='MarkdownV2'
         )
 
+@decorators.AdminAuthorization
 @decorators.Authorization
 async def info(update, context):
     info_message = (
@@ -577,7 +553,7 @@ async def start(update, context): # 当用户输入/start时，返回文本
 
 async def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
-    await context.bot.send_message(chat_id=update.message.chat_id, text="出错啦！请重试。", parse_mode='MarkdownV2', disable_web_page_preview=True)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="出错啦！请重试。", parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.Authorization
 async def unknown(update, context): # 当用户输入未知命令时，返回文本
@@ -613,8 +589,8 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("search", lambda update, context: search(update, context, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot)))
     application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(CommandHandler("reset", reset_chat))
-    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, config.LANGUAGE, robot=config.ChatGPTbot)))
-    application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.ChatGPTbot)))
+    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, config.LANGUAGE, robot=config.translate_bot)))
+    application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.translate_bot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(CommandHandler("qa", qa))
     application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC, handle_pdf))
