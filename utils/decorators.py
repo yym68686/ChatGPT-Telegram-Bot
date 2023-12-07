@@ -5,7 +5,23 @@ def Authorization(func):
     async def wrapper(*args, **kwargs):
         if config.whitelist == None:
             return await func(*args, **kwargs)
-        if (args[0].effective_chat.id not in config.whitelist):
+        if (args[0].effective_user.id not in config.whitelist):
+            message = (
+                f"`Hi, {args[0].effective_user.username}!`\n\n"
+                f"id: `{args[0].effective_user.id}`\n\n"
+                f"无权访问！\n\n"
+            )
+            await args[1].bot.send_message(chat_id=args[0].effective_user.id, text=message, parse_mode='MarkdownV2')
+            return
+        return await func(*args, **kwargs)
+    return wrapper
+
+# 判断是否在群聊白名单
+def GroupAuthorization(func):
+    async def wrapper(*args, **kwargs):
+        if config.GROUP_LIST == None:
+            return await func(*args, **kwargs)
+        if (args[0].effective_chat.id not in config.GROUP_LIST):
             message = (
                 f"`Hi, {args[0].effective_user.username}!`\n\n"
                 f"id: `{args[0].effective_user.id}`\n\n"
@@ -21,13 +37,13 @@ def AdminAuthorization(func):
     async def wrapper(*args, **kwargs):
         if config.ADMIN_LIST == None:
             return await func(*args, **kwargs)
-        if (args[0].effective_chat.id not in config.ADMIN_LIST):
+        if (args[0].effective_user.id not in config.ADMIN_LIST):
             message = (
                 f"`Hi, {args[0].effective_user.username}!`\n\n"
                 f"id: `{args[0].effective_user.id}`\n\n"
                 f"无权访问！\n\n"
             )
-            await args[1].bot.send_message(chat_id=args[0].effective_chat.id, text=message, parse_mode='MarkdownV2')
+            await args[1].bot.send_message(chat_id=args[0].effective_user.id, text=message, parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)
     return wrapper

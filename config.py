@@ -15,7 +15,7 @@ SEARCH_USE_GPT = (os.environ.get('SEARCH_USE_GPT', "True") == "False") == False
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
 LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
-ALLOWPRIVATECHAT = (os.environ.get('ALLOWPRIVATECHAT', "True") == "False") == False
+
 
 from datetime import datetime
 current_date = datetime.now()
@@ -41,6 +41,9 @@ if whitelist:
 ADMIN_LIST = os.environ.get('ADMIN_LIST', None)
 if ADMIN_LIST:
     ADMIN_LIST = [int(id) for id in ADMIN_LIST.split(",")]
+GROUP_LIST = os.environ.get('GROUP_LIST', None)
+if GROUP_LIST:
+    GROUP_LIST = [int(id) for id in GROUP_LIST.split(",")]
 
 USE_G4F = False
 
