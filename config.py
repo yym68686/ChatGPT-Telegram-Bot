@@ -36,9 +36,11 @@ if ClaudeAPI:
     claudeBot = claudebot(api_key=f"{ClaudeAPI}")
 
 whitelist = os.environ.get('whitelist', None)
-ADMIN_LIST = os.environ.get('ADMIN_LIST', None)
 if whitelist:
     whitelist = [int(id) for id in whitelist.split(",")]
+ADMIN_LIST = os.environ.get('ADMIN_LIST', None)
+if ADMIN_LIST:
+    ADMIN_LIST = [int(id) for id in ADMIN_LIST.split(",")]
 
 USE_G4F = False
 

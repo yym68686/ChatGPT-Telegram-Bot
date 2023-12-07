@@ -30,26 +30,34 @@ botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
 translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
+
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
     if not config.ALLOWPRIVATECHAT and update.message.chat.type == "private":
         return
     if has_command == False or len(context.args) > 0:
-        message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+        if update.edited_message:
+            message = update.edited_message.text if config.NICK is None else update.edited_message.text[botNicKLength:].strip() if update.edited_message.text[:botNicKLength].lower() == botNick else None
+            rawtext = update.edited_message.text
+            chatid = update.effective_chat.id
+        else:
+            message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+            rawtext = update.message.text
+            chatid = update.message.chat_id
+        print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
         if has_command:
             message = ' '.join(context.args)
-        print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
         if prompt and has_command:
             prompt = prompt.format(language)
             message = prompt + message
         if message:
             if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claudeBot
-            await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-            await getChatGPT(update, context, title, robot, message, config.SEARCH_USE_GPT, has_command)
+            await context.bot.send_chat_action(chat_id=chatid, action=ChatAction.TYPING)
+            await getChatGPT(update, context, title, robot, message, chatid)
     else:
         message = await context.bot.send_message(
-            chat_id=update.message.chat_id,
+            chat_id=chatid,
             text="请在命令后面放入文本。",
             parse_mode='MarkdownV2',
             reply_to_message_id=update.message.message_id,
@@ -66,16 +74,21 @@ async def reset_chat(update, context):
         text="重置成功！",
     )
 
-async def getChatGPT(update, context, title, robot, message, use_search=config.SEARCH_USE_GPT, has_command=True):
+async def getChatGPT(update, context, title, robot, message, chatid=None):
     result = title
     text = message
     modifytime = 0
     lastresult = ''
+    if update.edited_message:
+        messageid = update.edited_message.message_id
+    else:
+        messageid = update.message.message_id
+
     message = await context.bot.send_message(
-        chat_id=update.message.chat_id,
+        chat_id=chatid,
         text="思考中💭",
         parse_mode='MarkdownV2',
-        reply_to_message_id=update.message.message_id,
+        reply_to_message_id=messageid,
     )
     messageid = message.message_id
     get_answer = robot.ask_stream
@@ -84,7 +97,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
         get_answer = gpt4free.get_response
 
     try:
-        for data in get_answer(text, convo_id=str(update.message.chat_id), pass_history=config.PASS_HISTORY):
+        for data in get_answer(text, convo_id=str(update.effective_user.id), pass_history=config.PASS_HISTORY):
             result = result + data
             tmpresult = result
             modifytime = modifytime + 1
@@ -95,7 +108,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
             if modifytime % 20 == 0 and lastresult != tmpresult:
                 if 'claude2' in title:
                     tmpresult = re.sub(r",", '，', tmpresult)
-                await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
+                await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
                 lastresult = tmpresult
     except Exception as e:
         print('\033[31m')
@@ -104,10 +117,10 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
         traceback.print_exc()
         print('\033[0m')
         if config.API:
-            robot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
+            robot.reset(convo_id=str(update.effective_user.id), system_prompt=config.systemprompt)
         if "You exceeded your current quota, please check your plan and billing details." in str(e):
             print("OpenAI api 已过期！")
-            await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
+            await context.bot.delete_message(chat_id=chatid, message_id=messageid)
             messageid = ''
             config.API = ''
         result += f"`出错啦！{e}`"
@@ -115,7 +128,7 @@ async def getChatGPT(update, context, title, robot, message, use_search=config.S
     if lastresult != result and messageid:
         if 'claude2' in title:
             result = re.sub(r",", '，', result)
-        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def search(update, context, title, robot):
     message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
@@ -222,7 +235,6 @@ async def image(update, context):
     print(result)
 
 import time
-import threading
 async def delete_message(update, context, messageid, delay=10):
     time.sleep(delay)
     try:
@@ -553,7 +565,7 @@ async def start(update, context): # 当用户输入/start时，返回文本
 
 async def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="出错啦！请重试。", parse_mode='MarkdownV2', disable_web_page_preview=True)
+    await update.message.reply_text(escape("出错啦！请重试。"), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.Authorization
 async def unknown(update, context): # 当用户输入未知命令时，返回文本
