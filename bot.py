@@ -195,32 +195,43 @@ async def search(update, context, title, robot):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def image(update, context):
-    print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
+    if update.edited_message:
+        message = update.edited_message.text if config.NICK is None else update.edited_message.text[botNicKLength:].strip() if update.edited_message.text[:botNicKLength].lower() == botNick else None
+        rawtext = update.edited_message.text
+        chatid = update.edited_message.chat_id
+        messageid = update.edited_message.message_id
+    else:
+        message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+        rawtext = update.message.text
+        chatid = update.message.chat_id
+        messageid = update.message.message_id
+    print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
+
     if (len(context.args) == 0):
         message = (
             f"格式错误哦~，示例：\n\n"
-            f"`/pic 一只可爱长毛金渐层在趴在路由器上`\n\n"
+            f"`/pic 一只可爱长毛金渐层趴在路由器上`\n\n"
             f"👆点击上方命令复制格式\n\n"
         )
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        await context.bot.send_message(chat_id=chatid, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
         return
     message = ' '.join(context.args)
     result = ""
     robot = config.dallbot
     text = message
     message = await context.bot.send_message(
-        chat_id=update.message.chat_id,
+        chat_id=chatid,
         text="生成中💭",
         parse_mode='MarkdownV2',
-        reply_to_message_id=update.message.message_id,
+        reply_to_message_id=messageid,
     )
-    messageid = message.message_id
+    start_messageid = message.message_id
 
     try:
         for data in robot.dall_e_3(text):
             result = data
-            await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
-            await context.bot.send_photo(chat_id=update.message.chat_id, photo=result, reply_to_message_id=update.message.message_id)
+            await context.bot.delete_message(chat_id=chatid, message_id=start_messageid)
+            await context.bot.send_photo(chat_id=chatid, photo=result, reply_to_message_id=messageid)
     except Exception as e:
         print('\033[31m')
         print("response_msg", result)
@@ -229,11 +240,14 @@ async def image(update, context):
         print('\033[0m')
         if "You exceeded your current quota, please check your plan and billing details." in str(e):
             print("OpenAI api 已过期！")
-            await context.bot.delete_message(chat_id=update.message.chat_id, message_id=messageid)
-            messageid = ''
+            await context.bot.delete_message(chat_id=chatid, message_id=start_messageid)
+            start_messageid = ''
             config.API = ''
+        if "content_policy_violation" in str(e):
+            await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text="当前 prompt 未能成功生成图片，可能涉及版权等违规内容😣，换句话试试吧～", parse_mode='MarkdownV2', disable_web_page_preview=True)
+        if "server is busy" in str(e):
+            await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text="当前服务器繁忙，请稍后再试～", parse_mode='MarkdownV2', disable_web_page_preview=True)
         result += f"`出错啦！{e}`"
-        await context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=messageid, text="当前prompt未能成功生成图片😣换句话试试吧～", parse_mode='MarkdownV2', disable_web_page_preview=True)
     print(result)
 
 import time
@@ -570,7 +584,7 @@ async def start(update, context): # 当用户输入/start时，返回文本
 
 async def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
-    await update.message.reply_text(escape("出错啦！请重试。"), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    # await update.message.reply_text(escape("出错啦！请重试。"), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.GroupAuthorization
 @decorators.Authorization

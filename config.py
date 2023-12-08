@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
 BOT_TOKEN = os.environ.get('BOT_TOKEN', None)
 PORT = int(os.environ.get('PORT', '8080'))
