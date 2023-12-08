@@ -1,6 +1,7 @@
 --index-url https://pypi.python.org/simple/
 tiktoken
 requests
+python-dotenv
 python-telegram-bot[webhooks,rate-limiter]==20.6
 
 # langchain
