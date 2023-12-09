@@ -1,6 +1,7 @@
 --index-url https://pypi.python.org/simple/
 tiktoken
 requests
+# jieba
 python-dotenv
 python-telegram-bot[webhooks,rate-limiter]==20.6
 
@@ -8,7 +9,7 @@ python-telegram-bot[webhooks,rate-limiter]==20.6
 # chromadb
 # unstructured[md,pdf]
 # unstructured[md,pdf]
-wikipedia
+# wikipedia
 fake_useragent
 openai==0.28.1
 google-api-python-client

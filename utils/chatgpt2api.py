@@ -508,7 +508,14 @@ class Chatbot:
             max_context_tokens = self.truncate_limit - self.get_token_count(convo_id) - 500
             response_role = "function"
             if function_call_name == "get_search_results":
-                prompt = json.loads(full_response)["prompt"]
+                # g4t 提取的 prompt 有问题
+                # prompt = json.loads(full_response)["prompt"]
+                for index in range(len(self.conversation[convo_id])):
+                    if self.conversation[convo_id][-1 - index]["role"] == "user":
+                        prompt = self.conversation[convo_id][-1 - index]["content"]
+                        print("prompt", prompt)
+                        break
+                # prompt = self.conversation[convo_id][-1]["content"]
                 # print(self.truncate_limit, self.get_token_count(convo_id), max_context_tokens)
                 function_response = eval(function_call_name)(prompt, max_context_tokens)
                 function_response = "web search results: \n" + function_response

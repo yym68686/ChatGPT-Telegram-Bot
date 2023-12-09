@@ -244,7 +244,7 @@ async def image(update, context):
             start_messageid = ''
             config.API = ''
         if "content_policy_violation" in str(e):
-            await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text="当前 prompt 未能成功生成图片，可能涉及版权等违规内容😣，换句话试试吧～", parse_mode='MarkdownV2', disable_web_page_preview=True)
+            await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text="当前 prompt 未能成功生成图片，可能因为版权，政治，色情，暴力，种族歧视等违反 OpenAI 的内容政策😣，换句话试试吧～", parse_mode='MarkdownV2', disable_web_page_preview=True)
         if "server is busy" in str(e):
             await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text="当前服务器繁忙，请稍后再试～", parse_mode='MarkdownV2', disable_web_page_preview=True)
         result += f"`出错啦！{e}`"

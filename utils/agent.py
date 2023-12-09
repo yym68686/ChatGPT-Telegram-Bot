@@ -4,6 +4,7 @@ import re
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
+# import jieba
 
 import asyncio
 import tiktoken
@@ -296,7 +297,7 @@ def getddgsearchurl(result, numresults=3):
         urls = re.findall(r"(https?://\S+)\]", webresult, re.MULTILINE)
     except Exception as e:
         print('\033[31m')
-        print("error", e)
+        print("duckduckgo error", e)
         print('\033[0m')
         urls = []
     return urls
@@ -307,7 +308,7 @@ def getgooglesearchurl(result, numresults=3):
     try:
         googleresult = google_search.results(result, numresults)
         for i in googleresult:
-            if "No good Google Search Result was found" in i:
+            if "No good Google Search Result was found" in i or "google.com" in i["link"]:
                 continue
             urls.append(i["link"])
     except Exception as e:
@@ -336,23 +337,32 @@ def get_search_url(prompt, chainllm):
     keyword_prompt = PromptTemplate(
         input_variables=["source"],
         template=(
-            "根据我的问题，总结最少的关键词概括，给出三行不同的关键词组合，每行的关键词用空格连接，至少有一行关键词里面有中文，至少有一行关键词里面有英文。只要直接给出这三行关键词，不需要其他任何解释，不要出现其他符号。"
-            "下面是示例："
-            "问题1：How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"
+            "根据我的问题，总结最少的关键词概括问题，输出要求如下："
+            "1. 给出三行不同的关键词组合，每行的关键词用空格连接。"
+            "2. 至少有一行关键词里面有中文，至少有一行关键词里面有英文。"
+            "3. 只要直接给出这三行关键词，不需要其他任何解释，不要出现其他符号和内容。"
+            "4. 如果问题有关于日漫，至少有一行关键词里面有日文。"
+            "下面是一些根据问题提取关键词的示例："
+            "问题 1：How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"
             "三行关键词是："
             "zeabur price"
             "zeabur documentation"
             "zeabur 价格"
-            "问题2：pplx API 怎么使用？"
+            "问题 2：pplx API 怎么使用？"
             "三行关键词是："
             "pplx API demo"
             "pplx API"
             "pplx API 使用方法"
-            "问题3：以色列哈马斯的最新情况"
+            "问题 3：以色列哈马斯的最新情况"
             "三行关键词是："
             "以色列 哈马斯 最新情况"
             "Israel Hamas situation"
             "哈马斯 以色列 冲突"
+            "问题 4：话说葬送的芙莉莲动漫是半年番还是季番？完结没？"
+            "三行关键词是："
+            "葬送的芙莉莲"
+            "葬送のフリーレン"
+            "Frieren: Beyond Journey's End"
             "这是我的问题：{source}"
         ),
     )
@@ -363,6 +373,12 @@ def get_search_url(prompt, chainllm):
     print("keywords", keywords)
     keywords = [item.replace("三行关键词是：", "") for item in keywords if "\\x" not in item]
     print("select keywords", keywords)
+
+    # # seg_list = jieba.cut_for_search(prompt)  # 搜索引擎模式
+    # seg_list = jieba.cut(prompt, cut_all=True)
+    # result = " ".join(seg_list)
+    # keywords = [result] * 3
+    # print("keywords", keywords)
 
     search_threads = []
     urls_set = []
