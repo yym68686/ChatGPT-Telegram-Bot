@@ -3,6 +3,7 @@ tiktoken
 requests
 # jieba
 python-dotenv
+beautifulsoup4
 python-telegram-bot[webhooks,rate-limiter]==20.6
 
 # langchain
