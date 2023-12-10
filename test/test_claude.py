@@ -2,6 +2,7 @@ import os
 import requests
 # from ..utils import typings as t
 import json
+import tiktoken
 # class claudeConversation(dict):
 #     def __getitem__(self, index):
 #         conversation_list = super().__getitem__(index)

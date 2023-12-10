@@ -234,21 +234,19 @@ async def image(update, context):
             await context.bot.send_photo(chat_id=chatid, photo=result, reply_to_message_id=messageid)
     except Exception as e:
         print('\033[31m')
-        print("response_msg", result)
-        print("error", e)
-        traceback.print_exc()
+        print(e)
         print('\033[0m')
         if "You exceeded your current quota, please check your plan and billing details." in str(e):
             print("OpenAI api 已过期！")
-            await context.bot.delete_message(chat_id=chatid, message_id=start_messageid)
-            start_messageid = ''
+            result += "OpenAI api 已过期！"
             config.API = ''
-        if "content_policy_violation" in str(e):
-            await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text="当前 prompt 未能成功生成图片，可能因为版权，政治，色情，暴力，种族歧视等违反 OpenAI 的内容政策😣，换句话试试吧～", parse_mode='MarkdownV2', disable_web_page_preview=True)
-        if "server is busy" in str(e):
-            await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text="当前服务器繁忙，请稍后再试～", parse_mode='MarkdownV2', disable_web_page_preview=True)
-        result += f"`出错啦！{e}`"
-    print(result)
+        elif "content_policy_violation" in str(e) or "violates OpenAI's policies" in str(e):
+            result += "当前 prompt 未能成功生成图片，可能因为版权，政治，色情，暴力，种族歧视等违反 OpenAI 的内容政策😣，换句话试试吧～"
+        elif "server is busy" in str(e):
+            result += "服务器繁忙，请稍后再试～"
+        else:
+            result += f"`{e}`"
+        await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text=result, parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 import time
 async def delete_message(update, context, messageid, delay=10):
