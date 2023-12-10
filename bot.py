@@ -289,7 +289,7 @@ buttons = [
     #     InlineKeyboardButton("gpt-4-32k-0613", callback_data="gpt-4-32k-0613"),
     # ],
     [
-        InlineKeyboardButton("claude-2.1", callback_data="claude-2.1"),
+        InlineKeyboardButton("claude-2", callback_data="claude-2"),
         InlineKeyboardButton("claude-2-web", callback_data="claude-2-web"),
     ],
     [
@@ -341,7 +341,7 @@ async def button_press(update, context):
     data = callback_query.data
     if "gpt-" in data or "claude" in data:
         config.GPT_ENGINE = data
-        if config.API and "gpt-" in data:
+        if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI):
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
         if config.ClaudeAPI and "claude" in data:

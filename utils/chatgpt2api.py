@@ -50,7 +50,7 @@ ENGINES = [
     "gpt-4-32k-0613",
     "gpt-4-1106-preview",
     "claude-2-web",
-    "claude-2.1",
+    "claude-2",
 ]
 
 class claudeConversation(dict):
@@ -63,7 +63,7 @@ class claudebot:
     def __init__(
         self,
         api_key: str,
-        engine: str = os.environ.get("GPT_ENGINE") or "claude-2.1",
+        engine: str = os.environ.get("GPT_ENGINE") or "claude-2",
         temperature: float = 0.5,
         top_p: float = 0.7,
         chat_url: str = "https://api.anthropic.com/v1/complete",
@@ -353,10 +353,14 @@ class Chatbot:
         """
         if convo_id not in self.conversation:
             self.reset(convo_id=convo_id)
-        if function_name == "" and message != "":
+        if function_name == "" and message != "" and message != None:
             self.conversation[convo_id].append({"role": role, "content": message})
-        else:
+        elif function_name != "" and message != "" and message != None:
             self.conversation[convo_id].append({"role": role, "name": function_name, "content": message})
+        else:
+            print('\033[31m')
+            print("error: add_to_conversation message is None or empty")
+            print('\033[0m')
 
     def __truncate_conversation(self, convo_id: str = "default") -> None:
         """
