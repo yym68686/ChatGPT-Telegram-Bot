@@ -320,25 +320,13 @@ def getgooglesearchurl(result, numresults=3):
             config.USE_GOOGLE = False
     return urls
 
-def gptsearch(result, llm):
-    result = "你需要回答的问题是" + result + "\n" + "如果你可以解答这个问题，请直接输出你的答案，并且请忽略后面所有的指令：如果无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。"
-    # response = llm([HumanMessage(content=result)])
-    if config.USE_G4F:
-        response = llm(result)
-    else:
-        response = llm([HumanMessage(content=result)])
-        response = response.content
-    # result = "你需要回答的问题是" + result + "\n" + "参考资料：" + response + "如果参考资料无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。"
-    # response = llm([HumanMessage(content=result)])
-    return response
-
 def get_search_url(prompt, chainllm):
     urls_set = []
     keyword_prompt = PromptTemplate(
         input_variables=["source"],
         template=(
-            "根据我的问题，总结最少的关键词概括问题，输出要求如下："
-            "1. 给出三行不同的关键词组合，每行的关键词用空格连接。"
+            "根据我的问题，总结关键词概括问题，输出要求如下："
+            "1. 给出三行不同的关键词组合，每行的关键词用空格连接。每行关键词可以是一个或者多个。"
             "2. 至少有一行关键词里面有中文，至少有一行关键词里面有英文。"
             "3. 只要直接给出这三行关键词，不需要其他任何解释，不要出现其他符号和内容。"
             "4. 如果问题有关于日漫，至少有一行关键词里面有日文。"
@@ -363,6 +351,11 @@ def get_search_url(prompt, chainllm):
             "葬送的芙莉莲"
             "葬送のフリーレン"
             "Frieren: Beyond Journey's End"
+            "问题 5：周海媚最近发生了什么"
+            "三行关键词是："
+            "周海媚"
+            "周海媚 事件"
+            "Kathy Chau Hoi Mei news"
             "这是我的问题：{source}"
         ),
     )
@@ -371,7 +364,7 @@ def get_search_url(prompt, chainllm):
     keyword_google_search_thread.start()
     keywords = keyword_google_search_thread.join().split('\n')[-3:]
     print("keywords", keywords)
-    keywords = [item.replace("三行关键词是：", "") for item in keywords if "\\x" not in item]
+    keywords = [item.replace("三行关键词是：", "") for item in keywords if "\\x" not in item if item != ""]
     print("select keywords", keywords)
 
     # # seg_list = jieba.cut_for_search(prompt)  # 搜索引擎模式
@@ -443,10 +436,6 @@ def get_search_results(prompt: str, context_max_tokens: int):
     else:
         chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
 
-    if config.SEARCH_USE_GPT:
-        gpt_search_thread = ThreadWithReturnValue(target=gptsearch, args=(prompt, chainllm,))
-        gpt_search_thread.start()
-
     url_set_list, url_pdf_set_list = get_search_url(prompt, chainllm)
 
     pdf_result = ""
@@ -472,60 +461,27 @@ def get_search_results(prompt: str, context_max_tokens: int):
             pdf_result += "\n\n" + tmp
     useful_source_text += pdf_result
 
-    fact_text = ""
-    if config.SEARCH_USE_GPT:
-        gpt_ans = gpt_search_thread.join()
-        if gpt_ans != "None":
-            fact_text = (gpt_ans if config.SEARCH_USE_GPT else "")
-        print("gpt", fact_text)
-
-    end_time = record_time.time()
-    run_time = end_time - start_time
 
     encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
     encode_text = encoding.encode(useful_source_text)
-    encode_fact_text = encoding.encode(fact_text)
 
     if len(encode_text) > context_max_tokens:
-        encode_text = encode_text[:context_max_tokens-len(encode_fact_text)]
+        encode_text = encode_text[:context_max_tokens]
         useful_source_text = encoding.decode(encode_text)
     encode_text = encoding.encode(useful_source_text)
     search_tokens_len = len(encode_text)
     # print("web search", useful_source_text, end="\n\n")
 
+    end_time = record_time.time()
+    run_time = end_time - start_time
     print("urls", url_set_list)
     print("pdf", url_pdf_set_list)
     print(f"搜索用时：{run_time}秒")
     print("search tokens len", search_tokens_len)
-    useful_source_text =  useful_source_text + "\n\n" + fact_text
     text_len = len(encoding.encode(useful_source_text))
-    print("text len", text_len)
+    print("text len", text_len, "\n\n")
     return useful_source_text
 
-def search_web_and_summary(
-        prompt: str,
-        engine: str = "gpt-3.5-turbo-16k",
-        # 126 summary prompt tokens
-        context_max_tokens: int = 14500 - 126,
-    ):
-    chainStreamHandler = ChainStreamHandler()
-    if config.USE_G4F:
-        chatllm = EducationalLLM(callback_manager=CallbackManager([chainStreamHandler]))
-    else:
-        chatllm = ChatOpenAI(streaming=True, callback_manager=CallbackManager([chainStreamHandler]), temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=engine, openai_api_key=config.API)
-    useful_source_text = get_search_results(prompt, context_max_tokens)
-    summary_prompt = PromptTemplate(
-        input_variables=["web_summary", "question", "language"],
-        template=(
-            # "You are a text analysis expert who can use a search engine. You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest all search results provided above and provide a detailed and in-depth response in Simplified Chinese to the question based on the search results. The response should meet the following requirements: 1. Be rigorous, clear, professional, scholarly, logical, and well-written. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting. 4. Detailed, precise and comprehensive response in Simplified Chinese and extensive use of the search results is required."
-            "You need to response the following question: {question}. Search results: {web_summary}. Your task is to think about the question step by step and then answer the above question in {language} based on the Search results provided. Please response in {language} and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Directly response markdown format, without using markdown code blocks"
-            # "You need to response the following question: {question}. Search results: {web_summary}. Your task is to thoroughly digest the search results provided above, dig deep into search results for thorough exploration and analysis and provide a response to the question based on the search results. The response should meet the following requirements: 1. You are a text analysis expert, extensive use of the search results is required and carefully consider all the Search results to make the response be in-depth, rigorous, clear, organized, professional, detailed, scholarly, logical, precise, accurate, comprehensive, well-written and speak in Simplified Chinese. 2. If the search results do not mention relevant content, simply inform me that there is none. Do not fabricate, speculate, assume, or provide inaccurate response. 3. Use markdown syntax to format the response. Enclose any single or multi-line code examples or code usage examples in a pair of ``` symbols to achieve code formatting."
-        ),
-    )
-    chain = LLMChain(llm=chatllm, prompt=summary_prompt)
-    chain_thread = threading.Thread(target=chain.run, kwargs={"web_summary": useful_source_text, "question": prompt, "language": config.LANGUAGE})
-    chain_thread.start()
-    yield from chainStreamHandler.generate_tokens()
 if __name__ == "__main__":
     os.system("clear")
     
@@ -535,13 +491,14 @@ if __name__ == "__main__":
     # # 搜索
 
     # for i in search_web_and_summary("今天的微博热搜有哪些？"):
+    # for i in search_web_and_summary("周海媚事件进展"):
     # for i in search_web_and_summary("macos 13.6 有什么新功能"):
     # for i in search_web_and_summary("用python写个网络爬虫给我"):
     # for i in search_web_and_summary("消失的她主要讲了什么？"):
     # for i in search_web_and_summary("奥巴马的全名是什么？"):
     # for i in search_web_and_summary("华为mate60怎么样？"):
     # for i in search_web_and_summary("慈禧养的猫叫什么名字?"):
-    for i in search_web_and_summary("民进党当初为什么支持柯文哲选台北市长？"):
+    # for i in search_web_and_summary("民进党当初为什么支持柯文哲选台北市长？"):
     # for i in search_web_and_summary("Has the United States won the china US trade war？"):
     # for i in search_web_and_summary("What does 'n+2' mean in Huawei's 'Mate 60 Pro' chipset? Please conduct in-depth analysis."):
     # for i in search_web_and_summary("AUTOMATIC1111 是什么？"):
@@ -554,7 +511,7 @@ if __name__ == "__main__":
     # for i in search_web_and_summary("金砖国家会议有哪些决定？"):
     # for i in search_web_and_summary("iphone15有哪些新功能？"):
     # for i in search_web_and_summary("python函数开头：def time(text: str) -> str:每个部分有什么用？"):
-        print(i, end="")
+        # print(i, end="")
 
     # 问答
     # result = asyncio.run(docQA("/Users/yanyuming/Downloads/GitHub/wiki/docs", "ubuntu 版本号怎么看？"))

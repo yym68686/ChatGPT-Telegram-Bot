@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from pathlib import Path
 from typing import AsyncGenerator
@@ -11,7 +12,7 @@ from . import typings as t
 from typing import Set
 
 import config
-from utils.agent import Web_crawler, search_web_and_summary, get_search_results
+from utils.agent import Web_crawler, get_search_results
 from utils.function_call import function_call_list
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
@@ -276,10 +277,8 @@ class Chatbot:
             if "gpt-4-32k" in engine
             else 7000
             if "gpt-4" in engine
-            else 4096
-            if "gpt-3.5-turbo-1106" in engine
-            else 15000
-            if "gpt-3.5-turbo-16k" in engine
+            else 16385
+            if "gpt-3.5-turbo-1106" in engine or "gpt-3.5-turbo-16k" in engine
             else 99000
             if "claude-2-web" in engine or "claude-2" in engine
             else 4000
@@ -297,7 +296,7 @@ class Chatbot:
             if "gpt-3.5-turbo-16k" in engine or "gpt-3.5-turbo-1106" in engine
             else 98500
             if "claude-2-web" in engine or "claude-2" in engine
-            else 3400
+            else 3500
         )
         self.temperature: float = temperature
         self.top_p: float = top_p
@@ -360,6 +359,7 @@ class Chatbot:
         else:
             print('\033[31m')
             print("error: add_to_conversation message is None or empty")
+            print(self.conversation[convo_id])
             print('\033[0m')
 
     def __truncate_conversation(self, convo_id: str = "default") -> None:
@@ -372,9 +372,43 @@ class Chatbot:
                 and len(self.conversation[convo_id]) > 1
             ):
                 # Don't remove the first message
-                self.conversation[convo_id].pop(1)
+                mess = self.conversation[convo_id].pop(1)
+                print("Truncate message:", mess)
             else:
                 break
+
+    def truncate_conversation(
+        self,
+        prompt: str,
+        role: str = "user",
+        convo_id: str = "default",
+        model: str = None,
+        pass_history: bool = True,
+        **kwargs,
+    ) -> None:
+        """
+        Truncate the conversation
+        """
+        while True:
+            json_post = self.get_post_body(prompt, role, convo_id, model, pass_history, **kwargs)
+            url = config.bot_api_url.chat_url
+            if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-3.5-turbo-1106":
+                message_token = {
+                    "total": self.get_token_count(convo_id),
+                }
+            else:
+                message_token = self.get_message_token(url, json_post)
+            print("message_token", message_token, self.truncate_limit)
+            if (
+                message_token["total"] > self.truncate_limit
+                and len(self.conversation[convo_id]) > 1
+            ):
+                # Don't remove the first message
+                mess = self.conversation[convo_id].pop(1)
+                print("Truncate message:", mess)
+            else:
+                break
+        return json_post, message_token
 
     # https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
     def get_token_count(self, convo_id: str = "default") -> int:
@@ -385,9 +419,10 @@ class Chatbot:
             raise NotImplementedError(
                 f"Engine {self.engine} is not supported. Select from {ENGINES}",
             )
-        tiktoken.model.MODEL_TO_ENCODING["gpt-4"] = "cl100k_base"
-        tiktoken.model.MODEL_TO_ENCODING["claude-2-web"] = "cl100k_base"
-        tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
+        # tiktoken.model.MODEL_TO_ENCODING["gpt-4"] = "cl100k_base"
+        # tiktoken.model.MODEL_TO_ENCODING["claude-2-web"] = "cl100k_base"
+        # tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
+        tiktoken.get_encoding("cl100k_base")
 
         encoding = tiktoken.encoding_for_model(self.engine)
 
@@ -402,6 +437,80 @@ class Chatbot:
                     num_tokens += 5  # role is always required and always 1 token
         num_tokens += 5  # every reply is primed with <im_start>assistant
         return num_tokens
+    
+    def get_message_token(self, url, json_post):
+        json_post["max_tokens"] = 5000
+        headers = {"Authorization": f"Bearer {os.environ.get('API', None)}"}
+        response = requests.Session().post(
+            url,
+            headers=headers,
+            json=json_post,
+            timeout=None,
+        )
+        if response.status_code != 200:
+            json_response = json.loads(response.text)
+            string = json_response["error"]["message"]
+            # print(json_response, string)
+            string = re.findall(r"\((.*?)\)", string)[0]
+            numbers = re.findall(r"\d+\.?\d*", string)
+            numbers = [int(i) for i in numbers]
+            if len(numbers) == 2:
+                return {
+                    "messages": numbers[0],
+                    "total": numbers[0],
+                }
+            elif len(numbers) == 3:
+                return {
+                    "messages": numbers[0],
+                    "functions": numbers[1],
+                    "total": numbers[0] + numbers[1],
+                }
+            else:
+                raise Exception("Unknown error")
+    
+    def cut_message(self, message: str, max_tokens: int):
+        tiktoken.get_encoding("cl100k_base")
+        encoding = tiktoken.encoding_for_model(self.engine)
+        encode_text = encoding.encode(message)
+        if len(encode_text) > max_tokens:
+            encode_text = encode_text[:max_tokens]
+            message = encoding.decode(encode_text)
+        return message
+    
+    def get_post_body(
+        self,
+        prompt: str,
+        role: str = "user",
+        convo_id: str = "default",
+        model: str = None,
+        pass_history: bool = True,
+        **kwargs,
+    ):
+        json_post = {
+            "model": os.environ.get("MODEL_NAME") or model or self.engine,
+            "messages": self.conversation[convo_id] if pass_history else [{"role": "system","content": self.system_prompt},{"role": role, "content": prompt}],
+            "stream": True,
+            # kwargs
+            "temperature": kwargs.get("temperature", self.temperature),
+            "top_p": kwargs.get("top_p", self.top_p),
+            "presence_penalty": kwargs.get(
+                "presence_penalty",
+                self.presence_penalty,
+            ),
+            "frequency_penalty": kwargs.get(
+                "frequency_penalty",
+                self.frequency_penalty,
+            ),
+            "n": kwargs.get("n", self.reply_count),
+            "user": role,
+            "max_tokens": 5000,
+        }
+        json_post.update(function_call_list["base"])
+        if config.SEARCH_USE_GPT:
+            json_post["functions"].append(function_call_list["web_search"])
+        json_post["functions"].append(function_call_list["url_fetch"])
+
+        return json_post
 
     def get_max_tokens(self, convo_id: str) -> int:
         """
@@ -427,45 +536,18 @@ class Chatbot:
         if convo_id not in self.conversation or pass_history == False:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
         self.add_to_conversation(prompt, role, convo_id=convo_id, function_name=function_name)
-        self.__truncate_conversation(convo_id=convo_id)
+        json_post, message_token = self.truncate_conversation(prompt, role, convo_id, model, pass_history, **kwargs)
         # print(self.conversation[convo_id])
-        # Get response
+
+        if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-3.5-turbo-1106":
+            model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        else:
+            model_max_tokens = min(kwargs.get("max_tokens", self.max_tokens), self.max_tokens - message_token["total"])
+        print("model_max_tokens", model_max_tokens)
+        json_post["max_tokens"] = model_max_tokens
+
         url = config.bot_api_url.chat_url
         headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
-
-        if self.engine == "gpt-4-1106-preview":
-            model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
-        elif self.engine == "gpt-3.5-turbo-1106":
-            model_max_tokens = min(kwargs.get("max_tokens", self.max_tokens), self.truncate_limit - self.get_token_count(convo_id))
-        else:
-            model_max_tokens = min(self.get_max_tokens(convo_id=convo_id) - 500, kwargs.get("max_tokens", self.max_tokens))
-        json_post = {
-                "model": os.environ.get("MODEL_NAME") or model or self.engine,
-                "messages": self.conversation[convo_id] if pass_history else [{"role": "system","content": self.system_prompt},{"role": role, "content": prompt}],
-                "stream": True,
-                # kwargs
-                "temperature": kwargs.get("temperature", self.temperature),
-                "top_p": kwargs.get("top_p", self.top_p),
-                "presence_penalty": kwargs.get(
-                    "presence_penalty",
-                    self.presence_penalty,
-                ),
-                "frequency_penalty": kwargs.get(
-                    "frequency_penalty",
-                    self.frequency_penalty,
-                ),
-                "n": kwargs.get("n", self.reply_count),
-                "user": role,
-                "max_tokens": model_max_tokens,
-                # "max_tokens": min(
-                #     self.get_max_tokens(convo_id=convo_id),
-                #     kwargs.get("max_tokens", self.max_tokens),
-                # ),
-        }
-        json_post.update(function_call_list["base"])
-        if config.SEARCH_USE_GPT:
-            json_post["functions"].append(function_call_list["web_search"])
-        json_post["functions"].append(function_call_list["url_fetch"])
         response = self.session.post(
             url,
             headers=headers,
@@ -509,34 +591,37 @@ class Chatbot:
                     function_call_name = delta["function_call"]["name"]
                 full_response += function_call_content
         if need_function_call:
-            max_context_tokens = self.truncate_limit - self.get_token_count(convo_id) - 500
             response_role = "function"
+            function_call_max_tokens = self.truncate_limit - message_token["total"] - 100
+            if function_call_max_tokens <= 0:
+                function_call_max_tokens = int(self.truncate_limit / 2)
+            print("function_call_max_tokens", function_call_max_tokens)
             if function_call_name == "get_search_results":
                 # g4t 提取的 prompt 有问题
                 # prompt = json.loads(full_response)["prompt"]
                 for index in range(len(self.conversation[convo_id])):
                     if self.conversation[convo_id][-1 - index]["role"] == "user":
+                        self.conversation[convo_id][-1 - index]["content"] = self.conversation[convo_id][-1 - index]["content"].replace("search: ", "")
                         prompt = self.conversation[convo_id][-1 - index]["content"]
-                        print("prompt", prompt)
+                        print("\n\nprompt", prompt)
                         break
                 # prompt = self.conversation[convo_id][-1]["content"]
                 # print(self.truncate_limit, self.get_token_count(convo_id), max_context_tokens)
-                function_response = eval(function_call_name)(prompt, max_context_tokens)
+                function_response = eval(function_call_name)(prompt, function_call_max_tokens)
                 function_response = "web search results: \n" + function_response
                 yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
-                # yield from self.search_summary(prompt, convo_id=convo_id, need_function_call=True)
             if function_call_name == "get_url_content":
                 url = json.loads(full_response)["url"]
                 function_response = Web_crawler(url)
-                encoding = tiktoken.encoding_for_model(self.engine)
-                encode_text = encoding.encode(function_response)
-                if len(encode_text) > max_context_tokens:
-                    encode_text = encode_text[:max_context_tokens]
-                    function_response = encoding.decode(encode_text)
+                function_response = self.cut_message(function_response, function_call_max_tokens)
                 yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
         else:
             self.add_to_conversation(full_response, response_role, convo_id=convo_id)
-            print("total tokens:", self.get_token_count(convo_id))
+            # total_tokens = self.get_token_count(convo_id)
+            # completion_tokens = total_tokens - prompt_tokens
+            # print("completion tokens:", completion_tokens)
+            # print("total tokens:", total_tokens)
+        # print(self.conversation[convo_id])
 
     async def ask_stream_async(
         self,
@@ -666,25 +751,6 @@ class Chatbot:
         )
         full_response: str = "".join(response)
         return full_response
-    
-    def search_summary(
-            self,
-            prompt: str,
-            role: str = "user",
-            convo_id: str = "default",
-            pass_history: bool = True,
-            **kwargs,
-        ):
-
-        if convo_id not in self.conversation:
-            self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
-        self.add_to_conversation(prompt, role, convo_id=convo_id)
-        self.__truncate_conversation(convo_id=convo_id)
-
-        full_response = yield from search_web_and_summary(prompt, self.engine, self.truncate_limit - self.get_token_count(convo_id))
-
-        self.add_to_conversation(full_response, "assistant", convo_id=convo_id)
-        print("total tokens:", self.get_token_count(convo_id))
 
     def rollback(self, n: int = 1, convo_id: str = "default") -> None:
         """
