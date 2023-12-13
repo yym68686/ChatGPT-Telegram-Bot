@@ -336,6 +336,8 @@ class Chatbot:
                 },
             ],
         }
+        self.function_calls_counter = {}
+        self.function_call_max_loop = 3
 
         if self.get_token_count("default") > self.max_tokens:
             raise t.ActionRefuseError("System prompt is too long")
@@ -409,6 +411,14 @@ class Chatbot:
             else:
                 break
         return json_post, message_token
+    
+    def clear_function_call(self, convo_id: str = "default"):
+        self.conversation[convo_id] = [item for item in self.conversation[convo_id] if '@Trash@' not in item['content']]
+        function_call_items = [item for item in self.conversation[convo_id] if 'function' in item['role']]
+        function_call_num = len(function_call_items)
+        if function_call_num > 50:
+            for i in range(function_call_num - 25):
+                self.conversation[convo_id].remove(function_call_items[i])
 
     # https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
     def get_token_count(self, convo_id: str = "default") -> int:
@@ -537,7 +547,7 @@ class Chatbot:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
         self.add_to_conversation(prompt, role, convo_id=convo_id, function_name=function_name)
         json_post, message_token = self.truncate_conversation(prompt, role, convo_id, model, pass_history, **kwargs)
-        # print(self.conversation[convo_id])
+        print(self.conversation[convo_id])
 
         if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-3.5-turbo-1106":
             model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
@@ -591,37 +601,42 @@ class Chatbot:
                     function_call_name = delta["function_call"]["name"]
                 full_response += function_call_content
         if need_function_call:
+            if not self.function_calls_counter.get(function_call_name):
+                self.function_calls_counter[function_call_name] = 1
+            else:
+                self.function_calls_counter[function_call_name] += 1
+            if self.function_calls_counter[function_call_name] <= self.function_call_max_loop:
+                function_call_max_tokens = self.truncate_limit - message_token["total"] - 100
+                if function_call_max_tokens <= 0:
+                    function_call_max_tokens = int(self.truncate_limit / 2)
+                print("function_call_max_tokens", function_call_max_tokens)
+                if function_call_name == "get_search_results":
+                    # g4t 提取的 prompt 有问题
+                    # prompt = json.loads(full_response)["prompt"]
+                    for index in range(len(self.conversation[convo_id])):
+                        if self.conversation[convo_id][-1 - index]["role"] == "user":
+                            self.conversation[convo_id][-1 - index]["content"] = self.conversation[convo_id][-1 - index]["content"].replace("search: ", "")
+                            prompt = self.conversation[convo_id][-1 - index]["content"]
+                            print("\n\nprompt", prompt)
+                            break
+                    # prompt = self.conversation[convo_id][-1]["content"]
+                    # print(self.truncate_limit, self.get_token_count(convo_id), max_context_tokens)
+                    function_response = eval(function_call_name)(prompt, function_call_max_tokens)
+                    function_response = "web search results: \n" + function_response
+                if function_call_name == "get_url_content":
+                    url = json.loads(full_response)["url"]
+                    print("\n\nurl", url)
+                    function_response = Web_crawler(url)
+                    function_response = self.cut_message(function_response, function_call_max_tokens)
+            else:
+                function_response = "抱歉，直接告诉用户，无法找到相关信息"
             response_role = "function"
-            function_call_max_tokens = self.truncate_limit - message_token["total"] - 100
-            if function_call_max_tokens <= 0:
-                function_call_max_tokens = int(self.truncate_limit / 2)
-            print("function_call_max_tokens", function_call_max_tokens)
-            if function_call_name == "get_search_results":
-                # g4t 提取的 prompt 有问题
-                # prompt = json.loads(full_response)["prompt"]
-                for index in range(len(self.conversation[convo_id])):
-                    if self.conversation[convo_id][-1 - index]["role"] == "user":
-                        self.conversation[convo_id][-1 - index]["content"] = self.conversation[convo_id][-1 - index]["content"].replace("search: ", "")
-                        prompt = self.conversation[convo_id][-1 - index]["content"]
-                        print("\n\nprompt", prompt)
-                        break
-                # prompt = self.conversation[convo_id][-1]["content"]
-                # print(self.truncate_limit, self.get_token_count(convo_id), max_context_tokens)
-                function_response = eval(function_call_name)(prompt, function_call_max_tokens)
-                function_response = "web search results: \n" + function_response
-                yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
-            if function_call_name == "get_url_content":
-                url = json.loads(full_response)["url"]
-                function_response = Web_crawler(url)
-                function_response = self.cut_message(function_response, function_call_max_tokens)
-                yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
+            yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
         else:
             self.add_to_conversation(full_response, response_role, convo_id=convo_id)
+            self.function_calls_counter = {}
+            self.clear_function_call(convo_id=convo_id)
             # total_tokens = self.get_token_count(convo_id)
-            # completion_tokens = total_tokens - prompt_tokens
-            # print("completion tokens:", completion_tokens)
-            # print("total tokens:", total_tokens)
-        # print(self.conversation[convo_id])
 
     async def ask_stream_async(
         self,

@@ -275,7 +275,7 @@ def Web_crawler(url: str) -> str:
         response = requests.get(url, headers=headers, verify=False, timeout=5, stream=True)
         if response.status_code == 404:
             print("Page not found:", url)
-            return ""
+            return "抱歉，网页不存在，目前无法访问该网页。@Trash@"
         content_length = int(response.headers.get('Content-Length', 0))
         if content_length > 5000000:
             print("Skipping large file:", url)
@@ -283,11 +283,14 @@ def Web_crawler(url: str) -> str:
         soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
         body = "".join(soup.find('body').get_text().split('\n'))
         result = body
+        if result == '':
+            result = "抱歉，可能反爬虫策略，目前无法访问该网页。@Trash@"
     except Exception as e:
         print('\033[31m')
         print("error url", url)
         print("error", e)
         print('\033[0m')
+    print("url content", result + "\n\n")
     return result
 
 def getddgsearchurl(result, numresults=3):
