@@ -264,7 +264,7 @@ class ThreadWithReturnValue(threading.Thread):
         super().join()
         return self._return
 
-def Web_crawler(url: str) -> str:
+def Web_crawler(url: str, isSearch=False) -> str:
     """返回链接网址url正文内容，必须是合法的网址"""
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
@@ -272,7 +272,7 @@ def Web_crawler(url: str) -> str:
     result = ''
     try:
         requests.packages.urllib3.disable_warnings()
-        response = requests.get(url, headers=headers, verify=False, timeout=5, stream=True)
+        response = requests.get(url, headers=headers, verify=False, timeout=3, stream=True)
         if response.status_code == 404:
             print("Page not found:", url)
             return "抱歉，网页不存在，目前无法访问该网页。@Trash@"
@@ -281,10 +281,18 @@ def Web_crawler(url: str) -> str:
             print("Skipping large file:", url)
             return result
         soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
+        
+        table_contents = ""
+        tables = soup.find_all('table')
+        for table in tables:
+            table_contents += table.get_text()
+            table.decompose()
         body = "".join(soup.find('body').get_text().split('\n'))
-        result = body
-        if result == '':
+        result = table_contents + body
+        if result == '' and not isSearch:
             result = "抱歉，可能反爬虫策略，目前无法访问该网页。@Trash@"
+        if result.count("\"") > 1000:
+            result = ""
     except Exception as e:
         print('\033[31m')
         print("error url", url)
@@ -451,7 +459,7 @@ def get_search_results(prompt: str, context_max_tokens: int):
 
     threads = []
     for url in url_set_list:
-        url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,))
+        url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,True,))
         url_search_thread.start()
         threads.append(url_search_thread)
 
@@ -494,6 +502,8 @@ if __name__ == "__main__":
     # # 搜索
 
     # for i in search_web_and_summary("今天的微博热搜有哪些？"):
+    # for i in search_web_and_summary("阿里云24核96G的云主机价格是多少"):
+    # for i in search_web_and_summary("话说葬送的芙莉莲动漫是半年番还是季番？完结没？"):
     # for i in search_web_and_summary("周海媚事件进展"):
     # for i in search_web_and_summary("macos 13.6 有什么新功能"):
     # for i in search_web_and_summary("用python写个网络爬虫给我"):

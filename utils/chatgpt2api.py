@@ -617,6 +617,7 @@ class Chatbot:
                         if self.conversation[convo_id][-1 - index]["role"] == "user":
                             self.conversation[convo_id][-1 - index]["content"] = self.conversation[convo_id][-1 - index]["content"].replace("search: ", "")
                             prompt = self.conversation[convo_id][-1 - index]["content"]
+                            prompt = " ".join([prompt, json.loads(full_response)["prompt"]])
                             print("\n\nprompt", prompt)
                             break
                     # prompt = self.conversation[convo_id][-1]["content"]
