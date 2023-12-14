@@ -12,7 +12,7 @@ from . import typings as t
 from typing import Set
 
 import config
-from utils.agent import Web_crawler, get_search_results
+from utils.agent import Web_crawler, get_search_results, cut_message, get_url_text_list, get_text_token_len
 from utils.function_call import function_call_list
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
@@ -338,6 +338,7 @@ class Chatbot:
         }
         self.function_calls_counter = {}
         self.function_call_max_loop = 3
+        self.encode_web_text_list = []
 
         if self.get_token_count("default") > self.max_tokens:
             raise t.ActionRefuseError("System prompt is too long")
@@ -478,15 +479,6 @@ class Chatbot:
             else:
                 raise Exception("Unknown error")
     
-    def cut_message(self, message: str, max_tokens: int):
-        tiktoken.get_encoding("cl100k_base")
-        encoding = tiktoken.encoding_for_model(self.engine)
-        encode_text = encoding.encode(message)
-        if len(encode_text) > max_tokens:
-            encode_text = encode_text[:max_tokens]
-            message = encoding.decode(encode_text)
-        return message
-    
     def get_post_body(
         self,
         prompt: str,
@@ -606,7 +598,7 @@ class Chatbot:
             else:
                 self.function_calls_counter[function_call_name] += 1
             if self.function_calls_counter[function_call_name] <= self.function_call_max_loop:
-                function_call_max_tokens = self.truncate_limit - message_token["total"] - 100
+                function_call_max_tokens = self.truncate_limit - message_token["total"] - 1000
                 if function_call_max_tokens <= 0:
                     function_call_max_tokens = int(self.truncate_limit / 2)
                 print("function_call_max_tokens", function_call_max_tokens)
@@ -617,18 +609,30 @@ class Chatbot:
                         if self.conversation[convo_id][-1 - index]["role"] == "user":
                             self.conversation[convo_id][-1 - index]["content"] = self.conversation[convo_id][-1 - index]["content"].replace("search: ", "")
                             prompt = self.conversation[convo_id][-1 - index]["content"]
-                            prompt = " ".join([prompt, json.loads(full_response)["prompt"]])
+                            prompt = " ".join([prompt, json.loads(full_response)["prompt"].strip()]).strip()
                             print("\n\nprompt", prompt)
                             break
-                    # prompt = self.conversation[convo_id][-1]["content"]
-                    # print(self.truncate_limit, self.get_token_count(convo_id), max_context_tokens)
-                    function_response = eval(function_call_name)(prompt, function_call_max_tokens)
-                    function_response = "web search results: \n" + function_response
+                    if self.encode_web_text_list == []:
+                        tiktoken.get_encoding("cl100k_base")
+                        encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
+                        self.encode_web_text_list = encoding.encode(" ".join(get_url_text_list(prompt)))
+                        print("search len", len(self.encode_web_text_list))
+                    function_response = encoding.decode(self.encode_web_text_list[:function_call_max_tokens])
+                    self.encode_web_text_list = self.encode_web_text_list[function_call_max_tokens:]
+                    # function_response = eval(function_call_name)(prompt, function_call_max_tokens)
+                    function_response = (
+                        "Here is the Search results, inside <Search_results></Search_results> XML tags:"
+                        "<Search_results>"
+                        "{}"
+                        "</Search_results>"
+                    ).format(function_response)
+                    user_prompt = f"You need to response the following question: {prompt}. Search results is provided inside <Search_results></Search_results> XML tags. Your task is to think about the question step by step and then answer the above question in {config.LANGUAGE} based on the Search results provided. Please response in {config.LANGUAGE} and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Directly response markdown format, without using markdown code blocks"
+                    self.add_to_conversation(user_prompt, "user", convo_id=convo_id)
                 if function_call_name == "get_url_content":
                     url = json.loads(full_response)["url"]
                     print("\n\nurl", url)
                     function_response = Web_crawler(url)
-                    function_response = self.cut_message(function_response, function_call_max_tokens)
+                    function_response, text_len = cut_message(function_response, function_call_max_tokens)
             else:
                 function_response = "抱歉，直接告诉用户，无法找到相关信息"
             response_role = "function"
@@ -637,6 +641,7 @@ class Chatbot:
             self.add_to_conversation(full_response, response_role, convo_id=convo_id)
             self.function_calls_counter = {}
             self.clear_function_call(convo_id=convo_id)
+            self.encode_web_text_list = []
             # total_tokens = self.get_token_count(convo_id)
 
     async def ask_stream_async(

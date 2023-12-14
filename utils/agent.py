@@ -298,7 +298,7 @@ def Web_crawler(url: str, isSearch=False) -> str:
         print("error url", url)
         print("error", e)
         print('\033[0m')
-    print("url content", result + "\n\n")
+    # print("url content", result + "\n\n")
     return result
 
 def getddgsearchurl(result, numresults=3):
@@ -386,14 +386,20 @@ def get_search_url(prompt, chainllm):
 
     search_threads = []
     urls_set = []
+    if len(keywords) == 3:
+        search_url_num = 8
+    if len(keywords) == 2:
+        search_url_num = 12
+    if len(keywords) == 1:
+        search_url_num = 24
     if config.USE_GOOGLE:
-        search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keywords[0],4,))
+        search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keywords[0],search_url_num,))
         search_thread.start()
         search_threads.append(search_thread)
-        keywords = keywords[1:]
+        keywords = keywords.pop(0)
 
     for keyword in keywords:
-        search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(keyword,4,))
+        search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(keyword,search_url_num,))
         search_thread.start()
         search_threads.append(search_thread)
 
@@ -406,10 +412,11 @@ def get_search_url(prompt, chainllm):
     return url_set_list, url_pdf_set_list
 
 def concat_url(threads):
-    url_result = ""
+    url_result = []
     for t in threads:
         tmp = t.join()
-        url_result += "\n\n" + tmp
+        if tmp:
+            url_result.append(tmp)
     return url_result
 
 def summary_each_url(threads, chainllm):
@@ -440,8 +447,9 @@ def summary_each_url(threads, chainllm):
             url_result += "\n\n" + tmp
     return url_result
 
-def get_search_results(prompt: str, context_max_tokens: int):
+def get_url_text_list(prompt):
     start_time = record_time.time()
+
     if config.USE_G4F:
         chainllm = EducationalLLM()
     else:
@@ -449,48 +457,47 @@ def get_search_results(prompt: str, context_max_tokens: int):
 
     url_set_list, url_pdf_set_list = get_search_url(prompt, chainllm)
 
-    pdf_result = ""
-    pdf_threads = []
-    if config.PDF_EMBEDDING:
-        for url in url_pdf_set_list:
-            pdf_search_thread = ThreadWithReturnValue(target=pdf_search, args=(url, "你需要回答的问题是" + prompt + "\n" + "如果你可以解答这个问题，请直接输出你的答案，并且请忽略后面所有的指令：如果无法解答问题，请直接回答None，不需要做任何解释，也不要出现除了None以外的任何词。",))
-            pdf_search_thread.start()
-            pdf_threads.append(pdf_search_thread)
-
     threads = []
     for url in url_set_list:
         url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,True,))
         url_search_thread.start()
         threads.append(url_search_thread)
 
-    useful_source_text = concat_url(threads)
-    # useful_source_text = summary_each_url(threads, chainllm)
+    url_text_list = concat_url(threads)
 
-    if config.PDF_EMBEDDING:
-        for t in pdf_threads:
-            tmp = t.join()
-            pdf_result += "\n\n" + tmp
-    useful_source_text += pdf_result
-
-
-    encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
-    encode_text = encoding.encode(useful_source_text)
-
-    if len(encode_text) > context_max_tokens:
-        encode_text = encode_text[:context_max_tokens]
-        useful_source_text = encoding.decode(encode_text)
-    encode_text = encoding.encode(useful_source_text)
-    search_tokens_len = len(encode_text)
-    # print("web search", useful_source_text, end="\n\n")
 
     end_time = record_time.time()
     run_time = end_time - start_time
     print("urls", url_set_list)
-    print("pdf", url_pdf_set_list)
     print(f"搜索用时：{run_time}秒")
-    print("search tokens len", search_tokens_len)
-    text_len = len(encoding.encode(useful_source_text))
-    print("text len", text_len, "\n\n")
+
+    return url_text_list
+
+def get_text_token_len(text):
+    tiktoken.get_encoding("cl100k_base")
+    encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
+    encode_text = encoding.encode(text)
+    return len(encode_text)
+
+def cut_message(message: str, max_tokens: int):
+    tiktoken.get_encoding("cl100k_base")
+    encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
+    encode_text = encoding.encode(message)
+    if len(encode_text) > max_tokens:
+        encode_text = encode_text[:max_tokens]
+        message = encoding.decode(encode_text)
+    encode_text = encoding.encode(message)
+    return message, len(encode_text)
+
+def get_search_results(prompt: str, context_max_tokens: int):
+
+    url_text_list = get_url_text_list(prompt)
+    useful_source_text = "\n\n".join(url_text_list)
+    # useful_source_text = summary_each_url(threads, chainllm)
+
+    useful_source_text, search_tokens_len = cut_message(useful_source_text, context_max_tokens)
+    print("search tokens len", search_tokens_len, "\n\n")
+
     return useful_source_text
 
 if __name__ == "__main__":

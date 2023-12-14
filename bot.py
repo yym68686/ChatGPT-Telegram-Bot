@@ -242,7 +242,7 @@ first_buttons = [
     ],
     [
         InlineKeyboardButton("搜索已打开", callback_data="搜索"),
-        InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf"),
+        # InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf"),
     ],
     [
         InlineKeyboardButton("🇨🇳 中文", callback_data="language"),
@@ -372,26 +372,26 @@ async def button_press(update, context):
             reply_markup=InlineKeyboardMarkup(first_buttons),
             parse_mode='MarkdownV2'
         )
-    elif "pdf" in data:
-        config.PDF_EMBEDDING = not config.PDF_EMBEDDING
-        if config.PDF_EMBEDDING == False:
-            first_buttons[2][1] = InlineKeyboardButton("联网解析PDF已关闭", callback_data="pdf")
-        else:
-            first_buttons[2][1] = InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf")
+    # elif "pdf" in data:
+    #     config.PDF_EMBEDDING = not config.PDF_EMBEDDING
+    #     if config.PDF_EMBEDDING == False:
+    #         first_buttons[2][1] = InlineKeyboardButton("联网解析PDF已关闭", callback_data="pdf")
+    #     else:
+    #         first_buttons[2][1] = InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf")
 
-        info_message = (
-            f"`Hi, {update.effective_user.username}!`\n\n"
-            f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**temperature:** `{config.temperature}`\n"
-            f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-        )
-        message = await callback_query.edit_message_text(
-            text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(first_buttons),
-            parse_mode='MarkdownV2'
-        )
+    #     info_message = (
+    #         f"`Hi, {update.effective_user.username}!`\n\n"
+    #         f"**Default engine:** `{config.GPT_ENGINE}`\n"
+    #         f"**temperature:** `{config.temperature}`\n"
+    #         f"**API_URL:** `{config.API_URL}`\n\n"
+    #         f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
+    #         f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+    #     )
+    #     message = await callback_query.edit_message_text(
+    #         text=escape(info_message),
+    #         reply_markup=InlineKeyboardMarkup(first_buttons),
+    #         parse_mode='MarkdownV2'
+    #     )
     elif "language" in data:
         if config.LANGUAGE == "Simplified Chinese":
             first_buttons[3][0] = InlineKeyboardButton("🇺🇸 English", callback_data="language")
