@@ -1,5 +1,6 @@
 import os
 import re
+import json
 
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -305,6 +306,8 @@ def getddgsearchurl(result, numresults=3):
     try:
         search = DuckDuckGoSearchResults(num_results=numresults)
         webresult = search.run(result)
+        if webresult == None:
+            return []
         urls = re.findall(r"(https?://\S+)\]", webresult, re.MULTILINE)
     except Exception as e:
         print('\033[31m')
@@ -499,6 +502,20 @@ def get_search_results(prompt: str, context_max_tokens: int):
     print("search tokens len", search_tokens_len, "\n\n")
 
     return useful_source_text
+
+def check_json(json_data):
+    while True:
+        try:
+            json.loads(json_data)
+            break
+        except json.decoder.JSONDecodeError as e:
+            print("JSON error：", e)
+            print("JSON body", repr(json_data))
+            if "Invalid control character" in str(e):
+                json_data = json_data.replace("\n", "\\n")
+            if "Unterminated string starting" in str(e):
+                json_data += '"}'
+    return json_data
 
 if __name__ == "__main__":
     os.system("clear")

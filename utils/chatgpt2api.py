@@ -12,7 +12,7 @@ from . import typings as t
 from typing import Set
 
 import config
-from utils.agent import Web_crawler, get_search_results, cut_message, get_url_text_list, get_text_token_len
+from utils.agent import Web_crawler, get_search_results, cut_message, get_url_text_list, get_text_token_len, check_json
 from utils.function_call import function_call_list
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
@@ -539,6 +539,7 @@ class Chatbot:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
         self.add_to_conversation(prompt, role, convo_id=convo_id, function_name=function_name)
         json_post, message_token = self.truncate_conversation(prompt, role, convo_id, model, pass_history, **kwargs)
+        print(json_post)
         print(self.conversation[convo_id])
 
         if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-3.5-turbo-1106":
@@ -592,7 +593,11 @@ class Chatbot:
                 if "name" in delta["function_call"]:
                     function_call_name = delta["function_call"]["name"]
                 full_response += function_call_content
+                if full_response.count("\\n") > 2:
+                    break
         if need_function_call:
+            full_response = check_json(full_response)
+            print("full_response", full_response)
             if not self.function_calls_counter.get(function_call_name):
                 self.function_calls_counter[function_call_name] = 1
             else:
