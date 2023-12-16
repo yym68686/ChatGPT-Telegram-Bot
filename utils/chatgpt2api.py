@@ -125,10 +125,7 @@ class claudebot:
             raise NotImplementedError(
                 f"Engine {self.engine} is not supported. Select from {ENGINES}",
             )
-        tiktoken.model.MODEL_TO_ENCODING["gpt-4"] = "cl100k_base"
-        tiktoken.model.MODEL_TO_ENCODING["claude-2-web"] = "cl100k_base"
         tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
-
         encoding = tiktoken.encoding_for_model(self.engine)
 
         num_tokens = 0
@@ -195,8 +192,9 @@ class claudebot:
             # print(line)
             resp: dict = json.loads(line)
             content = resp.get("completion")
-            full_response += content
-            yield content
+            if content:
+                full_response += content
+                yield content
         self.add_to_conversation(full_response, response_role, convo_id=convo_id)
         # print(repr(self.conversation.Conversation(convo_id)))
         # print("total tokens:", self.get_token_count(convo_id))
@@ -395,7 +393,7 @@ class Chatbot:
         while True:
             json_post = self.get_post_body(prompt, role, convo_id, model, pass_history, **kwargs)
             url = config.bot_api_url.chat_url
-            if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-3.5-turbo-1106":
+            if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-3.5-turbo-1106" or self.engine == "claude-2":
                 message_token = {
                     "total": self.get_token_count(convo_id),
                 }
@@ -430,10 +428,9 @@ class Chatbot:
             raise NotImplementedError(
                 f"Engine {self.engine} is not supported. Select from {ENGINES}",
             )
-        # tiktoken.model.MODEL_TO_ENCODING["gpt-4"] = "cl100k_base"
-        # tiktoken.model.MODEL_TO_ENCODING["claude-2-web"] = "cl100k_base"
-        # tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
         tiktoken.get_encoding("cl100k_base")
+        tiktoken.model.MODEL_TO_ENCODING["gpt-4"] = "cl100k_base"
+        tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
 
         encoding = tiktoken.encoding_for_model(self.engine)
 
@@ -593,7 +590,7 @@ class Chatbot:
                 if "name" in delta["function_call"]:
                     function_call_name = delta["function_call"]["name"]
                 full_response += function_call_content
-                if full_response.count("\\n") > 2:
+                if full_response.count("\\n") > 2 or "}" in full_response:
                     break
         if need_function_call:
             full_response = check_json(full_response)

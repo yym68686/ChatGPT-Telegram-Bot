@@ -181,6 +181,8 @@ async def image(update, context):
             result += "当前 prompt 未能成功生成图片，可能因为版权，政治，色情，暴力，种族歧视等违反 OpenAI 的内容政策😣，换句话试试吧～"
         elif "server is busy" in str(e):
             result += "服务器繁忙，请稍后再试～"
+        elif "billing_hard_limit_reached" in str(e):
+            result += "当前账号余额不足～"
         else:
             result += f"`{e}`"
         await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text=result, parse_mode='MarkdownV2', disable_web_page_preview=True)
@@ -225,7 +227,7 @@ buttons = [
     # ],
     [
         InlineKeyboardButton("claude-2", callback_data="claude-2"),
-        InlineKeyboardButton("claude-2-web", callback_data="claude-2-web"),
+        # InlineKeyboardButton("claude-2-web", callback_data="claude-2-web"),
     ],
     [
         InlineKeyboardButton("返回上一级", callback_data="返回上一级"),
@@ -571,4 +573,7 @@ if __name__ == '__main__':
         print("WEB_HOOK:", WEB_HOOK)
         application.run_webhook("127.0.0.1", PORT, webhook_url=WEB_HOOK)
     else:
-        application.run_polling()
+        # application.run_polling()
+        time_out = 600
+        application.run_polling(read_timeout=time_out, write_timeout=time_out)
+        # application.run_polling(read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out, timeout=time_out)
