@@ -538,7 +538,7 @@ class Chatbot:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
         self.add_to_conversation(prompt, role, convo_id=convo_id, function_name=function_name)
         json_post, message_token = self.truncate_conversation(prompt, role, convo_id, model, pass_history, **kwargs)
-        print(json.dumps(json_post, indent=4))
+        print(json.dumps(json_post, indent=4, ensure_ascii=False))
         # print(self.conversation[convo_id])
 
         if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-3.5-turbo-1106":
