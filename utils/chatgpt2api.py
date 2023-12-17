@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import copy
 from pathlib import Path
 from typing import AsyncGenerator
 
@@ -411,13 +412,13 @@ class Chatbot:
                 break
         return json_post, message_token
     
-    def clear_function_call(self, convo_id: str = "default"):
-        self.conversation[convo_id] = [item for item in self.conversation[convo_id] if '@Trash@' not in item['content']]
-        function_call_items = [item for item in self.conversation[convo_id] if 'function' in item['role']]
-        function_call_num = len(function_call_items)
-        if function_call_num > 50:
-            for i in range(function_call_num - 25):
-                self.conversation[convo_id].remove(function_call_items[i])
+    # def clear_function_call(self, convo_id: str = "default"):
+    #     self.conversation[convo_id] = [item for item in self.conversation[convo_id] if '@Trash@' not in item['content']]
+    #     function_call_items = [item for item in self.conversation[convo_id] if 'function' in item['role']]
+    #     function_call_num = len(function_call_items)
+    #     if function_call_num > 50:
+    #         for i in range(function_call_num - 25):
+    #             self.conversation[convo_id].remove(function_call_items[i])
 
     # https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
     def get_token_count(self, convo_id: str = "default") -> int:
@@ -485,7 +486,7 @@ class Chatbot:
         pass_history: bool = True,
         **kwargs,
     ):
-        json_post = {
+        json_post_body = {
             "model": os.environ.get("MODEL_NAME") or model or self.engine,
             "messages": self.conversation[convo_id] if pass_history else [{"role": "system","content": self.system_prompt},{"role": role, "content": prompt}],
             "stream": True,
@@ -504,12 +505,12 @@ class Chatbot:
             "user": role,
             "max_tokens": 5000,
         }
-        json_post.update(function_call_list["base"])
+        json_post_body.update(copy.deepcopy(function_call_list["base"]))
         if config.SEARCH_USE_GPT:
-            json_post["functions"].append(function_call_list["web_search"])
-        json_post["functions"].append(function_call_list["url_fetch"])
+            json_post_body["functions"].append(function_call_list["web_search"])
+        json_post_body["functions"].append(function_call_list["url_fetch"])
 
-        return json_post
+        return json_post_body
 
     def get_max_tokens(self, convo_id: str) -> int:
         """
@@ -536,8 +537,8 @@ class Chatbot:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
         self.add_to_conversation(prompt, role, convo_id=convo_id, function_name=function_name)
         json_post, message_token = self.truncate_conversation(prompt, role, convo_id, model, pass_history, **kwargs)
-        print(json_post)
-        print(self.conversation[convo_id])
+        print(json.dumps(json_post, indent=4))
+        # print(self.conversation[convo_id])
 
         if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-3.5-turbo-1106":
             model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
@@ -642,7 +643,7 @@ class Chatbot:
         else:
             self.add_to_conversation(full_response, response_role, convo_id=convo_id)
             self.function_calls_counter = {}
-            self.clear_function_call(convo_id=convo_id)
+            # self.clear_function_call(convo_id=convo_id)
             self.encode_web_text_list = []
             # total_tokens = self.get_token_count(convo_id)
 
