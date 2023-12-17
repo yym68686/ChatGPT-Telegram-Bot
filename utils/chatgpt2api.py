@@ -448,7 +448,7 @@ class Chatbot:
         return num_tokens
     
     def get_message_token(self, url, json_post):
-        json_post["max_tokens"] = 5000
+        json_post["max_tokens"] = 17000
         headers = {"Authorization": f"Bearer {os.environ.get('API', None)}"}
         response = requests.Session().post(
             url,
@@ -456,6 +456,7 @@ class Chatbot:
             json=json_post,
             timeout=None,
         )
+        # print(response.text)
         if response.status_code != 200:
             json_response = json.loads(response.text)
             string = json_response["error"]["message"]

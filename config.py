@@ -23,7 +23,7 @@ LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
 from datetime import datetime
 current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
-systemprompt = os.environ.get('SYSTEMPROMPT', f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {Current_Date} ]")
+systemprompt = os.environ.get('SYSTEMPROMPT', f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {LANGUAGE}. Knowledge cutoff: 2023-04. Current date: [ {Current_Date} ]")
 
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import Imagebot, claudebot
