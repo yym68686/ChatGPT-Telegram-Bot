@@ -13,7 +13,7 @@ from . import typings as t
 from typing import Set
 
 import config
-from utils.agent import Web_crawler, get_search_results, cut_message, get_url_text_list, get_text_token_len, check_json
+from utils.agent import Web_crawler, get_search_results, cut_message, get_url_text_list, get_text_token_len, check_json, get_date_time_weekday, get_version_info
 from utils.function_call import function_call_list
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
@@ -199,8 +199,6 @@ class claudebot:
         self.add_to_conversation(full_response, response_role, convo_id=convo_id)
         # print(repr(self.conversation.Conversation(convo_id)))
         # print("total tokens:", self.get_token_count(convo_id))
-
-
 
 class Imagebot:
     def __init__(
@@ -510,6 +508,8 @@ class Chatbot:
         if config.SEARCH_USE_GPT:
             json_post_body["functions"].append(function_call_list["web_search"])
         json_post_body["functions"].append(function_call_list["url_fetch"])
+        json_post_body["functions"].append(function_call_list["today"])
+        json_post_body["functions"].append(function_call_list["vresion"])
 
         return json_post_body
 
@@ -636,6 +636,12 @@ class Chatbot:
                     url = json.loads(full_response)["url"]
                     print("\n\nurl", url)
                     function_response = Web_crawler(url)
+                    function_response, text_len = cut_message(function_response, function_call_max_tokens)
+                if function_call_name == "get_date_time_weekday":
+                    function_response = eval(function_call_name)()
+                    function_response, text_len = cut_message(function_response, function_call_max_tokens)
+                if function_call_name == "get_version_info":
+                    function_response = eval(function_call_name)()
                     function_response, text_len = cut_message(function_response, function_call_max_tokens)
             else:
                 function_response = "抱歉，直接告诉用户，无法找到相关信息"
