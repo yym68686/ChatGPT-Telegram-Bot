@@ -527,7 +527,8 @@ def get_date_time_weekday():
 
 def get_version_info():
     import subprocess
-    result = subprocess.run(['git', 'log', '-1'], stdout=subprocess.PIPE)
+    current_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    result = subprocess.run(['git', '-C', current_directory, 'log', '-1'], stdout=subprocess.PIPE)
     output = result.stdout.decode()
     return output
 
