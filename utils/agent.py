@@ -524,10 +524,9 @@ def get_date_time_weekday():
     now = datetime.datetime.now(tz)  # 获取东八区当前时间
     weekday = now.weekday()
     weekday_str = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'][weekday]
-    return "今天是：" + str(now.date()) + "，现在的时间是：" + str(now.time())[:-13] + "，" + weekday_str
+    return "今天是：" + str(now.date()) + "，现在的时间是：" + str(now.time())[:-7] + "，" + weekday_str
 
 # 使用函数
-print(get_date_time_weekday())
 def get_version_info():
     import subprocess
     current_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -537,7 +536,8 @@ def get_version_info():
 
 if __name__ == "__main__":
     os.system("clear")
-    print(get_version_info())
+    print(get_date_time_weekday())
+    # print(get_version_info())
     
     # from langchain.agents import get_all_tool_names
     # print(get_all_tool_names())
