@@ -519,12 +519,15 @@ def check_json(json_data):
 
 def get_date_time_weekday():
     import datetime
-
-    now = datetime.datetime.now()
+    import pytz
+    tz = pytz.timezone('Asia/Shanghai')  # 为东八区设置时区
+    now = datetime.datetime.now(tz)  # 获取东八区当前时间
     weekday = now.weekday()
     weekday_str = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'][weekday]
-    return "今天是：" + str(now.date()) + "，现在的时间是：" + str(now.time()) + "，" + weekday_str
+    return "今天是：" + str(now.date()) + "，现在的时间是：" + str(now.time())[:-13] + "，" + weekday_str
 
+# 使用函数
+print(get_date_time_weekday())
 def get_version_info():
     import subprocess
     current_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
