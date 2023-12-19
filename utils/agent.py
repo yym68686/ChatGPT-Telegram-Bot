@@ -302,7 +302,7 @@ def Web_crawler(url: str, isSearch=False) -> str:
     # print("url content", result + "\n\n")
     return result
 
-def getddgsearchurl(result, numresults=3):
+def getddgsearchurl(result, numresults=4):
     try:
         search = DuckDuckGoSearchResults(num_results=numresults)
         webresult = search.run(result)
@@ -314,6 +314,7 @@ def getddgsearchurl(result, numresults=3):
         print("duckduckgo error", e)
         print('\033[0m')
         urls = []
+    # print("ddg urls", urls)
     return urls
 
 def getgooglesearchurl(result, numresults=3):
@@ -332,6 +333,7 @@ def getgooglesearchurl(result, numresults=3):
         if "rateLimitExceeded" in str(e):
             print("Google API 每日调用频率已达上限，请明日再试！")
             config.USE_GOOGLE = False
+    # print("google urls", urls)
     return urls
 
 def get_search_url(prompt, chainllm):
@@ -390,28 +392,32 @@ def get_search_url(prompt, chainllm):
     search_threads = []
     urls_set = []
     if len(keywords) == 3:
-        search_url_num = 8
+        search_url_num = 4
     if len(keywords) == 2:
-        search_url_num = 12
+        search_url_num = 6
     if len(keywords) == 1:
-        search_url_num = 24
+        search_url_num = 12
+    # print(keywords)
     if config.USE_GOOGLE:
         search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keywords[0],search_url_num,))
         search_thread.start()
         search_threads.append(search_thread)
-        keywords = keywords.pop(0)
-
+        keywords.pop(0)
+    # print(keywords)
     for keyword in keywords:
         search_thread = ThreadWithReturnValue(target=getddgsearchurl, args=(keyword,search_url_num,))
         search_thread.start()
         search_threads.append(search_thread)
+    # exit(0)
 
     for t in search_threads:
         tmp = t.join()
         urls_set += tmp
     url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
+    # cut_num = int(len(url_set_list) * 2 / 3)
     url_pdf_set_list = [item for item in url_set_list if item.endswith(".pdf")]
     url_set_list = [item for item in url_set_list if not item.endswith(".pdf")]
+    # return url_set_list[:cut_num], url_pdf_set_list
     return url_set_list, url_pdf_set_list
 
 def concat_url(threads):

@@ -615,7 +615,8 @@ class Chatbot:
                         if self.conversation[convo_id][-1 - index]["role"] == "user":
                             self.conversation[convo_id][-1 - index]["content"] = self.conversation[convo_id][-1 - index]["content"].replace("search: ", "")
                             prompt = self.conversation[convo_id][-1 - index]["content"]
-                            prompt = " ".join([prompt, json.loads(full_response)["prompt"].strip()]).strip()
+                            if json.loads(full_response)["prompt"].strip() != prompt:
+                                prompt = " ".join([prompt, json.loads(full_response)["prompt"].strip()]).strip()
                             print("\n\nprompt", prompt)
                             break
                     tiktoken.get_encoding("cl100k_base")
