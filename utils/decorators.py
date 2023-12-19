@@ -22,6 +22,8 @@ def GroupAuthorization(func):
         if config.GROUP_LIST == None:
             return await func(*args, **kwargs)
         if (args[0].effective_chat.id not in config.GROUP_LIST):
+            if (args[0].effective_user.id in config.ADMIN_LIST and config.ADMIN_LIST):
+                return await func(*args, **kwargs)
             message = (
                 f"`Hi, {args[0].effective_user.username}!`\n\n"
                 f"id: `{args[0].effective_user.id}`\n\n"
