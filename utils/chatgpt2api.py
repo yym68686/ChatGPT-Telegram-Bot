@@ -335,7 +335,7 @@ class Chatbot:
         }
         self.function_calls_counter = {}
         self.function_call_max_loop = 3
-        self.encode_web_text_list = []
+        # self.encode_web_text_list = []
 
         if self.get_token_count("default") > self.max_tokens:
             raise t.ActionRefuseError("System prompt is too long")
@@ -621,11 +621,16 @@ class Chatbot:
                             break
                     tiktoken.get_encoding("cl100k_base")
                     encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
-                    if self.encode_web_text_list == []:
-                        self.encode_web_text_list = encoding.encode(" ".join(get_url_text_list(prompt)))
-                        print("search len", len(self.encode_web_text_list))
-                    function_response = encoding.decode(self.encode_web_text_list[:function_call_max_tokens])
-                    self.encode_web_text_list = self.encode_web_text_list[function_call_max_tokens:]
+
+                    encode_web_text_list = encoding.encode(" ".join(get_url_text_list(prompt)))
+                    print("search len", len(encode_web_text_list))
+                    function_response = encoding.decode(encode_web_text_list[:function_call_max_tokens])
+                    # if self.encode_web_text_list == []:
+                    #     self.encode_web_text_list = encoding.encode(" ".join(get_url_text_list(prompt)))
+                    #     print("search len", len(self.encode_web_text_list))
+                    # function_response = encoding.decode(self.encode_web_text_list[:function_call_max_tokens])
+                    # self.encode_web_text_list = self.encode_web_text_list[function_call_max_tokens:]
+
                     # function_response = eval(function_call_name)(prompt, function_call_max_tokens)
                     function_response = (
                         "Here is the Search results, inside <Search_results></Search_results> XML tags:"
@@ -654,7 +659,7 @@ class Chatbot:
             self.add_to_conversation(full_response, response_role, convo_id=convo_id)
             self.function_calls_counter = {}
             # self.clear_function_call(convo_id=convo_id)
-            self.encode_web_text_list = []
+            # self.encode_web_text_list = []
             # total_tokens = self.get_token_count(convo_id)
 
     async def ask_stream_async(
