@@ -618,9 +618,9 @@ class Chatbot:
                             prompt = " ".join([prompt, json.loads(full_response)["prompt"].strip()]).strip()
                             print("\n\nprompt", prompt)
                             break
+                    tiktoken.get_encoding("cl100k_base")
+                    encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
                     if self.encode_web_text_list == []:
-                        tiktoken.get_encoding("cl100k_base")
-                        encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
                         self.encode_web_text_list = encoding.encode(" ".join(get_url_text_list(prompt)))
                         print("search len", len(self.encode_web_text_list))
                     function_response = encoding.decode(self.encode_web_text_list[:function_call_max_tokens])

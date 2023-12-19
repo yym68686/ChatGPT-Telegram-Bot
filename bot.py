@@ -9,8 +9,8 @@ from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import claudebot
 from telegram.constants import ChatAction
 from utils.agent import docQA, get_doc_from_local, Document_extract, pdfQA
-from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter
+from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
+from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
 from config import WEB_HOOK, PORT, BOT_TOKEN
 
 
@@ -34,18 +34,18 @@ translator_prompt = "You are a translation engine, you can only translate text a
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
+    if update.edited_message:
+        message = update.edited_message.text if config.NICK is None else update.edited_message.text[botNicKLength:].strip() if update.edited_message.text[:botNicKLength].lower() == botNick else None
+        rawtext = update.edited_message.text
+        chatid = update.edited_message.chat_id
+        messageid = update.edited_message.message_id
+    else:
+        message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+        rawtext = update.message.text
+        chatid = update.message.chat_id
+        messageid = update.message.message_id
+    print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
     if has_command == False or len(context.args) > 0:
-        if update.edited_message:
-            message = update.edited_message.text if config.NICK is None else update.edited_message.text[botNicKLength:].strip() if update.edited_message.text[:botNicKLength].lower() == botNick else None
-            rawtext = update.edited_message.text
-            chatid = update.edited_message.chat_id
-            messageid = update.edited_message.message_id
-        else:
-            message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-            rawtext = update.message.text
-            chatid = update.message.chat_id
-            messageid = update.message.message_id
-        print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
         if has_command:
             message = ' '.join(context.args)
         if prompt and has_command:
@@ -62,7 +62,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             chat_id=chatid,
             text="请在命令后面放入文本。",
             parse_mode='MarkdownV2',
-            reply_to_message_id=update.message.message_id,
+            reply_to_message_id=messageid,
         )
 
 @decorators.GroupAuthorization
@@ -259,20 +259,23 @@ if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE
 def replace_with_asterisk(string, start=10, end=45):
     return string[:start] + '*' * (end - start) + string[end:]
 
+def update_info_message(update):
+    return (
+        f"`Hi, {update.effective_user.username}!`\n\n"
+        f"**Default engine:** `{config.GPT_ENGINE}`\n"
+        f"**Temperature:** `{config.temperature}`\n"
+        f"**API_URL:** `{config.API_URL}`\n\n"
+        f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
+        f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
+    )
+
 banner = "👇下面可以随时更改默认 gpt 模型："
 @decorators.AdminAuthorization
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def button_press(update, context):
     """Function to handle the button press"""
-    info_message = (
-        f"`Hi, {update.effective_user.username}!`\n\n"
-        f"**Default engine:** `{config.GPT_ENGINE}`\n"
-        f"**temperature:** `{config.temperature}`\n"
-        f"**API_URL:** `{config.API_URL}`\n\n"
-        f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-        f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-    )
+    info_message = update_info_message(update)
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
@@ -284,14 +287,7 @@ async def button_press(update, context):
         if config.ClaudeAPI and "claude" in data:
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         try:
-            info_message = (
-                f"`Hi, {update.effective_user.username}!`\n\n"
-                f"**Default engine:** `{config.GPT_ENGINE}`\n"
-                f"**temperature:** `{config.temperature}`\n"
-                f"**API_URL:** `{config.API_URL}`\n\n"
-                f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-                f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-            )
+            info_message = update_info_message(update)
             message = await callback_query.edit_message_text(
                 text=escape(info_message + banner),
                 reply_markup=InlineKeyboardMarkup(buttons),
@@ -318,14 +314,7 @@ async def button_press(update, context):
             first_buttons[1][0] = InlineKeyboardButton("历史记录已关闭", callback_data="历史记录")
         else:
             first_buttons[1][0] = InlineKeyboardButton("历史记录已打开", callback_data="历史记录")
-        info_message = (
-            f"`Hi, {update.effective_user.username}!`\n\n"
-            f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**temperature:** `{config.temperature}`\n"
-            f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-        )
+        info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(first_buttons),
@@ -338,15 +327,7 @@ async def button_press(update, context):
         else:
             first_buttons[2][0] = InlineKeyboardButton("搜索已打开", callback_data="搜索")
 
-        info_message = (
-            f"`Hi, {update.effective_user.username}!`\n\n"
-            f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**temperature:** `{config.temperature}`\n"
-            f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-        )
-
+        info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(first_buttons),
@@ -361,39 +342,12 @@ async def button_press(update, context):
         else:
             first_buttons[1][1] = InlineKeyboardButton("google已打开", callback_data="google")
 
-        info_message = (
-            f"`Hi, {update.effective_user.username}!`\n\n"
-            f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**temperature:** `{config.temperature}`\n"
-            f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-        )
+        info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(first_buttons),
             parse_mode='MarkdownV2'
         )
-    # elif "pdf" in data:
-    #     config.PDF_EMBEDDING = not config.PDF_EMBEDDING
-    #     if config.PDF_EMBEDDING == False:
-    #         first_buttons[2][1] = InlineKeyboardButton("联网解析PDF已关闭", callback_data="pdf")
-    #     else:
-    #         first_buttons[2][1] = InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf")
-
-    #     info_message = (
-    #         f"`Hi, {update.effective_user.username}!`\n\n"
-    #         f"**Default engine:** `{config.GPT_ENGINE}`\n"
-    #         f"**temperature:** `{config.temperature}`\n"
-    #         f"**API_URL:** `{config.API_URL}`\n\n"
-    #         f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-    #         f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-    #     )
-    #     message = await callback_query.edit_message_text(
-    #         text=escape(info_message),
-    #         reply_markup=InlineKeyboardMarkup(first_buttons),
-    #         parse_mode='MarkdownV2'
-    #     )
     elif "language" in data:
         if config.LANGUAGE == "Simplified Chinese":
             first_buttons[3][0] = InlineKeyboardButton("🇺🇸 English", callback_data="language")
@@ -408,14 +362,7 @@ async def button_press(update, context):
         if config.ClaudeAPI:
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
 
-        info_message = (
-            f"`Hi, {update.effective_user.username}!`\n\n"
-            f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**temperature:** `{config.temperature}`\n"
-            f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-        )
+        info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(first_buttons),
@@ -428,14 +375,7 @@ async def button_press(update, context):
         else:
             first_buttons[4][0] = InlineKeyboardButton("gpt4free已打开", callback_data="gpt4free")
 
-        info_message = (
-            f"`Hi, {update.effective_user.username}!`\n\n"
-            f"**Default engine:** `{config.GPT_ENGINE}`\n"
-            f"**temperature:** `{config.temperature}`\n"
-            f"**API_URL:** `{config.API_URL}`\n\n"
-            f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-            f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-        )
+        info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(first_buttons),
@@ -446,14 +386,7 @@ async def button_press(update, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def info(update, context):
-    info_message = (
-        f"`Hi, {update.effective_user.username}!`\n\n"
-        f"**Default engine:** `{config.GPT_ENGINE}`\n"
-        f"**temperature:** `{config.temperature}`\n"
-        f"**API_URL:** `{config.API_URL}`\n\n"
-        f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-        f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-    )
+    info_message = update_info_message(update)
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(first_buttons), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.GroupAuthorization
@@ -478,6 +411,20 @@ async def handle_pdf(update, context):
         f"文档上传成功！\n\n"
     )
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+
+@decorators.GroupAuthorization
+@decorators.Authorization
+async def inlinequery(update, context):
+    """Handle the inline query."""
+    query = update.inline_query.query
+    results = [
+        InlineQueryResultArticle(
+            id=update.effective_user.id,
+            title="Reverse",
+            input_message_content=InputTextMessageContent(query[::-1], parse_mode='MarkdownV2'))
+    ]
+
+    await update.inline_query.answer(results)
 
 # @decorators.GroupAuthorization
 # @decorators.Authorization
@@ -563,6 +510,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, config.LANGUAGE, robot=config.translate_bot)))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.translate_bot)))
     application.add_handler(CommandHandler("info", info))
+    application.add_handler(InlineQueryHandler(inlinequery))
     # application.add_handler(CommandHandler("qa", qa))
     application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC, handle_pdf))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
