@@ -12,9 +12,6 @@
   </a>
 </p>
 
-<p align="center">
-</p>
-
 The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT models, including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALLE 3, and the official Claude2.1 API. It enables users to engage in efficient conversations and information searches on Telegram.
 
 ## ✨ Features
@@ -40,7 +37,7 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | PASS_HISTORY  | The default is true. The bot remembers the conversation history and considers the context when replying next time. If set to false, the bot will forget the conversation history and only consider the current conversation. | No |
 | GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. Create credentials in Google Cloud's [APIs & Services](https://console.cloud.google.com/apis/api/customsearch.googleapis.com) and the API Key will be GOOGLE_API_KEY on the credentials page. Google search can be queried 100 times a day, which is completely sufficient for light use. When the usage limit has been reached, the bot will automatically turn off Google search. | No |
 | GOOGLE_CSE_ID | If you need to use Google search, you need to set it together with GOOGLE_API_KEY. Create a search engine in [Programmable Search Engine](https://programmablesearchengine.google.com/), where the search engine ID is the value of GOOGLE_CSE_ID. | No |
-| whitelist     | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). Please note that here we are referring to the Telegram ID, not the Telegram username, as they are different. | No |
+| whitelist     | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). Please note that here we are referring to the Telegram ID, not the Telegram username, as they are different. The whitelist cannot contain group IDs, to authorize specific groups for use, the environment variable GROUP_LIST must be used. | No |
 | ADMIN_LIST | Set up an admin list. Only admins can use the `info` command to configure the bot. When `GROUP_LIST` is set, only admins can have private chats with the bot. If `ADMIN_LIST` is not set, all users can modify the basic settings of the bot through the `info` command by default. Connect the admin IDs with a comma (',').You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). | No |
 | GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). After setting `GROUP_LIST`, except for the admin, no one else can have a private chat with the bot.You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). | No |
 
@@ -193,7 +190,7 @@ You can switch between GPT3.5, GPT4, and other models using the "info" command i
 
 - Does it support a vector database?
 
-Yes, it supports document Q&A based on the embedded vector database. During a search, for the searched PDF, automatic vector semantic search of PDF documents is performed, and pdf-related content is extracted based on the vector database. It also supports using the "qa" command to vectorize an entire website with the "sitemap.xml" file, and answer questions based on the vector database. This is especially suitable for document websites and wiki websites of some projects.
+No, previous versions did support it, but after installing unstructured[md,pdf] dependencies for parsing PDFs, the docker image size reached 9GB, so the support for the vector database was removed in the current version. Since the vector database is just a transitional product when the context of large language models is relatively short and there is significant information loss. With the introduction of claude2.1 200k and gpt4 Turbo 128k, vector databases have become less and less important. Although their price is lower, by comparison, I would prefer better performance.
 
 - Can it be deployed in a group?
 
@@ -206,6 +203,10 @@ It supports all suffixes, including: https://api.openai.com/v1/chat/completions,
 - Is it necessary to configure the web_hook environment variable?
 
 The web_hook is not a mandatory environment variable. You only need to set the domain name (which must be consistent with WEB_HOOK) and other environment variables as required for your application's functionality.
+
+- I deployed a robot with docker compose. If the documentation is placed on the server locally, which directory should it be mounted to in order to take effect? Do I need to set additional configurations and modify the code? 
+
+You can directly send the documentation to the robot through the chat box, and the robot will automatically parse the documentation. To use the documentation dialogue function, you need to enable the historical conversation feature. There is no need for additional processing of the documentation.
 
 ## References
 
