@@ -1,49 +1,42 @@
+<p align="center">
+<img src="./assets/logo-3071751.jpg">
+</p>
+
 # ChatGPT Telegram Bot
+
+<p align="center">
+    <a href="https://hub.docker.com/repository/docker/yym68686/chatgpt">
+    <img src="https://img.shields.io/docker/pulls/yym68686/chatgpt?color=blue" alt="docker pull"></a>
+</p>
+
+The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT models, including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALLE 3, and the official Claude2.1 API. It enables users to engage in efficient conversations and information searches on Telegram.
 
 Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your user experience or report Bugs.
 
-[English](./README.md) | [Simplified Chinese](./README.zh-CN.md) | [Traditional Chinese](./README.zh-TW.md)
-
-<a href="https://hub.docker.com/repository/docker/yym68686/chatgpt">
-    <img src="https://img.shields.io/docker/pulls/yym68686/chatgpt?color=blue" alt="docker pull">
-</a>
-
 ## ✨ Features
 
-✅ Supports GPT3.5, GPT4/GPT4 Turbo/GPT4 vison and Claude2.1 API, DALLE 3
-
-✅ Supports online search using duckduckgo and Google🔍. DuckDuckGo search is provided by default, and the official API for Google search needs to be applied by the user. It can provide real-time information that GPT could not answer before, such as Weibo hot search today, weather in a certain place today, and the progress of a certain person or news.
-
-✅ Supports document QA based on the embedded vector database. In the search, for the searched PDF, automatic vector semantic search of PDF documents is performed, and pdf-related content is extracted based on the vector database. Supports using the "qa" command to vectorize the entire website with the "sitemap.xml" file, and answer questions based on the vector database, which is especially suitable for document websites and wiki websites of some projects.
-
-✅ Supports switching between GPT3.5, GPT4 and other models through the "info" command in the chat window
-
-✅ Asynchronously processes messages, multi-threadedly answers questions, supports isolated dialogues, and different users have different dialogues
-
-✅ Supports accurate Markdown rendering of messages, using another [project](https://github.com/yym68686/md2tgmd) of mine
-
-✅ Supports streaming output, achieving typewriter effect
-
-✅ Supports whitelisting to prevent abuse and information leakage
-
-✅ Cross-platform, breaking knowledge barriers anytime and anywhere with Telegram
-
-✅ Supports one-click Zeabur, Replit deployment, true zero cost, idiotic deployment, and supports kuma anti-sleep. Also supports Docker, fly.io deployment
+- **Multiple AI Models**: Integrates a variety of AI models including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALLE 3, and Claude2.1 API.
+- **Powerful Online Search**: Supports online search with DuckDuckGo and Google, providing users with a robust information retrieval tool.
+- **User-friendly Interface**: Allows flexible model switching within the chat window and supports streaming output for a typewriter-like effect.
+- **Efficient Message Processing**: Asynchronously processes messages, answers questions in a multi-threaded manner, supports isolated dialogues, and provides unique dialogues for different users.
+- **Document Interaction**: Supports Q&A for PDF and TXT documents. Users can upload files directly in the chat box for use.
+- **Accurate Markdown Rendering**: Supports precise Markdown rendering of messages, utilizing another [project](https://github.com/yym68686/md2tgmd) of mine.
+- **Convenient Deployment**: Supports one-click Zeabur, Replit deployment with true zero cost and idiot-proof deployment process. It also supports kuma anti-sleep, as well as Docker and fly.io deployment.
 
 ## Environment variables
 
-| Variable Name           | Comment                                                      |
-| ---------------------- | ------------------------------------------------------------ |
-| **BOT_TOKEN (required)** | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. |
-| **API (required)**       | OpenAI or third-party API key.                              |
-| GPT_ENGINE (optional)    | Set the default QA model; the default is:`gpt-4-1106-preview`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. |
-| WEB_HOOK (optional)  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. |
-| API_URL(optional)       | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions |
-| NICK (optional)          | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. |
-| PASS_HISTORY (optional)  | The default is true. The bot remembers the conversation history and considers the context when replying next time. If set to false, the bot will forget the conversation history and only consider the current conversation. |
-| GOOGLE_API_KEY (optional)| If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. Create credentials in Google Cloud's [APIs & Services](https://console.cloud.google.com/apis/api/customsearch.googleapis.com) and the API Key will be GOOGLE_API_KEY on the credentials page. Google search can be queried 100 times a day, which is completely sufficient for light use. When the usage limit has been reached, the bot will automatically turn off Google search. |
-| GOOGLE_CSE_ID (optional) | If you need to use Google search, you need to set it together with GOOGLE_API_KEY. Create a search engine in [Programmable Search Engine](https://programmablesearchengine.google.com/), where the search engine ID is the value of GOOGLE_CSE_ID. |
-| whitelist (optional)     | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. |
+| Variable Name           | Comment                                                      | required? |
+| ---------------------- | ------------------------------------------------------------ | ---------------------- |
+| **BOT_TOKEN** | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. | **Yes** |
+| **API**       | OpenAI or third-party API key.                              | **Yes** |
+| GPT_ENGINE    | Set the default QA model; the default is:`gpt-4-1106-preview`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
+| WEB_HOOK  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
+| API_URL       | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
+| NICK          | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |
+| PASS_HISTORY  | The default is true. The bot remembers the conversation history and considers the context when replying next time. If set to false, the bot will forget the conversation history and only consider the current conversation. | No |
+| GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. Create credentials in Google Cloud's [APIs & Services](https://console.cloud.google.com/apis/api/customsearch.googleapis.com) and the API Key will be GOOGLE_API_KEY on the credentials page. Google search can be queried 100 times a day, which is completely sufficient for light use. When the usage limit has been reached, the bot will automatically turn off Google search. | No |
+| GOOGLE_CSE_ID | If you need to use Google search, you need to set it together with GOOGLE_API_KEY. Create a search engine in [Programmable Search Engine](https://programmablesearchengine.google.com/), where the search engine ID is the value of GOOGLE_CSE_ID. | No |
+| whitelist     | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. | No |
 
 ## Zeabur Remote Deployment (Recommended)
 
@@ -53,7 +46,7 @@ One-click deployment:
 
 If you need follow-up function updates, the following deployment method is recommended:
 
-Fork this repository first, then register for [Zeabur](https://zeabur.com). The free quota is sufficient for light use. Import from your own Github repository, set the domain name (which must be consistent with WEB_HOOK) and environment variables, and redeploy. If you need function updates in the follow-up, just synchronize this repository in your own repository and redeploy in Zeabur to get the latest functions.
+Fork this repository first, then register for [Zeabur](https://zeabur.com). The free quota is sufficient for light use. Import from your own Github repository, set the required environment variables, and redeploy. If you need function updates in the follow-up, just synchronize this repository in your own repository and redeploy in Zeabur to get the latest functions.
 
 ## Replit Remote Deployment
 
@@ -164,7 +157,51 @@ docker tag chatgpt:1.0 yym68686/chatgpt:1.0
 docker push yym68686/chatgpt:1.0
 ```
 
-## Reference
+One-Click Restart Docker Image
+
+```bash
+set -eu
+docker rm -f chatbot
+docker run -p 8080:8080 -dit --name chatbot \
+-e BOT_TOKEN= \
+-e API= \
+-e API_URL= \
+-e GOOGLE_API_KEY= \
+-e GOOGLE_CSE_ID= \
+-e claude_api_key= \
+yym68686/chatgpt:1.0
+docker logs -f chatbot
+```
+
+This script is for restarting the Docker image with a single command. It first removes the existing Docker container named "chatbot" if it exists. Then, it runs a new Docker container with the name "chatbot", exposing port 8080 and setting various environment variables. The Docker image used is "yym68686/chatgpt:1.0". Finally, it follows the logs of the "chatbot" container.
+
+## Q & A
+
+- Why can't I use Google search?
+
+By default, DuckDuckGo search is provided. The official API for Google search needs to be applied for by the user. It can provide real-time information that GPT could not answer before, such as today's trending topics on Weibo, today's weather in a specific location, and the progress of a certain person or news event.
+
+- How do I switch models?
+
+You can switch between GPT3.5, GPT4, and other models using the "info" command in the chat window.
+
+- Does it support a vector database?
+
+Yes, it supports document Q&A based on the embedded vector database. During a search, for the searched PDF, automatic vector semantic search of PDF documents is performed, and pdf-related content is extracted based on the vector database. It also supports using the "qa" command to vectorize an entire website with the "sitemap.xml" file, and answer questions based on the vector database. This is especially suitable for document websites and wiki websites of some projects.
+
+- Can it be deployed in a group?
+
+Yes, it supports whitelisting to prevent abuse and information leakage.
+
+- How should I set the API_URL?
+
+It supports all suffixes, including: https://api.openai.com/v1/chat/completions, https://api.openai.com/v1, and https://api.openai.com/.
+
+- Is it necessary to configure the web_hook environment variable?
+
+The web_hook is not a mandatory environment variable. You only need to set the domain name (which must be consistent with WEB_HOOK) and other environment variables as required for your application's functionality.
+
+## References
 
 https://core.telegram.org/bots/api
 
