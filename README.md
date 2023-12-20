@@ -2,16 +2,20 @@
 <img src="./assets/logo-3071751.jpg">
 </p>
 
-# ChatGPT Telegram Bot
+# 🤖️ ChatGPT Telegram Bot
 
 <p align="center">
     <a href="https://hub.docker.com/repository/docker/yym68686/chatgpt">
     <img src="https://img.shields.io/docker/pulls/yym68686/chatgpt?color=blue" alt="docker pull"></a>
+  <a href="https://t.me/+_01cz9tAkUc1YzZl">
+    <img src="https://img.shields.io/badge/Join Telegram Group-blue?&logo=telegram">
+  </a>
+</p>
+
+<p align="center">
 </p>
 
 The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT models, including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALLE 3, and the official Claude2.1 API. It enables users to engage in efficient conversations and information searches on Telegram.
-
-Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your user experience or report Bugs.
 
 ## ✨ Features
 
@@ -23,7 +27,7 @@ Join the [Telegram Group](https://t.me/+_01cz9tAkUc1YzZl) chat to share your use
 - **Accurate Markdown Rendering**: Supports precise Markdown rendering of messages, utilizing another [project](https://github.com/yym68686/md2tgmd) of mine.
 - **Convenient Deployment**: Supports one-click Zeabur, Replit deployment with true zero cost and idiot-proof deployment process. It also supports kuma anti-sleep, as well as Docker and fly.io deployment.
 
-## Environment variables
+## 🍃 Environment variables
 
 | Variable Name           | Comment                                                      | required? |
 | ---------------------- | ------------------------------------------------------------ | ---------------------- |
