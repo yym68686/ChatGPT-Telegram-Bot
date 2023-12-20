@@ -268,27 +268,31 @@ buttons = [
     ],
 ]
 
-first_buttons = [
-    [
-        InlineKeyboardButton("更换问答模型", callback_data="更换问答模型"),
-    ],
-    [
-        InlineKeyboardButton("历史记录已关闭", callback_data="历史记录"),
-        InlineKeyboardButton("google已打开", callback_data="google"),
-    ],
-    [
-        InlineKeyboardButton("搜索已打开", callback_data="搜索"),
-        # InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf"),
-    ],
-    [
-        InlineKeyboardButton("🇨🇳 中文", callback_data="language"),
-    ],
-    [
-        InlineKeyboardButton("gpt4free已关闭", callback_data="gpt4free"),
-    ],
-]
-if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
-    first_buttons[1][1] = InlineKeyboardButton("google已关闭", callback_data="google")
+def update_first_buttons_message():
+    history = "✅" if config.PASS_HISTORY else "☑️"
+    google = "✅" if config.USE_GOOGLE else "☑️"
+    search = "✅" if config.SEARCH_USE_GPT else "☑️"
+    gpt4free = "✅" if config.USE_G4F else "☑️"
+    language = "🇨🇳 中文" if config.LANGUAGE == "Simplified Chinese" else "🇺🇸 English"
+
+    first_buttons = [
+        [
+            InlineKeyboardButton("更换问答模型", callback_data="更换问答模型"),
+        ],
+        [
+            InlineKeyboardButton(f"历史记录 {history}", callback_data="历史记录"),
+            InlineKeyboardButton(f"google {google}", callback_data="google"),
+            InlineKeyboardButton(f"搜索 {search}", callback_data="搜索"),
+        ],
+        [
+            InlineKeyboardButton(f"gpt4free {gpt4free}", callback_data="gpt4free"),
+            InlineKeyboardButton(language, callback_data="language"),
+            # InlineKeyboardButton("联网解析PDF已打开", callback_data="pdf"),
+        ],
+    ]
+    if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
+        first_buttons[1][1] = InlineKeyboardButton("google ☑️", callback_data="google")
+    return first_buttons
 
 def replace_with_asterisk(string, start=10, end=45):
     return string[:start] + '*' * (end - start) + string[end:]
@@ -339,55 +343,41 @@ async def button_press(update, context):
     elif "返回" in data:
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(first_buttons),
+            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
             parse_mode='MarkdownV2'
         )
     elif "历史记录" in data:
         config.PASS_HISTORY = not config.PASS_HISTORY
-        if config.PASS_HISTORY == False:
-            first_buttons[1][0] = InlineKeyboardButton("历史记录已关闭", callback_data="历史记录")
-        else:
-            first_buttons[1][0] = InlineKeyboardButton("历史记录已打开", callback_data="历史记录")
         info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(first_buttons),
+            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
             parse_mode='MarkdownV2'
         )
     elif "搜索" in data:
         config.SEARCH_USE_GPT = not config.SEARCH_USE_GPT
-        if config.SEARCH_USE_GPT == False:
-            first_buttons[2][0] = InlineKeyboardButton("搜索已关闭", callback_data="搜索")
-        else:
-            first_buttons[2][0] = InlineKeyboardButton("搜索已打开", callback_data="搜索")
 
         info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(first_buttons),
+            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
             parse_mode='MarkdownV2'
         )
     elif "google" in data:
         if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
             return
         config.USE_GOOGLE = not config.USE_GOOGLE
-        if config.USE_GOOGLE == False:
-            first_buttons[1][1] = InlineKeyboardButton("google已关闭", callback_data="google")
-        else:
-            first_buttons[1][1] = InlineKeyboardButton("google已打开", callback_data="google")
 
         info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(first_buttons),
+            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
             parse_mode='MarkdownV2'
         )
     elif "language" in data:
         if config.LANGUAGE == "Simplified Chinese":
-            first_buttons[3][0] = InlineKeyboardButton("🇺🇸 English", callback_data="language")
             config.LANGUAGE = "English"
         else:
-            first_buttons[3][0] = InlineKeyboardButton("🇨🇳 中文", callback_data="language")
             config.LANGUAGE = "Simplified Chinese"
         config.systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {config.LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {config.Current_Date} ]"
         if config.API:
@@ -399,20 +389,16 @@ async def button_press(update, context):
         info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(first_buttons),
+            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
             parse_mode='MarkdownV2'
         )
     elif "gpt4free" in data:
         config.USE_G4F = not config.USE_G4F
-        if config.USE_G4F == False:
-            first_buttons[4][0] = InlineKeyboardButton("gpt4free已关闭", callback_data="gpt4free")
-        else:
-            first_buttons[4][0] = InlineKeyboardButton("gpt4free已打开", callback_data="gpt4free")
 
         info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(first_buttons),
+            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
             parse_mode='MarkdownV2'
         )
 
@@ -421,7 +407,7 @@ async def button_press(update, context):
 @decorators.Authorization
 async def info(update, context):
     info_message = update_info_message(update)
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(first_buttons), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message()), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.GroupAuthorization
 @decorators.Authorization
