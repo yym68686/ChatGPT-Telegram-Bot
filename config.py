@@ -29,6 +29,10 @@ from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import Imagebot, claudebot
 if API:
     ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
+    try:
+        GPT4visionbot = GPT(api_key=f"{API}", engine="gpt-4-vision-preview", system_prompt=systemprompt, temperature=temperature)
+    except:
+        print("无法使用 gpt-4-vision-preview 模型")
     translate_bot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
     dallbot = Imagebot(api_key=f"{API}")
 else:

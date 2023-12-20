@@ -518,7 +518,7 @@ class Chatbot:
             "n": kwargs.get("n", self.reply_count),
             "user": role,
         }
-        if config.GPT_ENGINE != "gpt-4-vision-preview":
+        if self.engine != "gpt-4-vision-preview":
             json_post_body.update(copy.deepcopy(body))
             json_post_body.update(copy.deepcopy(function_call_list["base"]))
             if config.SEARCH_USE_GPT:

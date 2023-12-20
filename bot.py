@@ -36,10 +36,11 @@ translator_prompt = "You are a translation engine, you can only translate text a
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
     image_url = None
     if update.edited_message:
-        message = update.edited_message.text if config.NICK is None else update.edited_message.text[botNicKLength:].strip() if update.edited_message.text[:botNicKLength].lower() == botNick else None
-        rawtext = update.edited_message.text
         chatid = update.edited_message.chat_id
         messageid = update.edited_message.message_id
+        if update.edited_message.text:
+            message = update.edited_message.text if config.NICK is None else update.edited_message.text[botNicKLength:].strip() if update.edited_message.text[:botNicKLength].lower() == botNick else None
+            rawtext = update.edited_message.text
         
         if update.edited_message.photo:
             photo = update.edited_message.photo[-1]
@@ -47,20 +48,20 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             photo_file = await context.bot.getFile(file_id)
             image_url = photo_file.file_path
 
-            message = rawtext = update.edited_message.caption
+            message = rawtext = update.edited_message.caption if config.NICK is None else update.edited_message.caption[botNicKLength:].strip() if update.edited_message.caption[:botNicKLength].lower() == botNick else None
     else:
-        message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-        rawtext = update.message.text
         chatid = update.message.chat_id
         messageid = update.message.message_id
-
+        if update.message.text:
+            message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
+            rawtext = update.message.text
         if update.message.photo:
             photo = update.message.photo[-1]
             file_id = photo.file_id
             photo_file = await context.bot.getFile(file_id)
             image_url = photo_file.file_path
 
-            message = rawtext = update.message.caption
+            message = rawtext = update.message.caption if config.NICK is None else update.message.caption[botNicKLength:].strip() if update.message.caption[:botNicKLength].lower() == botNick else None
     print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
 
     if has_command == False or len(context.args) > 0:
@@ -73,8 +74,11 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if message:
             if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claudeBot
+            if image_url:
+                robot = config.GPT4visionbot
+                title = "`🤖️ gpt-4-vision-preview`\n\n"
             message = [{"type": "text", "text": message}]
-            if image_url and config.GPT_ENGINE == "gpt-4-vision-preview":
+            if (image_url and config.GPT_ENGINE == "gpt-4-vision-preview") or (image_url and robot == config.GPT4visionbot):
                 message.append(
                     {
                         "type": "image_url",
