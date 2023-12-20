@@ -501,9 +501,9 @@ class Chatbot:
             "model": os.environ.get("MODEL_NAME") or model or self.engine,
             "messages": self.conversation[convo_id] if pass_history else [{"role": "system","content": self.system_prompt},{"role": role, "content": prompt}],
             "max_tokens": 5000,
+            "stream": True,
         }
         body = {
-            "stream": True,
             # kwargs
             "temperature": kwargs.get("temperature", self.temperature),
             "top_p": kwargs.get("top_p", self.top_p),

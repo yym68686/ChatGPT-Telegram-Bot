@@ -8,7 +8,7 @@ from utils.md2tgmd import escape
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import claudebot
 from telegram.constants import ChatAction
-from utils.agent import docQA, get_doc_from_local, Document_extract, pdfQA
+from utils.agent import docQA, get_doc_from_local, Document_extract, pdfQA, get_encode_image
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
 from config import WEB_HOOK, PORT, BOT_TOKEN
@@ -79,11 +79,12 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 title = "`🤖️ gpt-4-vision-preview`\n\n"
             message = [{"type": "text", "text": message}]
             if (image_url and config.GPT_ENGINE == "gpt-4-vision-preview") or (image_url and robot == config.GPT4visionbot):
+                base64_image = get_encode_image(image_url)
                 message.append(
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": image_url
+                            "url": base64_image
                         }
                     }
                 )

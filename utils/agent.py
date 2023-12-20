@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import base64
 
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -539,6 +540,18 @@ def get_version_info():
     result = subprocess.run(['git', '-C', current_directory, 'log', '-1'], stdout=subprocess.PIPE)
     output = result.stdout.decode()
     return output
+
+def encode_image(image_path):
+  with open(image_path, "rb") as image_file:
+    return base64.b64encode(image_file.read()).decode('utf-8')
+
+def get_encode_image(image_url):
+    filename = get_doc_from_url(image_url)
+    image_path = os.getcwd() + "/" + filename
+    base64_image = encode_image(image_path)
+    prompt = f"data:image/jpeg;base64,{base64_image}"
+    os.remove(image_path)
+    return prompt
 
 if __name__ == "__main__":
     os.system("clear")
