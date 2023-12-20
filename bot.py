@@ -34,17 +34,35 @@ translator_prompt = "You are a translation engine, you can only translate text a
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
+    image_url = None
     if update.edited_message:
         message = update.edited_message.text if config.NICK is None else update.edited_message.text[botNicKLength:].strip() if update.edited_message.text[:botNicKLength].lower() == botNick else None
         rawtext = update.edited_message.text
         chatid = update.edited_message.chat_id
         messageid = update.edited_message.message_id
+        
+        if update.edited_message.photo:
+            photo = update.edited_message.photo[-1]
+            file_id = photo.file_id
+            photo_file = await context.bot.getFile(file_id)
+            image_url = photo_file.file_path
+
+            message = rawtext = update.edited_message.caption
     else:
         message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
         rawtext = update.message.text
         chatid = update.message.chat_id
         messageid = update.message.message_id
+
+        if update.message.photo:
+            photo = update.message.photo[-1]
+            file_id = photo.file_id
+            photo_file = await context.bot.getFile(file_id)
+            image_url = photo_file.file_path
+
+            message = rawtext = update.message.caption
     print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
+
     if has_command == False or len(context.args) > 0:
         if has_command:
             message = ' '.join(context.args)
@@ -55,6 +73,16 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if message:
             if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claudeBot
+            message = [{"type": "text", "text": message}]
+            if image_url and config.GPT_ENGINE == "gpt-4-vision-preview":
+                message.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": image_url
+                        }
+                    }
+                )
             await context.bot.send_chat_action(chat_id=chatid, action=ChatAction.TYPING)
             await getChatGPT(update, context, title, robot, message, chatid, messageid)
     else:
@@ -185,7 +213,7 @@ async def image(update, context):
             result += "当前账号余额不足～"
         else:
             result += f"`{e}`"
-        await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text=result, parse_mode='MarkdownV2', disable_web_page_preview=True)
+        await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 import time
 async def delete_message(update, context, messageid, delay=10):
@@ -217,14 +245,15 @@ buttons = [
         # InlineKeyboardButton("gpt-4-32k-0314", callback_data="gpt-4-32k-0314"),
     ],
     [
+        # InlineKeyboardButton("gpt-4-0613", callback_data="gpt-4-0613"),
+        # InlineKeyboardButton("gpt-4-32k-0613", callback_data="gpt-4-32k-0613"),
+        InlineKeyboardButton("gpt-4-vision-preview", callback_data="gpt-4-vision-preview"),
+    ],
+    [
         InlineKeyboardButton("gpt-4", callback_data="gpt-4"),
         InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
         # InlineKeyboardButton("gpt-4-0314", callback_data="gpt-4-0314"),
     ],
-    # [
-    #     InlineKeyboardButton("gpt-4-0613", callback_data="gpt-4-0613"),
-    #     InlineKeyboardButton("gpt-4-32k-0613", callback_data="gpt-4-32k-0613"),
-    # ],
     [
         InlineKeyboardButton("claude-2", callback_data="claude-2"),
         # InlineKeyboardButton("claude-2-web", callback_data="claude-2-web"),
@@ -502,7 +531,7 @@ if __name__ == '__main__':
     )
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("pic", image))
+    application.add_handler(CommandHandler("pic", image, block = False))
     application.add_handler(CommandHandler("search", lambda update, context: command_bot(update, context, prompt="search: ", title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command="search")))
     # application.add_handler(CommandHandler("search", lambda update, context: search(update, context, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot)))
     application.add_handler(CallbackQueryHandler(button_press))
@@ -514,6 +543,7 @@ if __name__ == '__main__':
     # application.add_handler(CommandHandler("qa", qa))
     application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC, handle_pdf))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
+    application.add_handler(MessageHandler(filters.CAPTION & filters.PHOTO & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
 

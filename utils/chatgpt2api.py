@@ -51,6 +51,7 @@ ENGINES = [
     "gpt-4-0613",
     "gpt-4-32k-0613",
     "gpt-4-1106-preview",
+    "gpt-4-vision-preview",
     "claude-2-web",
     "claude-2",
 ]
@@ -269,7 +270,7 @@ class Chatbot:
         self.system_prompt: str = system_prompt
         self.max_tokens: int = max_tokens or (
             4096
-            if "gpt-4-1106-preview" in engine or "gpt-3.5-turbo-1106" in engine
+            if "gpt-4-1106-preview" in engine or "gpt-3.5-turbo-1106" in engine or self.engine == "gpt-4-vision-preview"
             else 31000
             if "gpt-4-32k" in engine
             else 7000
@@ -284,7 +285,7 @@ class Chatbot:
         self.truncate_limit: int = truncate_limit or (
             16000
             # 126500 Control the number of search characters to prevent excessive spending
-            if "gpt-4-1106-preview" in engine
+            if "gpt-4-1106-preview" in engine or self.engine == "gpt-4-vision-preview"
             else 30500
             if "gpt-4-32k" in engine
             else 6500
@@ -342,7 +343,7 @@ class Chatbot:
 
     def add_to_conversation(
         self,
-        message: str,
+        message: list,
         role: str,
         convo_id: str = "default",
         function_name: str = "",
@@ -352,9 +353,9 @@ class Chatbot:
         """
         if convo_id not in self.conversation:
             self.reset(convo_id=convo_id)
-        if function_name == "" and message != "" and message != None:
+        if function_name == "" and message and message != None:
             self.conversation[convo_id].append({"role": role, "content": message})
-        elif function_name != "" and message != "" and message != None:
+        elif function_name != "" and message and message != None:
             self.conversation[convo_id].append({"role": role, "name": function_name, "content": message})
         else:
             print('\033[31m')
@@ -392,7 +393,7 @@ class Chatbot:
         while True:
             json_post = self.get_post_body(prompt, role, convo_id, model, pass_history, **kwargs)
             url = config.bot_api_url.chat_url
-            if self.engine == "gpt-4-1106-preview" or self.engine == "claude-2":
+            if self.engine == "gpt-4-1106-preview" or self.engine == "claude-2" or self.engine == "gpt-4-vision-preview":
                 message_token = {
                     "total": self.get_token_count(convo_id),
                 }
@@ -410,6 +411,15 @@ class Chatbot:
                 break
         return json_post, message_token
     
+    def extract_values(self, obj):
+        if isinstance(obj, dict):
+            for value in obj.values():
+                yield from self.extract_values(value)
+        elif isinstance(obj, list):
+            for item in obj:
+                yield from self.extract_values(item)
+        else:
+            yield obj
     # def clear_function_call(self, convo_id: str = "default"):
     #     self.conversation[convo_id] = [item for item in self.conversation[convo_id] if '@Trash@' not in item['content']]
     #     function_call_items = [item for item in self.conversation[convo_id] if 'function' in item['role']]
@@ -438,8 +448,10 @@ class Chatbot:
             # every message follows <im_start>{role/name}\n{content}<im_end>\n
             num_tokens += 5
             for key, value in message.items():
-                if value:
-                    num_tokens += len(encoding.encode(value))
+                values = list(self.extract_values(value))
+                if values:
+                    for value in values:
+                        num_tokens += len(encoding.encode(value))
                 if key == "name":  # if there's a name, the role is omitted
                     num_tokens += 5  # role is always required and always 1 token
         num_tokens += 5  # every reply is primed with <im_start>assistant
@@ -458,7 +470,7 @@ class Chatbot:
         if response.status_code != 200:
             json_response = json.loads(response.text)
             string = json_response["error"]["message"]
-            # print(json_response, string)
+            print(json_response, string)
             string = re.findall(r"\((.*?)\)", string)[0]
             numbers = re.findall(r"\d+\.?\d*", string)
             numbers = [int(i) for i in numbers]
@@ -488,6 +500,9 @@ class Chatbot:
         json_post_body = {
             "model": os.environ.get("MODEL_NAME") or model or self.engine,
             "messages": self.conversation[convo_id] if pass_history else [{"role": "system","content": self.system_prompt},{"role": role, "content": prompt}],
+            "max_tokens": 5000,
+        }
+        body = {
             "stream": True,
             # kwargs
             "temperature": kwargs.get("temperature", self.temperature),
@@ -502,14 +517,15 @@ class Chatbot:
             ),
             "n": kwargs.get("n", self.reply_count),
             "user": role,
-            "max_tokens": 5000,
         }
-        json_post_body.update(copy.deepcopy(function_call_list["base"]))
-        if config.SEARCH_USE_GPT:
-            json_post_body["functions"].append(function_call_list["web_search"])
-        json_post_body["functions"].append(function_call_list["url_fetch"])
-        json_post_body["functions"].append(function_call_list["today"])
-        json_post_body["functions"].append(function_call_list["vresion"])
+        if config.GPT_ENGINE != "gpt-4-vision-preview":
+            json_post_body.update(copy.deepcopy(body))
+            json_post_body.update(copy.deepcopy(function_call_list["base"]))
+            if config.SEARCH_USE_GPT:
+                json_post_body["functions"].append(function_call_list["web_search"])
+            json_post_body["functions"].append(function_call_list["url_fetch"])
+            json_post_body["functions"].append(function_call_list["today"])
+            json_post_body["functions"].append(function_call_list["vresion"])
 
         return json_post_body
 
@@ -522,7 +538,7 @@ class Chatbot:
 
     def ask_stream(
         self,
-        prompt: str,
+        prompt: list,
         role: str = "user",
         convo_id: str = "default",
         model: str = None,
@@ -541,7 +557,7 @@ class Chatbot:
         print(json.dumps(json_post, indent=4, ensure_ascii=False))
         # print(self.conversation[convo_id])
 
-        if self.engine == "gpt-4-1106-preview":
+        if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-4-vision-preview":
             model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
         elif self.engine == "gpt-3.5-turbo-1106":
             model_max_tokens = min(kwargs.get("max_tokens", self.max_tokens), 16385 - message_token["total"])
@@ -571,7 +587,13 @@ class Chatbot:
             if not line:
                 continue
             # Remove "data: "
-            line = line.decode("utf-8")[6:]
+            if line.decode("utf-8")[:6] == "data: ":
+                line = line.decode("utf-8")[6:]
+            else:
+                print(line.decode("utf-8"))
+                full_response = json.loads(line.decode("utf-8"))["choices"][0]["message"]["content"]
+                yield full_response
+                break
             if line == "[DONE]":
                 break
             resp: dict = json.loads(line)
@@ -613,8 +635,8 @@ class Chatbot:
                     # prompt = json.loads(full_response)["prompt"]
                     for index in range(len(self.conversation[convo_id])):
                         if self.conversation[convo_id][-1 - index]["role"] == "user":
-                            self.conversation[convo_id][-1 - index]["content"] = self.conversation[convo_id][-1 - index]["content"].replace("search: ", "")
-                            prompt = self.conversation[convo_id][-1 - index]["content"]
+                            self.conversation[convo_id][-1 - index]["content"][0]["text"] = self.conversation[convo_id][-1 - index]["content"][0]["text"].replace("search: ", "")
+                            prompt = self.conversation[convo_id][-1 - index]["content"][0]["text"]
                             if json.loads(full_response)["prompt"].strip() != prompt:
                                 prompt = " ".join([prompt, json.loads(full_response)["prompt"].strip()]).strip()
                             print("\n\nprompt", prompt)
