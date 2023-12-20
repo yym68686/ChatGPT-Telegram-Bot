@@ -470,8 +470,12 @@ class Chatbot:
         if response.status_code != 200:
             json_response = json.loads(response.text)
             string = json_response["error"]["message"]
-            print(json_response, string)
-            string = re.findall(r"\((.*?)\)", string)[0]
+            print(json_response)
+            try:
+                string = re.findall(r"\((.*?)\)", string)[0]
+            except:
+                if "You exceeded your current quota" in json_response:
+                    raise Exception("当前账号余额不足！")
             numbers = re.findall(r"\d+\.?\d*", string)
             numbers = [int(i) for i in numbers]
             if len(numbers) == 2:

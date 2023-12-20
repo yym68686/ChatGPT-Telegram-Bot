@@ -554,9 +554,9 @@ if __name__ == '__main__':
 
     if WEB_HOOK:
         print("WEB_HOOK:", WEB_HOOK)
-        application.run_webhook("127.0.0.1", PORT, webhook_url=WEB_HOOK)
+        application.run_webhook("0.0.0.0", PORT, webhook_url=WEB_HOOK)
     else:
         # application.run_polling()
         time_out = 600
-        application.run_polling(read_timeout=time_out, write_timeout=time_out)
+        application.run_polling(read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
         # application.run_polling(read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out, timeout=time_out)

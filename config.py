@@ -28,7 +28,11 @@ systemprompt = os.environ.get('SYSTEMPROMPT', f"You are ChatGPT, a large languag
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import Imagebot, claudebot
 if API:
-    ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
+    try:
+        ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
+    except:
+        ChatGPTbot = GPT(api_key=f"{API}", engine="gpt-3.5-turbo-1106", system_prompt=systemprompt, temperature=temperature)
+
     try:
         GPT4visionbot = GPT(api_key=f"{API}", engine="gpt-4-vision-preview", system_prompt=systemprompt, temperature=temperature)
     except:
