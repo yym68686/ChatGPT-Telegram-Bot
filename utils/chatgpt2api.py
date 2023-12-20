@@ -670,6 +670,12 @@ class Chatbot:
                     url = json.loads(full_response)["url"]
                     print("\n\nurl", url)
                     function_response = Web_crawler(url)
+                    function_response = (
+                        "Here is the documentation, inside <document></document> XML tags:"
+                        "<document>"
+                        "{}"
+                        "</document>"
+                    ).format(function_response)
                     function_response, text_len = cut_message(function_response, function_call_max_tokens)
                 if function_call_name == "get_date_time_weekday":
                     function_response = eval(function_call_name)()
