@@ -220,6 +220,10 @@ To use the document question and answer feature, you must first enable the histo
 
 gpt4free is an open-source project that reverse-engineers multiple platforms to use models like gpt4/gpt3 for free. As it's a free API, it may be unstable, so please use it with caution. If you have your own API, it is recommended to use that as a priority.
 
+- After setting the `NICK`, there's no response when I @ the bot, and it only replies when the message starts with the nick. How can I make it respond to both the nick and @botname?
+
+In a group chat scenario, if the environment variable `NICK` is not set, the bot will receive all group messages and respond to all of them. Therefore, it is necessary to set `NICK`. After setting `NICK`, the bot will only respond to messages that start with `NICK`. So, if you want to @ the bot to get a response, you just need to set NICK to @botname. This way, when you @ the bot in the group, the bot will detect that the message starts with @botname, and it will respond to the message.
+
 ## References
 
 https://core.telegram.org/bots/api
