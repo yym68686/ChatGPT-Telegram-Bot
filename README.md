@@ -212,6 +212,14 @@ You can directly send the documentation to the robot through the chat box, and t
 
 Here's a troubleshooting guide: Please carefully check if the GROUP_LIST is correct. The ID of a Telegram group starts with a negative sign followed by a series of numbers. If it's not, please use this bot [bot](https://t.me/getidsbot) to reacquire the group ID.
 
+- I've uploaded a document, but it's not responding based on the content of the document. What's going on?
+
+To use the document question and answer feature, you must first enable the history record. You can turn on the history record through the `/info` command, or by setting the environment variable `PASS_HISTORY` to `True` to enable the history record by default. Please note that enabling the history record will incur additional costs, so this project does not enable the history record by default. This means that the question and answer feature cannot be used under the default settings. Before using this feature, you need to manually enable the history record.
+
+- What is gpt4free in the `/info` command? Do I need to enable it?
+
+gpt4free is an open-source project that reverse-engineers multiple platforms to use models like gpt4/gpt3 for free. As it's a free API, it may be unstable, so please use it with caution. If you have your own API, it is recommended to use that as a priority.
+
 ## References
 
 https://core.telegram.org/bots/api
