@@ -647,8 +647,9 @@ class Chatbot:
                             break
                     tiktoken.get_encoding("cl100k_base")
                     encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
+                    web_result = yield from get_url_text_list(prompt)
 
-                    encode_web_text_list = encoding.encode(" ".join(get_url_text_list(prompt)))
+                    encode_web_text_list = encoding.encode(" ".join(web_result))
                     print("search len", len(encode_web_text_list))
                     function_response = encoding.decode(encode_web_text_list[:function_call_max_tokens])
                     # if self.encode_web_text_list == []:

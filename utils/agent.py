@@ -339,6 +339,7 @@ def getgooglesearchurl(result, numresults=3):
 
 def get_search_url(prompt, chainllm):
     urls_set = []
+    yield "🌐 正在提取关键词..."
     keyword_prompt = PromptTemplate(
         input_variables=["source"],
         template=(
@@ -399,6 +400,7 @@ def get_search_url(prompt, chainllm):
     if len(keywords) == 1:
         search_url_num = 12
     # print(keywords)
+    yield "🌐 正在获取搜索链接🔗..."
     if config.USE_GOOGLE:
         search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keywords[0],search_url_num,))
         search_thread.start()
@@ -459,14 +461,16 @@ def summary_each_url(threads, chainllm):
 
 def get_url_text_list(prompt):
     start_time = record_time.time()
+    yield "🌐 正在搜索，请稍等..."
 
     if config.USE_G4F:
         chainllm = EducationalLLM()
     else:
         chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
 
-    url_set_list, url_pdf_set_list = get_search_url(prompt, chainllm)
+    url_set_list, url_pdf_set_list = yield from get_search_url(prompt, chainllm)
 
+    yield "🌐 正在获取链接内容🔗..."
     threads = []
     for url in url_set_list:
         url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,True,))
@@ -476,6 +480,7 @@ def get_url_text_list(prompt):
     url_text_list = concat_url(threads)
 
 
+    yield "🌐 搜索完成✅，正在整理搜索结果..."
     end_time = record_time.time()
     run_time = end_time - start_time
     print("urls", url_set_list)
