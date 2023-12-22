@@ -124,7 +124,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     )
     messageid = message.message_id
     get_answer = robot.ask_stream
-    if not config.API or (config.USE_G4F and not config.SEARCH_USE_GPT):
+    if not config.API or (config.PLUGINS["USE_G4F"] and not config.PLUGINS["SEARCH_USE_GPT"]):
         import utils.gpt4free as gpt4free
         get_answer = gpt4free.get_response
 
@@ -271,10 +271,11 @@ buttons = [
     ],
 ]
 
+def get_plugins_status(item):
+    return "✅" if config.PLUGINS[item] else "☑️"
+
 def update_first_buttons_message():
     history = "✅" if config.PASS_HISTORY else "☑️"
-    search = "✅" if config.SEARCH_USE_GPT else "☑️"
-    gpt4free = "✅" if config.USE_G4F else "☑️"
     language = "🇨🇳 中文" if config.LANGUAGE == "Simplified Chinese" else "🇺🇸 English"
 
     first_buttons = [
@@ -283,9 +284,14 @@ def update_first_buttons_message():
             InlineKeyboardButton(language, callback_data="language"),
         ],
         [
-            InlineKeyboardButton(f"历史记录 {history}", callback_data="历史记录"),
-            InlineKeyboardButton(f"搜索 {search}", callback_data="搜索"),
-            InlineKeyboardButton(f"gpt4free {gpt4free}", callback_data="gpt4free"),
+            InlineKeyboardButton(f"历史记录 {history}", callback_data="PASS_HISTORY"),
+            InlineKeyboardButton(f"搜索 {get_plugins_status('SEARCH_USE_GPT')}", callback_data='SEARCH_USE_GPT'),
+            InlineKeyboardButton(f"当前时间 {get_plugins_status('DATE')}", callback_data='DATE'),
+        ],
+        [
+            InlineKeyboardButton(f"URL 总结 {get_plugins_status('URL')}", callback_data='URL'),
+            InlineKeyboardButton(f"版本信息 {get_plugins_status('VERSION')}", callback_data='VERSION'),
+            InlineKeyboardButton(f"gpt4free {get_plugins_status('USE_G4F')}", callback_data='USE_G4F'),
         ],
     ]
     return first_buttons
@@ -342,34 +348,6 @@ async def button_press(update, context):
             reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
             parse_mode='MarkdownV2'
         )
-    elif "历史记录" in data:
-        config.PASS_HISTORY = not config.PASS_HISTORY
-        info_message = update_info_message(update)
-        message = await callback_query.edit_message_text(
-            text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
-            parse_mode='MarkdownV2'
-        )
-    elif "搜索" in data:
-        config.SEARCH_USE_GPT = not config.SEARCH_USE_GPT
-
-        info_message = update_info_message(update)
-        message = await callback_query.edit_message_text(
-            text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
-            parse_mode='MarkdownV2'
-        )
-    # elif "google" in data:
-    #     if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
-    #         return
-    #     config.USE_GOOGLE = not config.USE_GOOGLE
-
-    #     info_message = update_info_message(update)
-    #     message = await callback_query.edit_message_text(
-    #         text=escape(info_message),
-    #         reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
-    #         parse_mode='MarkdownV2'
-    #     )
     elif "language" in data:
         if config.LANGUAGE == "Simplified Chinese":
             config.LANGUAGE = "English"
@@ -388,9 +366,11 @@ async def button_press(update, context):
             reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
             parse_mode='MarkdownV2'
         )
-    elif "gpt4free" in data:
-        config.USE_G4F = not config.USE_G4F
-
+    else:
+        try:
+            config.PLUGINS[data] = not config.PLUGINS[data]
+        except:
+            setattr(config, data, not getattr(config, data))
         info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
             text=escape(info_message),

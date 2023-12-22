@@ -14,7 +14,6 @@ if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE
 temperature = float(os.environ.get('temperature', '0.5'))
 GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4-1106-preview')
 # DEFAULT_SEARCH_MODEL = os.environ.get('DEFAULT_SEARCH_MODEL', 'gpt-3.5-turbo-1106') gpt-3.5-turbo-16k
-SEARCH_USE_GPT = (os.environ.get('SEARCH_USE_GPT', "True") == "False") == False
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 # PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
 LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
@@ -56,7 +55,13 @@ GROUP_LIST = os.environ.get('GROUP_LIST', None)
 if GROUP_LIST:
     GROUP_LIST = [int(id) for id in GROUP_LIST.split(",")]
 
-USE_G4F = False
+PLUGINS = {
+    "SEARCH_USE_GPT": (os.environ.get('SEARCH_USE_GPT', "True") == "False") == False,
+    "USE_G4F": False,
+    "DATE": True,
+    "URL": True,
+    "VERSION": True,
+}
 
 class openaiAPI:
     def __init__(

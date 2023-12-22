@@ -87,8 +87,8 @@ if __name__ == "__main__":
             "max_tokens": model_max_tokens,
     }
     # json_post.update(function_call_list["base"])
-    # if config.SEARCH_USE_GPT:
-    #     json_post["functions"].append(function_call_list["web_search"])
-    # json_post["functions"].append(function_call_list["url_fetch"])
+    # if config.PLUGINS["SEARCH_USE_GPT"]:
+    #     json_post["functions"].append(function_call_list["SEARCH_USE_GPT"])
+    # json_post["functions"].append(function_call_list["URL"])
     # print(get_token_count(message_list))
     print(get_message_token(url, json_post))

@@ -27,7 +27,7 @@ function_call_list = \
             ]
         }
     },
-    "web_search": {
+    "SEARCH_USE_GPT": {
         "name": "get_search_results",
         "description": "Search Google to enhance knowledge.",
         "parameters": {
@@ -43,7 +43,7 @@ function_call_list = \
             ]
         }
     },
-    "url_fetch": {
+    "URL": {
         "name": "get_url_content",
         "description": "Get the webpage content of a URL",
         "parameters": {
@@ -59,11 +59,11 @@ function_call_list = \
             ]
         }
     },
-    "today": {
+    "DATE": {
         "name": "get_date_time_weekday",
         "description": "Get the current time, date, and day of the week"
     },
-    "vresion": {
+    "VERSION": {
         "name": "get_version_info",
         "description": "Get version information"
     },

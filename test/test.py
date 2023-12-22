@@ -36,7 +36,7 @@ import os
 
 # from utils.function_call import function_call_list
 
-# print(json.dumps(function_call_list["web_search"], indent=4))
+# print(json.dumps(function_call_list["SEARCH_USE_GPT"], indent=4))
 
 # class openaiAPI:
 #     def __init__(

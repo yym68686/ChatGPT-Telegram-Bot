@@ -13,7 +13,7 @@ from . import typings as t
 from typing import Set
 
 import config
-from utils.agent import Web_crawler, get_search_results, cut_message, get_url_text_list, get_text_token_len, check_json, get_date_time_weekday, get_version_info
+from utils.agent import *
 from utils.function_call import function_call_list
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
@@ -525,11 +525,12 @@ class Chatbot:
         if self.engine != "gpt-4-vision-preview":
             json_post_body.update(copy.deepcopy(body))
             json_post_body.update(copy.deepcopy(function_call_list["base"]))
-            if config.SEARCH_USE_GPT:
-                json_post_body["functions"].append(function_call_list["web_search"])
-            json_post_body["functions"].append(function_call_list["url_fetch"])
-            json_post_body["functions"].append(function_call_list["today"])
-            json_post_body["functions"].append(function_call_list["vresion"])
+            for item in config.PLUGINS.keys():
+                try:
+                    if config.PLUGINS[item]:
+                        json_post_body["functions"].append(function_call_list[item])
+                except:
+                    pass
 
         return json_post_body
 
