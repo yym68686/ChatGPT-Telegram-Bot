@@ -2,6 +2,7 @@ import os
 import re
 import json
 import base64
+import datetime
 
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -307,6 +308,7 @@ def getddgsearchurl(result, numresults=4):
     try:
         search = DuckDuckGoSearchResults(num_results=numresults)
         webresult = search.run(result)
+        # print("ddgwebresult", webresult)
         if webresult == None:
             return []
         urls = re.findall(r"(https?://\S+)\]", webresult, re.MULTILINE)
@@ -323,6 +325,7 @@ def getgooglesearchurl(result, numresults=3):
     urls = []
     try:
         googleresult = google_search.results(result, numresults)
+        # print("googleresult", googleresult)
         for i in googleresult:
             if "No good Google Search Result was found" in i or "google.com" in i["link"]:
                 continue
@@ -336,6 +339,30 @@ def getgooglesearchurl(result, numresults=3):
             config.USE_GOOGLE = False
     # print("google urls", urls)
     return urls
+
+def sort_by_time(urls):
+    def extract_date(url):
+        match = re.search(r'[12]\d{3}.\d{1,2}.\d{1,2}', url)
+        if match is not None:
+            match = re.sub(r'([12]\d{3}).(\d{1,2}).(\d{1,2})', "\\1/\\2/\\3", match.group())
+            print(match)
+            if int(match[:4]) > datetime.datetime.now().year:
+                match = "1000/01/01"
+        else:
+            match = "1000/01/01"
+        return datetime.datetime.strptime(match, '%Y/%m/%d')
+
+
+    # 提取日期并创建一个包含日期和URL的元组列表
+    date_url_pairs = [(extract_date(url), url) for url in urls]
+
+    # 按日期排序
+    date_url_pairs.sort(key=lambda x: x[0], reverse=True)
+
+    # 获取排序后的URL列表
+    sorted_urls = [url for _, url in date_url_pairs]
+
+    return sorted_urls
 
 def get_search_url(prompt, chainllm):
     urls_set = []
@@ -416,6 +443,8 @@ def get_search_url(prompt, chainllm):
         tmp = t.join()
         urls_set += tmp
     url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
+    url_set_list = sort_by_time(url_set_list)
+
     # cut_num = int(len(url_set_list) * 2 / 3)
     url_pdf_set_list = [item for item in url_set_list if item.endswith(".pdf")]
     url_set_list = [item for item in url_set_list if not item.endswith(".pdf")]

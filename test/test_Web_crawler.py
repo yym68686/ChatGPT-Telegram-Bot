@@ -133,7 +133,8 @@ start_time = time.time()
 # for url in ['https://s.weibo.com/top/summary?cate=realtimehot']:
 # for url in ['https://tophub.today/n/KqndgxeLl9']:
 # for url in ['https://support.apple.com/zh-cn/HT213931']:
-for url in ['https://developer.aliyun.com/article/721836']:
+for url in ['https://www.usnews.com/news/entertainment/articles/2023-12-22/china-drafts-new-rules-proposing-restrictions-on-online-gaming']:
+# for url in ['https://developer.aliyun.com/article/721836']:
 # for url in ['https://cn.aliyun.com/page-source/price/detail/machinelearning_price']:
 # for url in ['https://mp.weixin.qq.com/s/Itad7Y-QBcr991JkF3SrIg']:
 # for url in ['https://zhidao.baidu.com/question/317577832.html']:
