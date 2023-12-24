@@ -350,8 +350,11 @@ def sort_by_time(urls):
                 match = "1000/01/01"
         else:
             match = "1000/01/01"
-        return datetime.datetime.strptime(match, '%Y/%m/%d')
-
+        try:
+            return datetime.datetime.strptime(match, '%Y/%m/%d')
+        except:
+            match = "1000/01/01"
+            return datetime.datetime.strptime(match, '%Y/%m/%d')
 
     # 提取日期并创建一个包含日期和URL的元组列表
     date_url_pairs = [(extract_date(url), url) for url in urls]
