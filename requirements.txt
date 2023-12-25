@@ -16,7 +16,7 @@ duckduckgo-search==4.1.0
 langchain==0.0.271
 oauth2client==3.0.0
 pdfminer.six
-g4f==0.1.8.8
+g4f==0.1.9.6
 
 # plugin
 pytz

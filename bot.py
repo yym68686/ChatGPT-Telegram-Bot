@@ -8,7 +8,7 @@ from utils.md2tgmd import escape
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import claudebot
 from telegram.constants import ChatAction
-from utils.agent import docQA, get_doc_from_local, Document_extract, pdfQA, get_encode_image
+from utils.plugins import Document_extract, get_encode_image
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
 from config import WEB_HOOK, PORT, BOT_TOKEN
@@ -74,6 +74,9 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if message:
             if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claudeBot
+            if not config.API or config.PLUGINS["USE_G4F"]:
+                import utils.gpt4free as gpt4free
+                robot = gpt4free
             if image_url:
                 robot = config.GPT4visionbot
                 title = "`🤖️ gpt-4-vision-preview`\n\n"
@@ -124,9 +127,6 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     )
     messageid = message.message_id
     get_answer = robot.ask_stream
-    if not config.API or (config.PLUGINS["USE_G4F"] and not config.PLUGINS["SEARCH_USE_GPT"]):
-        import utils.gpt4free as gpt4free
-        get_answer = gpt4free.get_response
 
     try:
         for data in get_answer(text, convo_id=str(chatid), pass_history=config.PASS_HISTORY):

@@ -15,6 +15,7 @@ def get_response(message, model="gpt-3.5-turbo"):
 if __name__ == "__main__":
     console = Console()
     message = r"""
+李雪主是谁？
     """
     answer = ""
     for result in get_response(message, "gpt-4"):

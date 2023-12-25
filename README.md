@@ -55,7 +55,7 @@ To develop plugins, please follow the steps outlined below:
 - Initially, you need to add the environment variable for the plugin in the `config.PLUGINS` dictionary located in the `config.py` file. The value can be customized to be either enabled or disabled by default. It is advisable to use uppercase letters for the entire environment variable.
 - Subsequently, append the function's name and description in the `utils/function_call.py` file.
 - Then, enhance the `ask_stream` function in the `utils/chatgpt2api.py` file with the function's processing logic. You can refer to the existing examples within the `ask_stream` method for guidance on how to write it.
-- Following that, write the function, as mentioned in the `utils/function_call.py` file, in the `utils/agent.py` file.
+- Following that, write the function, as mentioned in the `utils/function_call.py` file, in the `utils/plugins.py` file.
 - Next, in the `bot.py` file, augment the `update_first_buttons_message` function with buttons, enabling users to freely toggle plugins using the `info` command.
 - Lastly, don't forget to add the plugin's description in the plugins section of the README.
 

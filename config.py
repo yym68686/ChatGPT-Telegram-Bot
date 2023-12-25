@@ -57,7 +57,7 @@ if GROUP_LIST:
 
 PLUGINS = {
     "SEARCH_USE_GPT": (os.environ.get('SEARCH_USE_GPT', "True") == "False") == False,
-    "USE_G4F": False,
+    "USE_G4F": (os.environ.get('USE_G4F', "False") == "False") == False,
     "DATE": True,
     "URL": True,
     "VERSION": True,
