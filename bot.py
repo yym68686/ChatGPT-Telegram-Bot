@@ -74,9 +74,9 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if message:
             if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claudeBot
-            if not config.API or config.PLUGINS["USE_G4F"]:
-                import utils.gpt4free as gpt4free
-                robot = gpt4free
+            # if not config.API or config.PLUGINS["USE_G4F"]:
+            #     import utils.gpt4free as gpt4free
+            #     robot = gpt4free
             if image_url:
                 robot = config.GPT4visionbot
                 title = "`🤖️ gpt-4-vision-preview`\n\n"
@@ -282,16 +282,16 @@ def update_first_buttons_message():
         [
             InlineKeyboardButton("更换问答模型", callback_data="更换问答模型"),
             InlineKeyboardButton(language, callback_data="language"),
+            InlineKeyboardButton(f"历史记录 {history}", callback_data="PASS_HISTORY"),
         ],
         [
-            InlineKeyboardButton(f"历史记录 {history}", callback_data="PASS_HISTORY"),
             InlineKeyboardButton(f"搜索 {get_plugins_status('SEARCH_USE_GPT')}", callback_data='SEARCH_USE_GPT'),
             InlineKeyboardButton(f"当前时间 {get_plugins_status('DATE')}", callback_data='DATE'),
         ],
         [
             InlineKeyboardButton(f"URL 总结 {get_plugins_status('URL')}", callback_data='URL'),
             InlineKeyboardButton(f"版本信息 {get_plugins_status('VERSION')}", callback_data='VERSION'),
-            InlineKeyboardButton(f"gpt4free {get_plugins_status('USE_G4F')}", callback_data='USE_G4F'),
+            # InlineKeyboardButton(f"gpt4free {get_plugins_status('USE_G4F')}", callback_data='USE_G4F'),
         ],
     ]
     return first_buttons

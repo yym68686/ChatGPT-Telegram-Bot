@@ -24,26 +24,26 @@ from langchain.chat_models import ChatOpenAI
 from langchain.tools import DuckDuckGoSearchResults
 from langchain.chains import LLMChain
 
-from typing import Optional, List
-from langchain.llms.base import LLM
-import g4f
-class EducationalLLM(LLM):
+# from typing import Optional, List
+# from langchain.llms.base import LLM
+# import g4f
+# class EducationalLLM(LLM):
 
-    @property
-    def _llm_type(self) -> str:
-        return "custom"
+#     @property
+#     def _llm_type(self) -> str:
+#         return "custom"
 
-    def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
-        out = g4f.ChatCompletion.create(
-            model=config.GPT_ENGINE,
-            messages=[{"role": "user", "content": prompt}],
-        )  #
-        if stop:
-            stop_indexes = (out.find(s) for s in stop if s in out)
-            min_stop = min(stop_indexes, default=-1)
-            if min_stop > -1:
-                out = out[:min_stop]
-        return out
+#     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
+#         out = g4f.ChatCompletion.create(
+#             model=config.GPT_ENGINE,
+#             messages=[{"role": "user", "content": prompt}],
+#         )  #
+#         if stop:
+#             stop_indexes = (out.find(s) for s in stop if s in out)
+#             min_stop = min(stop_indexes, default=-1)
+#             if min_stop > -1:
+#                 out = out[:min_stop]
+#         return out
     
 class ThreadWithReturnValue(threading.Thread):
     def run(self):
@@ -264,10 +264,11 @@ def get_url_text_list(prompt):
     start_time = record_time.time()
     yield "🌐 正在搜索您的问题，提取关键词..."
 
-    if config.PLUGINS["USE_G4F"]:
-        chainllm = EducationalLLM()
-    else:
-        chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
+    # if config.PLUGINS["USE_G4F"]:
+    #     chainllm = EducationalLLM()
+    # else:
+    #     chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
+    chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
 
     url_set_list, url_pdf_set_list = yield from get_search_url(prompt, chainllm)
 

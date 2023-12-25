@@ -236,11 +236,11 @@ Here's a troubleshooting guide: Please carefully check if the GROUP_LIST is corr
 
 To use the document question and answer feature, you must first enable the history record. You can turn on the history record through the `/info` command, or by setting the environment variable `PASS_HISTORY` to `True` to enable the history record by default. Please note that enabling the history record will incur additional costs, so this project does not enable the history record by default. This means that the question and answer feature cannot be used under the default settings. Before using this feature, you need to manually enable the history record.
 
-- What is gpt4free in the `/info` command? Do I need to enable it?
+<!-- - What is gpt4free in the `/info` command? Do I need to enable it?
 
 gpt4free is an open-source project that reverse-engineers multiple platforms to use models like gpt4/gpt3 for free. As it's a free API, it may be unstable, so please use it with caution. If you have your own API, it is recommended to use that as a priority.
 
-You can enable gpt4free by simply clicking on it in the `/info` command. Please note that gpt4free does not support all models. You can check the gpt4free documentation to see which models it supports. Once gpt4free is enabled, all questions and searches will use the gpt4free API. If you encounter any errors, please copy the robot's backend log to @yym68686, or open an issue on GitHub. Our developers will resolve it as soon as possible.
+You can enable gpt4free by simply clicking on it in the `/info` command. Please note that gpt4free does not support all models. You can check the gpt4free documentation to see which models it supports. Once gpt4free is enabled, all questions and searches will use the gpt4free API. If you encounter any errors, please copy the robot's backend log to @yym68686, or open an issue on GitHub. Our developers will resolve it as soon as possible. -->
 
 - After setting the `NICK`, there's no response when I @ the bot, and it only replies when the message starts with the nick. How can I make it respond to both the nick and @botname?
 
