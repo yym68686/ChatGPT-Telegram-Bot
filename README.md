@@ -185,6 +185,7 @@ One-Click Restart Docker Image
 ```bash
 set -eu
 docker rm -f chatbot
+docker pull yym68686/chatgpt:1.0
 docker run -p 8080:8080 -dit --name chatbot \
 -e BOT_TOKEN= \
 -e API= \
