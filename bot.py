@@ -520,5 +520,5 @@ if __name__ == '__main__':
     else:
         # application.run_polling()
         time_out = 600
-        application.run_polling(read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+        application.run_polling(read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out, timeout=time_out)
         # application.run_polling(read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out, timeout=time_out)
