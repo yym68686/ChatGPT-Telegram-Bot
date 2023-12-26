@@ -246,6 +246,10 @@ You can enable gpt4free by simply clicking on it in the `/info` command. Please 
 
 In a group chat scenario, if the environment variable `NICK` is not set, the bot will receive all group messages and respond to all of them. Therefore, it is necessary to set `NICK`. After setting `NICK`, the bot will only respond to messages that start with `NICK`. So, if you want to @ the bot to get a response, you just need to set NICK to @botname. This way, when you @ the bot in the group, the bot will detect that the message starts with @botname, and it will respond to the message.
 
+- How many messages will the history keep?
+
+Apart from the latest `gpt-4-1106-preview` model, the official context supports 128k tokens, but this project limits it to 16k tokens. All other models use the official context length settings, for example, the `gpt-3.5-turbo-16k` context is 16k, the `gpt-4-32k` context is 32k, and the `Claude2` context is 200k. This limitation is implemented to save user costs, as most scenarios do not require a high context. If you have specific needs, you can modify the context limits for each model in the `utils/chatgpt2api.py` file.
+
 ## References
 
 https://core.telegram.org/bots/api
