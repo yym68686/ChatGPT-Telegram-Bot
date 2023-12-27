@@ -1,6 +1,6 @@
 import json
 
-json_data = '{"prompt":"autogpt \\\\"'
+json_data = '{"prompt":"autogpt \\"}'
 def check_json(json_data):
     while True:
         try:

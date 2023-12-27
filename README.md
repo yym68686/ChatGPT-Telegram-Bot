@@ -41,7 +41,7 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | ADMIN_LIST | Set up an admin list. Only admins can use the `info` command to configure the bot. When `GROUP_LIST` is set, only admins can have private chats with the bot. If `ADMIN_LIST` is not set, all users can modify the basic settings of the bot through the `info` command by default. Connect the admin IDs with a comma (','). You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). | No |
 | GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). After setting `GROUP_LIST`, except for the admin, no one else can have a private chat with the bot.You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). | No |
 
-## Plugins
+## 🔌 Plugins
 
 Our plugin system has been successfully developed and is now fully operational. We welcome everyone to contribute their code to enrich our plugin library. All plugins can be activated or deactivated using the `/info` command. The following plugins are currently supported:
 
@@ -69,7 +69,10 @@ One-click deployment:
 
 If you need follow-up function updates, the following deployment method is recommended:
 
-Fork this repository first, then register for [Zeabur](https://zeabur.com). The free quota is sufficient for light use. Import from your own Github repository, set the required environment variables, and redeploy. If you need function updates in the follow-up, just synchronize this repository in your own repository and redeploy in Zeabur to get the latest functions.
+- Fork this repository first, then register for [Zeabur](https://zeabur.com). Currently, Zeabur does not support free Docker container deployment. If you need to use Zeabur to deploy the bot for this project, you will need to upgrade to the Developer Plan.
+- Import from your own Github repository.
+- Set the required environment variables, and redeploy.
+- If you need function updates in the follow-up, just synchronize this repository in your own repository and redeploy in Zeabur to get the latest functions.
 
 ## Replit Remote Deployment
 
@@ -199,7 +202,7 @@ docker logs -f chatbot
 
 This script is for restarting the Docker image with a single command. It first removes the existing Docker container named "chatbot" if it exists. Then, it runs a new Docker container with the name "chatbot", exposing port 8080 and setting various environment variables. The Docker image used is "yym68686/chatgpt:1.0". Finally, it follows the logs of the "chatbot" container.
 
-## Q & A
+## 📄 Q & A
 
 - Why can't I use Google search?
 
