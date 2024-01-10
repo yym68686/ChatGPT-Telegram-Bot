@@ -466,11 +466,10 @@ class Chatbot:
             json=json_post,
             timeout=None,
         )
-        # print("response.text", response.text)
         if response.status_code != 200:
             json_response = json.loads(response.text)
             string = json_response["error"]["message"]
-            print(json_response)
+            # print(json_response)
             try:
                 string = re.findall(r"\((.*?)\)", string)[0]
             except:
@@ -490,7 +489,13 @@ class Chatbot:
                     "total": numbers[0] + numbers[1],
                 }
             else:
-                raise Exception("Unknown error")
+                raise Exception(json_post, json_response)
+        # print("response.text", response.text)
+        return {
+            "messages": 0,
+            "total": 0,
+        }
+        
     
     def get_post_body(
         self,

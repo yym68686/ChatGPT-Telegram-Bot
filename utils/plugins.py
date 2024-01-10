@@ -386,6 +386,7 @@ if __name__ == "__main__":
     os.system("clear")
     print(get_date_time_weekday())
     # print(get_version_info())
+    print(get_search_results("今天的微博热搜有哪些？", 1000))
     
     # from langchain.agents import get_all_tool_names
     # print(get_all_tool_names())
