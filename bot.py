@@ -7,6 +7,7 @@ import utils.decorators as decorators
 from utils.md2tgmd import escape
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import claudebot
+from utils.prompt import translator_en2zh_prompt, translator_prompt
 from telegram.constants import ChatAction
 from utils.plugins import Document_extract, get_encode_image
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
@@ -29,7 +30,6 @@ httpx_logger.setLevel(logging.WARNING)
 botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
-translator_prompt = "You are a translation engine, you can only translate text and cannot interpret it, and do not explain. Translate the text to {}, please do not explain any sentences, just translate or leave them as they are. this is the content you need to translate: "
 
 @decorators.GroupAuthorization
 @decorators.Authorization
@@ -41,7 +41,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if update.edited_message.text:
             message = update.edited_message.text if config.NICK is None else update.edited_message.text[botNicKLength:].strip() if update.edited_message.text[:botNicKLength].lower() == botNick else None
             rawtext = update.edited_message.text
-        
+
         if update.edited_message.photo:
             photo = update.edited_message.photo[-1]
             file_id = photo.file_id
@@ -69,7 +69,10 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             message = ' '.join(context.args)
         if prompt and has_command:
             if translator_prompt == prompt:
-                prompt = prompt.format(language)
+                if language == "english":
+                    prompt = prompt.format(language)
+                else:
+                    prompt = translator_en2zh_prompt
             message = prompt + message
         if message:
             if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
@@ -127,9 +130,12 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     )
     messageid = message.message_id
     get_answer = robot.ask_stream
+    pass_history = config.PASS_HISTORY
+    if "gpt-4-vision-preview" in title:
+        pass_history = False
 
     try:
-        for data in get_answer(text, convo_id=str(chatid), pass_history=config.PASS_HISTORY):
+        for data in get_answer(text, convo_id=str(chatid), pass_history=pass_history):
             if "🌐" not in data:
                 result = result + data
             tmpresult = result
@@ -503,7 +509,7 @@ if __name__ == '__main__':
     # application.add_handler(CommandHandler("search", lambda update, context: search(update, context, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot)))
     application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(CommandHandler("reset", reset_chat))
-    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, config.LANGUAGE, robot=config.translate_bot)))
+    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese", robot=config.translate_bot)))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.translate_bot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(InlineQueryHandler(inlinequery))

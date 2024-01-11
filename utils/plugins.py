@@ -7,6 +7,7 @@ import datetime
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
+from utils.prompt import search_key_word_prompt
 # import jieba
 
 import asyncio
@@ -44,7 +45,7 @@ from langchain.chains import LLMChain
 #             if min_stop > -1:
 #                 out = out[:min_stop]
 #         return out
-    
+
 class ThreadWithReturnValue(threading.Thread):
     def run(self):
         if self._target is not None:
@@ -71,7 +72,7 @@ def Web_crawler(url: str, isSearch=False) -> str:
             print("Skipping large file:", url)
             return result
         soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
-        
+
         table_contents = ""
         tables = soup.find_all('table')
         for table in tables:
@@ -159,40 +160,7 @@ def get_search_url(prompt, chainllm):
     urls_set = []
     keyword_prompt = PromptTemplate(
         input_variables=["source"],
-        template=(
-            "根据我的问题，总结关键词概括问题，输出要求如下："
-            "1. 给出三行不同的关键词组合，每行的关键词用空格连接。每行关键词可以是一个或者多个。"
-            "2. 至少有一行关键词里面有中文，至少有一行关键词里面有英文。"
-            "3. 只要直接给出这三行关键词，不需要其他任何解释，不要出现其他符号和内容。"
-            "4. 如果问题有关于日漫，至少有一行关键词里面有日文。"
-            "下面是一些根据问题提取关键词的示例："
-            "问题 1：How much does the 'zeabur' software service cost per month? Is it free to use? Any limitations?"
-            "三行关键词是："
-            "zeabur price"
-            "zeabur documentation"
-            "zeabur 价格"
-            "问题 2：pplx API 怎么使用？"
-            "三行关键词是："
-            "pplx API demo"
-            "pplx API"
-            "pplx API 使用方法"
-            "问题 3：以色列哈马斯的最新情况"
-            "三行关键词是："
-            "以色列 哈马斯 最新情况"
-            "Israel Hamas situation"
-            "哈马斯 以色列 冲突"
-            "问题 4：话说葬送的芙莉莲动漫是半年番还是季番？完结没？"
-            "三行关键词是："
-            "葬送的芙莉莲"
-            "葬送のフリーレン"
-            "Frieren: Beyond Journey's End"
-            "问题 5：周海媚最近发生了什么"
-            "三行关键词是："
-            "周海媚"
-            "周海媚 事件"
-            "Kathy Chau Hoi Mei news"
-            "这是我的问题：{source}"
-        ),
+        template=search_key_word_prompt,
     )
     key_chain = LLMChain(llm=chainllm, prompt=keyword_prompt)
     keyword_google_search_thread = ThreadWithReturnValue(target=key_chain.run, args=({"source": prompt},))
@@ -387,7 +355,7 @@ if __name__ == "__main__":
     print(get_date_time_weekday())
     # print(get_version_info())
     print(get_search_results("今天的微博热搜有哪些？", 1000))
-    
+
     # from langchain.agents import get_all_tool_names
     # print(get_all_tool_names())
 
