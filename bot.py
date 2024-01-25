@@ -31,37 +31,44 @@ botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
 
+def CutNICK(update_text, update_chat):
+    if config.NICK is None:
+        return update_text
+    else:
+        if update_text[:botNicKLength].lower() == botNick:
+            return update_text[botNicKLength:].strip()
+        else:
+            if update_chat.type == 'private':
+                return update_text
+            else:
+                return None
+
+async def GetMesage(update_message, context):
+    image_url = None
+    chatid = update_message.chat_id
+    messageid = update_message.message_id
+    if update_message.text:
+        message = CutNICK(update_message.text, update_message.chat)
+        rawtext = update_message.text
+
+    if update_message.photo:
+        photo = update_message.photo[-1]
+        file_id = photo.file_id
+        photo_file = await context.bot.getFile(file_id)
+        image_url = photo_file.file_path
+
+        message = rawtext = CutNICK(update_message.caption, update_message.chat)
+    return message, rawtext, image_url, chatid, messageid
+
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
     image_url = None
     if update.edited_message:
-        chatid = update.edited_message.chat_id
-        messageid = update.edited_message.message_id
-        if update.edited_message.text:
-            message = update.edited_message.text if config.NICK is None else update.edited_message.text[botNicKLength:].strip() if update.edited_message.text[:botNicKLength].lower() == botNick else None
-            rawtext = update.edited_message.text
-
-        if update.edited_message.photo:
-            photo = update.edited_message.photo[-1]
-            file_id = photo.file_id
-            photo_file = await context.bot.getFile(file_id)
-            image_url = photo_file.file_path
-
-            message = rawtext = update.edited_message.caption if config.NICK is None else update.edited_message.caption[botNicKLength:].strip() if update.edited_message.caption[:botNicKLength].lower() == botNick else None
+        message, rawtext, image_url, chatid, messageid = await GetMesage(update.edited_message, context)
     else:
-        chatid = update.message.chat_id
-        messageid = update.message.message_id
-        if update.message.text:
-            message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-            rawtext = update.message.text
-        if update.message.photo:
-            photo = update.message.photo[-1]
-            file_id = photo.file_id
-            photo_file = await context.bot.getFile(file_id)
-            image_url = photo_file.file_path
+        message, rawtext, image_url, chatid, messageid = await GetMesage(update.message, context)
 
-            message = rawtext = update.message.caption if config.NICK is None else update.message.caption[botNicKLength:].strip() if update.message.caption[:botNicKLength].lower() == botNick else None
     print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
 
     if has_command == False or len(context.args) > 0:
