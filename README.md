@@ -228,7 +228,7 @@ The API_URL supports all suffixes, including: https://api.openai.com/v1/chat/com
 
 The web_hook is not a mandatory environment variable. You only need to set the domain name (which must be consistent with WEB_HOOK) and other environment variables as required for your application's functionality.
 
-- I deployed a robot with docker compose. If the documentation is placed on the server locally, which directory should it be mounted to in order to take effect? Do I need to set additional configurations and modify the code? 
+- I deployed a robot with docker compose. If the documentation is placed on the server locally, which directory should it be mounted to in order to take effect? Do I need to set additional configurations and modify the code?
 
 You can directly send the documentation to the robot through the chat box, and the robot will automatically parse the documentation. To use the documentation dialogue function, you need to enable the historical conversation feature. There is no need for additional processing of the documentation.
 
@@ -252,7 +252,7 @@ In a group chat scenario, if the environment variable `NICK` is not set, the bot
 
 - How many messages will the history keep?
 
-Apart from the latest `gpt-4-1106-preview` model, the official context supports 128k tokens, but this project limits it to 16k tokens. All other models use the official context length settings, for example, the `gpt-3.5-turbo-16k` context is 16k, the `gpt-4-32k` context is 32k, and the `Claude2` context is 200k. This limitation is implemented to save user costs, as most scenarios do not require a high context. If you have specific needs, you can modify the context limits for each model in the `utils/chatgpt2api.py` file.
+Apart from the latest `gpt-4-turbo-preview` model, the official context supports 128k tokens, but this project limits it to 16k tokens. All other models use the official context length settings, for example, the `gpt-3.5-turbo-16k` context is 16k, the `gpt-4-32k` context is 32k, and the `Claude2` context is 200k. This limitation is implemented to save user costs, as most scenarios do not require a high context. If you have specific needs, you can modify the context limits for each model in the `utils/chatgpt2api.py` file.
 
 ## References
 

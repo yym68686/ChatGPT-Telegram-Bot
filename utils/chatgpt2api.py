@@ -51,6 +51,8 @@ ENGINES = [
     "gpt-4-0613",
     "gpt-4-32k-0613",
     "gpt-4-1106-preview",
+    "gpt-4-0125-preview",
+    "gpt-4-turbo-preview",
     "gpt-4-vision-preview",
     "claude-2-web",
     "claude-2",
@@ -162,8 +164,8 @@ class claudebot:
         url = self.chat_url
         headers = {
             "accept": "application/json",
-            "anthropic-version": "2023-06-01", 
-            "content-type": "application/json",      
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
             "x-api-key": f"{kwargs.get('api_key', self.api_key)}",
         }
 
@@ -270,7 +272,7 @@ class Chatbot:
         self.system_prompt: str = system_prompt
         self.max_tokens: int = max_tokens or (
             4096
-            if "gpt-4-1106-preview" in engine or "gpt-3.5-turbo-1106" in engine or self.engine == "gpt-4-vision-preview"
+            if "gpt-4-1106-preview" in engine or "gpt-4-0125-preview" in engine or "gpt-4-turbo-preview" in engine or "gpt-3.5-turbo-1106" in engine or self.engine == "gpt-4-vision-preview"
             else 31000
             if "gpt-4-32k" in engine
             else 7000
@@ -285,7 +287,7 @@ class Chatbot:
         self.truncate_limit: int = truncate_limit or (
             16000
             # 126500 Control the number of search characters to prevent excessive spending
-            if "gpt-4-1106-preview" in engine or self.engine == "gpt-4-vision-preview"
+            if "gpt-4-1106-preview" in engine or "gpt-4-0125-preview" in engine or "gpt-4-turbo-preview" in engine or self.engine == "gpt-4-vision-preview"
             else 30500
             if "gpt-4-32k" in engine
             else 6500
@@ -393,7 +395,7 @@ class Chatbot:
         while True:
             json_post = self.get_post_body(prompt, role, convo_id, model, pass_history, **kwargs)
             url = config.bot_api_url.chat_url
-            if self.engine == "gpt-4-1106-preview" or self.engine == "claude-2" or self.engine == "gpt-4-vision-preview":
+            if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine or self.engine == "claude-2" or self.engine == "gpt-4-vision-preview":
                 message_token = {
                     "total": self.get_token_count(convo_id),
                 }
@@ -410,7 +412,7 @@ class Chatbot:
             else:
                 break
         return json_post, message_token
-    
+
     def extract_values(self, obj):
         if isinstance(obj, dict):
             for value in obj.values():
@@ -456,7 +458,7 @@ class Chatbot:
                     num_tokens += 5  # role is always required and always 1 token
         num_tokens += 5  # every reply is primed with <im_start>assistant
         return num_tokens
-    
+
     def get_message_token(self, url, json_post):
         json_post["max_tokens"] = 17000
         headers = {"Authorization": f"Bearer {os.environ.get('API', None)}"}
@@ -495,8 +497,8 @@ class Chatbot:
             "messages": 0,
             "total": 0,
         }
-        
-    
+
+
     def get_post_body(
         self,
         prompt: str,
@@ -567,7 +569,7 @@ class Chatbot:
         print(json.dumps(json_post, indent=4, ensure_ascii=False))
         # print(self.conversation[convo_id])
 
-        if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-4-vision-preview":
+        if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-4-vision-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine:
             model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
         elif self.engine == "gpt-3.5-turbo-1106":
             model_max_tokens = min(kwargs.get("max_tokens", self.max_tokens), 16385 - message_token["total"])
@@ -718,7 +720,7 @@ class Chatbot:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
         self.add_to_conversation(prompt, "user", convo_id=convo_id)
         self.__truncate_conversation(convo_id=convo_id)
-        if self.engine == "gpt-4-1106-preview":
+        if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine:
             model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
         else:
             model_max_tokens = min(self.get_max_tokens(convo_id=convo_id) - 500, kwargs.get("max_tokens", self.max_tokens))
