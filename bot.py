@@ -358,9 +358,11 @@ async def button_press(update, context):
     elif "language" in data:
         if config.LANGUAGE == "Simplified Chinese":
             config.LANGUAGE = "English"
+            config.systemprompt = config.systemprompt.replace("Simplified Chinese", "English")
         else:
             config.LANGUAGE = "Simplified Chinese"
-        config.systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {config.LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {config.Current_Date} ]"
+            config.systemprompt = config.systemprompt.replace("English", "Simplified Chinese")
+        # config.systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {config.LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {config.Current_Date} ]"
         if config.API:
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
