@@ -348,6 +348,8 @@ def check_json(json_data):
                 json_data += '"}'
             if "Expecting ',' delimiter" in str(e):
                 json_data += '}'
+            if "Expecting value: line 1 column 1" in str(e):
+                json_data = '{"prompt": ' + json.dumps(json_data) + '}'
     return json_data
 
 if __name__ == "__main__":
