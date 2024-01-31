@@ -4,7 +4,7 @@ import config
 import logging
 import traceback
 import utils.decorators as decorators
-from utils.md2tgmd import escape
+from md2tgmd import escape
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import claudebot
 from utils.prompt import translator_en2zh_prompt, translator_prompt
