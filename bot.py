@@ -45,11 +45,15 @@ def CutNICK(update_text, update_chat):
 
 async def GetMesage(update_message, context):
     image_url = None
+    reply_to_message_text = None
     chatid = update_message.chat_id
     messageid = update_message.message_id
     if update_message.text:
         message = CutNICK(update_message.text, update_message.chat)
         rawtext = update_message.text
+
+    if update_message.reply_to_message:
+        reply_to_message_text = update_message.reply_to_message.text
 
     if update_message.photo:
         photo = update_message.photo[-1]
@@ -58,20 +62,22 @@ async def GetMesage(update_message, context):
         image_url = photo_file.file_path
 
         message = rawtext = CutNICK(update_message.caption, update_message.chat)
-    return message, rawtext, image_url, chatid, messageid
+    return message, rawtext, image_url, chatid, messageid, reply_to_message_text
 
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
     image_url = None
     if update.edited_message:
-        message, rawtext, image_url, chatid, messageid = await GetMesage(update.edited_message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text = await GetMesage(update.edited_message, context)
     else:
-        message, rawtext, image_url, chatid, messageid = await GetMesage(update.message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text = await GetMesage(update.message, context)
 
     print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
 
     if has_command == False or len(context.args) > 0:
+        if reply_to_message_text:
+            message = reply_to_message_text + "\n" + message
         if has_command:
             message = ' '.join(context.args)
         if prompt and has_command:
