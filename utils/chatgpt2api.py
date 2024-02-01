@@ -254,7 +254,7 @@ class Chatbot:
         api_key: str,
         engine: str = os.environ.get("GPT_ENGINE") or "gpt-3.5-turbo",
         proxy: str = None,
-        timeout: float = None,
+        timeout: float = 600,
         max_tokens: int = None,
         temperature: float = 0.5,
         top_p: float = 1.0,
@@ -285,7 +285,7 @@ class Chatbot:
         )
         # context max tokens
         self.truncate_limit: int = truncate_limit or (
-            16000
+            32000
             # 126500 Control the number of search characters to prevent excessive spending
             if "gpt-4-1106-preview" in engine or "gpt-4-0125-preview" in engine or "gpt-4-turbo-preview" in engine or self.engine == "gpt-4-vision-preview"
             else 30500
@@ -337,7 +337,7 @@ class Chatbot:
             ],
         }
         self.function_calls_counter = {}
-        self.function_call_max_loop = 3
+        self.function_call_max_loop = 10
         # self.encode_web_text_list = []
 
         if self.get_token_count("default") > self.max_tokens:
@@ -362,7 +362,7 @@ class Chatbot:
         else:
             print('\033[31m')
             print("error: add_to_conversation message is None or empty")
-            print(self.conversation[convo_id])
+            print("role", role, "function_name", function_name, "message", message)
             print('\033[0m')
 
     def __truncate_conversation(self, convo_id: str = "default") -> None:
@@ -593,6 +593,7 @@ class Chatbot:
             )
         response_role: str or None = None
         full_response: str = ""
+        function_full_response: str = ""
         function_call_name: str = ""
         need_function_call: bool = False
         for line in response.iter_lines():
@@ -609,6 +610,7 @@ class Chatbot:
             if line == "[DONE]":
                 break
             resp: dict = json.loads(line)
+            # print("resp", resp)
             choices = resp.get("choices")
             if not choices:
                 continue
@@ -627,12 +629,12 @@ class Chatbot:
                 function_call_content = delta["function_call"]["arguments"]
                 if "name" in delta["function_call"]:
                     function_call_name = delta["function_call"]["name"]
-                full_response += function_call_content
-                if full_response.count("\\n") > 2 or "}" in full_response:
+                function_full_response += function_call_content
+                if function_full_response.count("\\n") > 2 or "}" in function_full_response:
                     break
         if need_function_call:
-            full_response = check_json(full_response)
-            print("full_response", full_response)
+            function_full_response = check_json(function_full_response)
+            print("function_full_response", function_full_response)
             if not self.function_calls_counter.get(function_call_name):
                 self.function_calls_counter[function_call_name] = 1
             else:
@@ -641,51 +643,31 @@ class Chatbot:
                 function_call_max_tokens = self.truncate_limit - message_token["total"] - 1000
                 if function_call_max_tokens <= 0:
                     function_call_max_tokens = int(self.truncate_limit / 2)
-                print("function_call_max_tokens", function_call_max_tokens)
+                print("\033[32m function_call", function_call_name, "max token:", function_call_max_tokens, "\033[0m")
                 if function_call_name == "get_search_results":
-                    # g4t 提取的 prompt 有问题
-                    # prompt = json.loads(full_response)["prompt"]
-                    for index in range(len(self.conversation[convo_id])):
-                        if self.conversation[convo_id][-1 - index]["role"] == "user":
-                            self.conversation[convo_id][-1 - index]["content"][0]["text"] = self.conversation[convo_id][-1 - index]["content"][0]["text"].replace("search: ", "")
-                            prompt = self.conversation[convo_id][-1 - index]["content"][0]["text"]
-                            if json.loads(full_response)["prompt"].strip() != prompt:
-                                prompt = " ".join([prompt, json.loads(full_response)["prompt"].strip()]).strip()
-                            print("\n\nprompt", prompt)
-                            break
-                    tiktoken.get_encoding("cl100k_base")
-                    encoding = tiktoken.encoding_for_model(config.GPT_ENGINE)
-                    web_result = yield from get_url_text_list(prompt)
-
-                    encode_web_text_list = encoding.encode(" ".join(web_result))
-                    print("search len", len(encode_web_text_list))
-                    function_response = encoding.decode(encode_web_text_list[:function_call_max_tokens])
-                    # if self.encode_web_text_list == []:
-                    #     self.encode_web_text_list = encoding.encode(" ".join(get_url_text_list(prompt)))
-                    #     print("search len", len(self.encode_web_text_list))
-                    # function_response = encoding.decode(self.encode_web_text_list[:function_call_max_tokens])
-                    # self.encode_web_text_list = self.encode_web_text_list[function_call_max_tokens:]
-
-                    # function_response = eval(function_call_name)(prompt, function_call_max_tokens)
+                    prompt = json.loads(function_full_response)["prompt"]
+                    function_response = eval(function_call_name)(prompt)
+                    function_response, text_len = cut_message(function_response, function_call_max_tokens)
                     function_response = (
+                        f"You need to response the following question: {prompt}. Search results is provided inside <Search_results></Search_results> XML tags. Your task is to think about the question step by step and then answer the above question in {config.LANGUAGE} based on the Search results provided. Please response in {config.LANGUAGE} and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Directly response markdown format, without using markdown code blocks"
                         "Here is the Search results, inside <Search_results></Search_results> XML tags:"
                         "<Search_results>"
                         "{}"
                         "</Search_results>"
                     ).format(function_response)
-                    user_prompt = f"You need to response the following question: {prompt}. Search results is provided inside <Search_results></Search_results> XML tags. Your task is to think about the question step by step and then answer the above question in {config.LANGUAGE} based on the Search results provided. Please response in {config.LANGUAGE} and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Directly response markdown format, without using markdown code blocks"
-                    self.add_to_conversation(user_prompt, "user", convo_id=convo_id)
+                    # user_prompt = f"You need to response the following question: {prompt}. Search results is provided inside <Search_results></Search_results> XML tags. Your task is to think about the question step by step and then answer the above question in {config.LANGUAGE} based on the Search results provided. Please response in {config.LANGUAGE} and adopt a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Directly response markdown format, without using markdown code blocks"
+                    # self.add_to_conversation(user_prompt, "user", convo_id=convo_id)
                 if function_call_name == "get_url_content":
-                    url = json.loads(full_response)["url"]
+                    url = json.loads(function_full_response)["url"]
                     print("\n\nurl", url)
                     function_response = Web_crawler(url)
+                    function_response, text_len = cut_message(function_response, function_call_max_tokens)
                     function_response = (
                         "Here is the documentation, inside <document></document> XML tags:"
                         "<document>"
                         "{}"
                         "</document>"
                     ).format(function_response)
-                    function_response, text_len = cut_message(function_response, function_call_max_tokens)
                 if function_call_name == "get_date_time_weekday":
                     function_response = eval(function_call_name)()
                     function_response, text_len = cut_message(function_response, function_call_max_tokens)
@@ -695,8 +677,15 @@ class Chatbot:
             else:
                 function_response = "抱歉，直接告诉用户，无法找到相关信息"
             response_role = "function"
+            # print(self.conversation[convo_id][-1])
+            if self.conversation[convo_id][-1]["role"] == "function" and self.conversation[convo_id][-1]["name"] == "get_search_results":
+                mess = self.conversation[convo_id].pop(-1)
+                # print("Truncate message:", mess)
+            self.add_to_conversation(full_response, "assistant", convo_id=convo_id)
             yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
         else:
+            if self.conversation[convo_id][-1]["role"] == "function" and self.conversation[convo_id][-1]["name"] == "get_search_results":
+                mess = self.conversation[convo_id].pop(-1)
             self.add_to_conversation(full_response, response_role, convo_id=convo_id)
             self.function_calls_counter = {}
             # self.clear_function_call(convo_id=convo_id)

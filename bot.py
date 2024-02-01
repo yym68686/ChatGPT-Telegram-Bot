@@ -1,5 +1,7 @@
 import re
 import os
+import sys
+sys.dont_write_bytecode = True
 import config
 import logging
 import traceback
@@ -90,9 +92,6 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if message:
             if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claudeBot
-            # if not config.API or config.PLUGINS["USE_G4F"]:
-            #     import utils.gpt4free as gpt4free
-            #     robot = gpt4free
             if image_url:
                 robot = config.GPT4visionbot
                 title = "`🤖️ gpt-4-vision-preview`\n\n"
@@ -130,10 +129,11 @@ async def reset_chat(update, context):
     )
 
 async def getChatGPT(update, context, title, robot, message, chatid, messageid):
-    result = title
+    result = ""
     text = message
     modifytime = 0
-    lastresult = ''
+    time_out = 600
+    lastresult = title
 
     message = await context.bot.send_message(
         chat_id=chatid,
@@ -151,23 +151,29 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
         for data in get_answer(text, convo_id=str(chatid), pass_history=pass_history):
             if "🌐" not in data:
                 result = result + data
-            tmpresult = result
+            tmpresult = title + result
             modifytime = modifytime + 1
             if re.sub(r"```", '', result).count("`") % 2 != 0:
-                tmpresult = result + "`"
+                tmpresult = title + result + "`"
             if result.count("```") % 2 != 0:
-                tmpresult = result + "\n```"
+                tmpresult = title + result + "\n```"
+            if 'claude2' in title:
+                tmpresult = re.sub(r",", '，', tmpresult)
+            if "🌐" in data:
+                tmpresult = data
+            if "answer:" in result:
+                tmpresult = re.sub(r"thought:[\S\s]+?answer:\s", '', tmpresult)
+                tmpresult = re.sub(r"action:[\S\s]+?answer:\s", '', tmpresult)
+                tmpresult = re.sub(r"answer:\s", '', tmpresult)
+                tmpresult = re.sub(r"thought:[\S\s]+", '', tmpresult)
+                tmpresult = re.sub(r"action:[\S\s]+", '', tmpresult)
+            else:
+                tmpresult = re.sub(r"thought:[\S\s]+", '', tmpresult)
             if (modifytime % 20 == 0 and lastresult != tmpresult) or "🌐" in data:
-                if 'claude2' in title:
-                    tmpresult = re.sub(r",", '，', tmpresult)
-                if "🌐" in data:
-                    tmpresult = data
-                await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True)
+                await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
                 lastresult = tmpresult
     except Exception as e:
         print('\033[31m')
-        print("response_msg", result)
-        print("error", e)
         traceback.print_exc()
         print('\033[0m')
         if config.API:
@@ -177,12 +183,12 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             await context.bot.delete_message(chat_id=chatid, message_id=messageid)
             messageid = ''
             config.API = ''
-        result += f"`出错啦！{e}`"
-    print(result)
-    if lastresult != result and messageid:
+        tmpresult = f"`{e}`"
+    print(tmpresult)
+    if lastresult != tmpresult and messageid:
         if 'claude2' in title:
-            result = re.sub(r",", '，', result)
-        await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
+            tmpresult = re.sub(r",", '，', tmpresult)
+        await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
 
 @decorators.GroupAuthorization
 @decorators.Authorization
@@ -491,10 +497,10 @@ async def post_init(application: Application) -> None:
     await application.bot.set_my_commands([
         BotCommand('info', 'basic information'),
         BotCommand('pic', 'Generate image'),
+        BotCommand('copilot', 'Advanced search mode'),
         BotCommand('search', 'search Google or duckduckgo'),
         BotCommand('en2zh', 'translate to Chinese'),
         BotCommand('zh2en', 'translate to English'),
-        # BotCommand('qa', 'Document Q&A with Embedding Database Search'),
         BotCommand('start', 'Start the bot'),
         BotCommand('reset', 'Reset the bot'),
     ])
@@ -520,6 +526,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("reset", reset_chat))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese", robot=config.translate_bot)))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.translate_bot)))
+    application.add_handler(CommandHandler("copilot", lambda update, context: command_bot(update, context, None, None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.copilot_bot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(InlineQueryHandler(inlinequery))
     # application.add_handler(CommandHandler("qa", qa))

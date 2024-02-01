@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
+import utils.prompt as prompt
 
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
 BOT_TOKEN = os.environ.get('BOT_TOKEN', None)
@@ -22,7 +23,7 @@ LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
 from datetime import datetime
 current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
-systemprompt = os.environ.get('SYSTEMPROMPT', f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {LANGUAGE}. Knowledge cutoff: 2023-04. Current date: [ {Current_Date} ]")
+systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUAGE, Current_Date))
 
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import Imagebot, claudebot
@@ -37,6 +38,7 @@ if API:
     except:
         print("无法使用 gpt-4-vision-preview 模型")
     translate_bot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
+    copilot_bot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=prompt.search_system_prompt.format(LANGUAGE), temperature=temperature)
     dallbot = Imagebot(api_key=f"{API}")
 else:
     ChatGPTbot = None

@@ -66,7 +66,8 @@ def Web_crawler(url: str, isSearch=False) -> str:
         response = requests.get(url, headers=headers, verify=False, timeout=3, stream=True)
         if response.status_code == 404:
             print("Page not found:", url)
-            return "抱歉，网页不存在，目前无法访问该网页。@Trash@"
+            return ""
+            # return "抱歉，网页不存在，目前无法访问该网页。@Trash@"
         content_length = int(response.headers.get('Content-Length', 0))
         if content_length > 5000000:
             print("Skipping large file:", url)
@@ -81,7 +82,8 @@ def Web_crawler(url: str, isSearch=False) -> str:
         body = "".join(soup.find('body').get_text().split('\n'))
         result = table_contents + body
         if result == '' and not isSearch:
-            result = "抱歉，可能反爬虫策略，目前无法访问该网页。@Trash@"
+            result = ""
+            # result = "抱歉，可能反爬虫策略，目前无法访问该网页。@Trash@"
         if result.count("\"") > 1000:
             result = ""
     except Exception as e:
@@ -158,6 +160,7 @@ def sort_by_time(urls):
 
 def get_search_url(prompt, chainllm):
     urls_set = []
+
     keyword_prompt = PromptTemplate(
         input_variables=["source"],
         template=search_key_word_prompt,
@@ -168,6 +171,11 @@ def get_search_url(prompt, chainllm):
     keywords = keyword_google_search_thread.join().split('\n')[-3:]
     print("keywords", keywords)
     keywords = [item.replace("三行关键词是：", "") for item in keywords if "\\x" not in item if item != ""]
+
+    keywords = [prompt] + keywords
+    keywords = keywords[:3]
+    # if len(keywords) == 1:
+    #     keywords = keywords * 3
     print("select keywords", keywords)
 
     # # seg_list = jieba.cut_for_search(prompt)  # 搜索引擎模式
@@ -185,7 +193,7 @@ def get_search_url(prompt, chainllm):
     if len(keywords) == 1:
         search_url_num = 12
     # print(keywords)
-    yield "🌐 正在网上挑选最相关的信息源，请稍候..."
+    # yield "🌐 正在网上挑选最相关的信息源，请稍候..."
     if config.USE_GOOGLE:
         search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keywords[0],search_url_num,))
         search_thread.start()
@@ -204,11 +212,11 @@ def get_search_url(prompt, chainllm):
     url_set_list = sorted(set(urls_set), key=lambda x: urls_set.index(x))
     url_set_list = sort_by_time(url_set_list)
 
-    # cut_num = int(len(url_set_list) * 2 / 3)
     url_pdf_set_list = [item for item in url_set_list if item.endswith(".pdf")]
     url_set_list = [item for item in url_set_list if not item.endswith(".pdf")]
-    # return url_set_list[:cut_num], url_pdf_set_list
-    return url_set_list, url_pdf_set_list
+    # cut_num = int(len(url_set_list) * 1 / 3)
+    return url_set_list[:6], url_pdf_set_list
+    # return url_set_list, url_pdf_set_list
 
 def concat_url(threads):
     url_result = []
@@ -230,7 +238,7 @@ def cut_message(message: str, max_tokens: int):
 
 def get_url_text_list(prompt):
     start_time = record_time.time()
-    yield "🌐 正在搜索您的问题，提取关键词..."
+    # yield "🌐 正在搜索您的问题，提取关键词..."
 
     # if config.PLUGINS["USE_G4F"]:
     #     chainllm = EducationalLLM()
@@ -238,9 +246,10 @@ def get_url_text_list(prompt):
     #     chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
     chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
 
-    url_set_list, url_pdf_set_list = yield from get_search_url(prompt, chainllm)
+    url_set_list, url_pdf_set_list = get_search_url(prompt, chainllm)
+    # url_set_list, url_pdf_set_list = yield from get_search_url(prompt, chainllm)
 
-    yield "🌐 已找到一些有用的链接，正在获取详细内容..."
+    # yield "🌐 已找到一些有用的链接，正在获取详细内容..."
     threads = []
     for url in url_set_list:
         url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,True,))
@@ -248,9 +257,10 @@ def get_url_text_list(prompt):
         threads.append(url_search_thread)
 
     url_text_list = concat_url(threads)
+    # print("url_text_list", url_text_list)
 
 
-    yield "🌐 快完成了✅，正在为您整理搜索结果..."
+    # yield "🌐 快完成了✅，正在为您整理搜索结果..."
     end_time = record_time.time()
     run_time = end_time - start_time
     print("urls", url_set_list)
@@ -259,13 +269,13 @@ def get_url_text_list(prompt):
     return url_text_list
 
 # Plugins 搜索
-def get_search_results(prompt: str, context_max_tokens: int):
+def get_search_results(prompt: str):
 
     url_text_list = get_url_text_list(prompt)
     useful_source_text = "\n\n".join(url_text_list)
 
-    useful_source_text, search_tokens_len = cut_message(useful_source_text, context_max_tokens)
-    print("search tokens len", search_tokens_len, "\n\n")
+    # useful_source_text, search_tokens_len = cut_message(useful_source_text, context_max_tokens)
+    # print("search tokens len", search_tokens_len, "\n\n")
 
     return useful_source_text
 

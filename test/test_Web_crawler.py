@@ -80,7 +80,7 @@ def Web_crawler(url: str, isSearch=False) -> str:
             print("Skipping large file:", url)
             return result
         soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
-        
+
         table_contents = ""
         tables = soup.find_all('table')
         for table in tables:
@@ -133,7 +133,8 @@ start_time = time.time()
 # for url in ['https://s.weibo.com/top/summary?cate=realtimehot']:
 # for url in ['https://tophub.today/n/KqndgxeLl9']:
 # for url in ['https://support.apple.com/zh-cn/HT213931']:
-for url in ['https://www.usnews.com/news/entertainment/articles/2023-12-22/china-drafts-new-rules-proposing-restrictions-on-online-gaming']:
+for url in ['https://finance.sina.com.cn/stock/roll/2023-06-26/doc-imyyrexk4053724.shtml', 'https://s.weibo.com/top/summary?cate=realtimehot', 'https://tophub.today/n/KqndgxeLl9', 'https://www.whatsonweibo.com/', 'https://www.trendingonweibo.com/?ref=producthunt', 'https://www.trendingonweibo.com/', 'https://www.statista.com/statistics/1377073/china-most-popular-news-on-weibo/']:
+# for url in ['https://www.usnews.com/news/entertainment/articles/2023-12-22/china-drafts-new-rules-proposing-restrictions-on-online-gaming']:
 # for url in ['https://developer.aliyun.com/article/721836']:
 # for url in ['https://cn.aliyun.com/page-source/price/detail/machinelearning_price']:
 # for url in ['https://mp.weixin.qq.com/s/Itad7Y-QBcr991JkF3SrIg']:
@@ -148,4 +149,3 @@ end_time = time.time()
 run_time = end_time - start_time
 # 打印运行时间
 print(f"程序运行时间：{run_time}秒")
-
