@@ -230,7 +230,7 @@ Yes, it supports whitelisting to prevent abuse and information leakage.
 
 - How should I set the API_URL?
 
-The API_URL supports all suffixes, including: https://api.openai.com/v1/chat/completions, https://api.openai.com/v1, and https://api.openai.com/. The bot will automatically allocate different endpoints based on different uses.
+The API_URL supports all suffixes, including: https://galaxyapi.onrender.com/v1/chat/completions, https://galaxyapi.onrender.com/v1, and https://galaxyapi.onrender.com/. The bot will automatically allocate different endpoints based on different uses.
 
 - Is it necessary to configure the web_hook environment variable?
 
