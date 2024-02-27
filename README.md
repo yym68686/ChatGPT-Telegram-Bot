@@ -6,7 +6,7 @@
 
 <p align="center">
     <a href="https://hub.docker.com/repository/docker/yym68686/chatgpt">
-    <img src="https://img.shields.io/docker/pulls/yym68686/chatgpt?color=blue" alt="docker pull"></a>
+    <img src="https://discordapp.com/api/guilds/1148175569071124560/widget.png?style=banner1" alt="Discord Banner 1"/></a>
   <a href="https://t.me/+_01cz9tAkUc1YzZl">
     <img src="https://img.shields.io/badge/Join Telegram Group-blue?&logo=telegram">
   </a>
