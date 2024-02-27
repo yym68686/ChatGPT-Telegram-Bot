@@ -64,6 +64,11 @@ To develop plugins, please follow the steps outlined below:
 
 Please note that the above steps are a general guide and may need to be adjusted based on the specific requirements of your plugin.
 
+## How to get free API Key?
+- Join [Galaxy AI](https://discord.com/invite/M3FNR4yf2Z) discord server.
+- Go in ``commands`` channel.
+- Use ``/generate`` command to obtain your free **API** Key the credit refills daily , so you can use it without any limits.
+
 ## Zeabur Remote Deployment (Recommended)
 
 One-click deployment:
