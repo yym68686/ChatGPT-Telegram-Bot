@@ -510,7 +510,7 @@ if __name__ == '__main__':
         ApplicationBuilder()
         .token(BOT_TOKEN)
         .concurrent_updates(True)
-        .read_timeout(10)
+        .read_timeout(50)
         .connection_pool_size(50000)
         .pool_timeout(1200.0)
         .rate_limiter(AIORateLimiter(max_retries=5))
