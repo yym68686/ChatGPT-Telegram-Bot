@@ -204,7 +204,7 @@ This script is for restarting the Docker image with a single command. It first r
 
 ## 📄 Q & A
 
-- How to get **free** API Key for testing?
+## How to get **free** API Key for testing?
 
 Well, If you're facing high cost of openAI API, you can try this method for testing,
 
@@ -212,41 +212,47 @@ Well, If you're facing high cost of openAI API, you can try this method for test
 + Visit the ``Commands`` channel.
 + Use ``/generate`` command to generate your private API Key.
 
-Then, You have to replace the ``base_url`` in config.py into ``https://galaxyapi.onrender.com``, also put your **generated** API Key.
+Then, You have to replace the ``API_URL`` variable in config.py with value ``https://galaxyapi.onrender.com``, also put your **generated** API Key in the ``API`` variable.
 
-- Why can't I use Google search?
+```python
+API_URL = "https://galaxyapi.onrender.com"
+API = "<your-generated-key-here>"
+```
+Alternatively, You can set these variables in **Environment**.
+
+## Why can't I use Google search?
 
 By default, DuckDuckGo search is provided. The official API for Google search needs to be applied for by the user. It can provide real-time information that GPT could not answer before, such as today's trending topics on Weibo, today's weather in a specific location, and the progress of a certain person or news event.
 
-- How do I switch models?
+## How do I switch models?
 
 You can switch between GPT3.5, GPT4, and other models using the "info" command in the chat window.
 
-- Does it support a vector database?
+## Does it support a vector database?
 
 No, previous versions did support it, but after installing unstructured[md,pdf] dependencies for parsing PDFs, the docker image size reached 9GB, so the support for the vector database was removed in the current version. Since the vector database is just a transitional product when the context of large language models is relatively short and there is significant information loss. With the introduction of claude2.1 200k and gpt4 Turbo 128k, vector databases have become less and less important. Although their price is lower, by comparison, I would prefer better performance.
 
-- Can it be deployed in a group?
+## Can it be deployed in a group?
 
 Yes, it supports whitelisting to prevent abuse and information leakage.
 
-- How should I set the API_URL?
+## How should I set the API_URL?
 
 The API_URL supports all suffixes, including: https://api.openai.com/v1/chat/completions, https://api.openai.com/v1, and https://api.openai.com/. The bot will automatically allocate different endpoints based on different uses.
 
-- Is it necessary to configure the web_hook environment variable?
+## Is it necessary to configure the web_hook environment variable?
 
 The web_hook is not a mandatory environment variable. You only need to set the domain name (which must be consistent with WEB_HOOK) and other environment variables as required for your application's functionality.
 
-- I deployed a robot with docker compose. If the documentation is placed on the server locally, which directory should it be mounted to in order to take effect? Do I need to set additional configurations and modify the code?
+## I deployed a robot with docker compose. If the documentation is placed on the server locally, which directory should it be mounted to in order to take effect? Do I need to set additional configurations and modify the code?
 
 You can directly send the documentation to the robot through the chat box, and the robot will automatically parse the documentation. To use the documentation dialogue function, you need to enable the historical conversation feature. There is no need for additional processing of the documentation.
 
-- I still can't get it to work... I want to use it in a group, I've set the ADMIN_LIST to myself, and the GROUP_LIST to that group, with the whitelist left empty. However, only I can use it in that group, other members in the group are prompted with no permission, what's going on?
+## I still can't get it to work... I want to use it in a group, I've set the ADMIN_LIST to myself, and the GROUP_LIST to that group, with the whitelist left empty. However, only I can use it in that group, other members in the group are prompted with no permission, what's going on?
 
 Here's a troubleshooting guide: Please carefully check if the GROUP_LIST is correct. The ID of a Telegram group starts with a negative sign followed by a series of numbers. If it's not, please use this bot [bot](https://t.me/getidsbot) to reacquire the group ID.
 
-- I've uploaded a document, but it's not responding based on the content of the document. What's going on?
+## I've uploaded a document, but it's not responding based on the content of the document. What's going on?
 
 To use the document question and answer feature, you must first enable the history record. You can turn on the history record through the `/info` command, or by setting the environment variable `PASS_HISTORY` to `True` to enable the history record by default. Please note that enabling the history record will incur additional costs, so this project does not enable the history record by default. This means that the question and answer feature cannot be used under the default settings. Before using this feature, you need to manually enable the history record.
 
@@ -256,11 +262,11 @@ gpt4free is an open-source project that reverse-engineers multiple platforms to 
 
 You can enable gpt4free by simply clicking on it in the `/info` command. Please note that gpt4free does not support all models. You can check the gpt4free documentation to see which models it supports. Once gpt4free is enabled, all questions and searches will use the gpt4free API. If you encounter any errors, please copy the robot's backend log to @yym68686, or open an issue on GitHub. Our developers will resolve it as soon as possible. -->
 
-- After setting the `NICK`, there's no response when I @ the bot, and it only replies when the message starts with the nick. How can I make it respond to both the nick and @botname?
+## After setting the `NICK`, there's no response when I @ the bot, and it only replies when the message starts with the nick. How can I make it respond to both the nick and @botname?
 
 In a group chat scenario, if the environment variable `NICK` is not set, the bot will receive all group messages and respond to all of them. Therefore, it is necessary to set `NICK`. After setting `NICK`, the bot will only respond to messages that start with `NICK`. So, if you want to @ the bot to get a response, you just need to set NICK to @botname. This way, when you @ the bot in the group, the bot will detect that the message starts with @botname, and it will respond to the message.
 
-- How many messages will the history keep?
+## How many messages will the history keep?
 
 Apart from the latest `gpt-4-turbo-preview` model, the official context supports 128k tokens, but this project limits it to 16k tokens. All other models use the official context length settings, for example, the `gpt-3.5-turbo-16k` context is 16k, the `gpt-4-32k` context is 32k, and the `Claude2` context is 200k. This limitation is implemented to save user costs, as most scenarios do not require a high context. If you have specific needs, you can modify the context limits for each model in the `utils/chatgpt2api.py` file.
 
