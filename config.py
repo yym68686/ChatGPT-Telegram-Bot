@@ -15,7 +15,9 @@ if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE
 temperature = float(os.environ.get('temperature', '0.5'))
 GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4-0125-preview')
 # DEFAULT_SEARCH_MODEL = os.environ.get('DEFAULT_SEARCH_MODEL', 'gpt-3.5-turbo-1106') gpt-3.5-turbo-16k
-API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
+
+API_URL = "https://galaxyapi.onrender.com/v1/chat/completions"
+
 # PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
 LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
 
@@ -68,7 +70,7 @@ PLUGINS = {
 class openaiAPI:
     def __init__(
         self,
-        api_url: str = (os.environ.get("API_URL") or "https://api.openai.com/v1/chat/completions"),
+        api_url: str = "https://galaxyapi.onrender.com/v1/chat/completions"
     ):
         from urllib.parse import urlparse, urlunparse
         self.source_api_url: str = api_url

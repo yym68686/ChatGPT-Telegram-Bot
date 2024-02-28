@@ -6,7 +6,7 @@
 
 <p align="center">
     <a href="https://hub.docker.com/repository/docker/yym68686/chatgpt">
-    <img src="https://img.shields.io/docker/pulls/yym68686/chatgpt?color=blue" alt="docker pull"></a>
+    <img src="https://discordapp.com/api/guilds/1148175569071124560/widget.png?style=shield" alt="Discord Banner 1"/></a>
   <a href="https://t.me/+_01cz9tAkUc1YzZl">
     <img src="https://img.shields.io/badge/Join Telegram Group-blue?&logo=telegram">
   </a>
@@ -17,10 +17,14 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 ## ✨ Features
 
 - **Multiple AI Models**: Integrates a variety of AI models including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALLE 3, and Claude2.1 API.
+- **NO OpenAI Key Required**: You don't require costly key to run this BOT.
+
 - **Powerful Online Search**: Supports online search with DuckDuckGo and Google, providing users with a robust information retrieval tool.
 - **User-friendly Interface**: Allows flexible model switching within the chat window and supports streaming output for a typewriter-like effect.
+
 - **Efficient Message Processing**: Asynchronously processes messages, answers questions in a multi-threaded manner, supports isolated dialogues, and provides unique dialogues for different users.
 - **Document Interaction**: Supports Q&A for PDF and TXT documents. Users can upload files directly in the chat box for use.
+
 - **Accurate Markdown Rendering**: Supports precise Markdown rendering of messages, utilizing another [project](https://github.com/yym68686/md2tgmd) of mine.
 - **Convenient Deployment**: Supports one-click Zeabur, Replit deployment with true zero cost and idiot-proof deployment process. It also supports kuma anti-sleep, as well as Docker and fly.io deployment.
 
@@ -29,10 +33,9 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | Variable Name           | Comment                                                      | required? |
 | ---------------------- | ------------------------------------------------------------ | ---------------------- |
 | **BOT_TOKEN** | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. | **Yes** |
-| **API**       | OpenAI or third-party API key.                              | **Yes** |
+| **API**       | Put the GalaxyAI Key you generated.                             | **Yes** |
 | GPT_ENGINE    | Set the default QA model; the default is:`gpt-4-1106-preview`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
 | WEB_HOOK  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
-| API_URL       | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
 | NICK          | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |
 | PASS_HISTORY  | The default is `False`. The bot remembers the conversation history and considers the context when replying next time. If set to `False`, the bot will forget the conversation history and only consider the current conversation. Ensure the first letter of `False` and `True` is capitalized. | No |
 | GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. Create credentials in Google Cloud's [APIs & Services](https://console.cloud.google.com/apis/api/customsearch.googleapis.com) and the API Key will be GOOGLE_API_KEY on the credentials page. Google search can be queried 100 times a day, which is completely sufficient for light use. When the usage limit has been reached, the bot will automatically turn off Google search. | No |
@@ -60,6 +63,11 @@ To develop plugins, please follow the steps outlined below:
 - Lastly, don't forget to add the plugin's description in the plugins section of the README.
 
 Please note that the above steps are a general guide and may need to be adjusted based on the specific requirements of your plugin.
+
+## How to get free API Key?
+- Join [Galaxy AI](https://discord.com/invite/M3FNR4yf2Z) discord server.
+- Go in ``commands`` channel.
+- Use ``/generate`` command to obtain your free **API** Key the credit refills daily , so you can use it without any limits.
 
 ## Zeabur Remote Deployment (Recommended)
 
@@ -91,116 +99,7 @@ Select Secrets in the Tools sidebar, add the environment variables required by t
 
 Click the run button on the top of the screen to run the bot.
 
-## fly.io Remote Deployment
 
-Official documentation: https://fly.io/docs/
-
-Use Docker image to deploy fly.io application
-
-```bash
-flyctl launch --image yym68686/chatgpt:1.0
-```
-
-Enter the name of the application when prompted, and select No for initializing Postgresql or Redis.
-
-Follow the prompts to deploy. A secondary domain name will be provided in the official control panel, which can be used to access the service.
-
-Set environment variables
-
-```bash
-flyctl secrets set BOT_TOKEN=bottoken
-flyctl secrets set API=
-# optional
-flyctl secrets set WEB_HOOK=https://flyio-app-name.fly.dev/
-flyctl secrets set NICK=javis
-```
-
-View all environment variables
-
-```bash
-flyctl secrets list
-```
-
-Remove environment variables
-
-```bash
-flyctl secrets unset MY_SECRET DATABASE_URL
-```
-
-ssh to fly.io container
-
-```bash
-flyctl ssh issue --agent
-# ssh connection
-flyctl ssh establish
-```
-
-Check whether the webhook URL is correct
-
-```bash
-https://api.telegram.org/bot<token>/getWebhookInfo
-```
-
-## Docker Local Deployment
-
-Start the container
-
-```bash
-docker run -p 80:8080 --name chatbot -dit \
-    -e BOT_TOKEN="telegram bot token" \
-    -e API="" \
-    -e API_URL= \
-    yym68686/chatgpt:1.0
-```
-
-Or if you want to use Docker Compose, here is a docker-compose.yml example:
-
-```yaml
-version: "3.5"
-services:
-  chatgptbot:
-    container_name: chatgptbot
-    image: yym68686/chatgpt:1.0
-    environment:
-      - BOT_TOKEN=
-      - API=
-      - API_URL=
-    ports:
-      - 80:8080
-```
-
-Run Docker Compose container in the background
-
-```bash
-docker-compose up -d
-```
-
-Package the Docker image in the repository and upload it to Docker Hub
-
-```bash
-docker build --no-cache -t chatgpt:1.0 -f Dockerfile.build --platform linux/amd64 .
-docker tag chatgpt:1.0 yym68686/chatgpt:1.0
-docker push yym68686/chatgpt:1.0
-```
-
-One-Click Restart Docker Image
-
-```bash
-set -eu
-docker rm -f chatbot
-docker pull yym68686/chatgpt:1.0
-docker run -p 8080:8080 -dit --name chatbot \
--e BOT_TOKEN= \
--e API= \
--e API_URL= \
--e GOOGLE_API_KEY= \
--e GOOGLE_CSE_ID= \
--e claude_api_key= \
-yym68686/chatgpt:1.0
-docker logs -f chatbot
-```
-
-This script is for restarting the Docker image with a single command. It first removes the existing Docker container named "chatbot" if it exists. Then, it runs a new Docker container with the name "chatbot", exposing port 8080 and setting various environment variables. The Docker image used is "yym68686/chatgpt:1.0". Finally, it follows the logs of the "chatbot" container.
 
 ## 📄 Q & A
 
@@ -222,7 +121,7 @@ Yes, it supports whitelisting to prevent abuse and information leakage.
 
 - How should I set the API_URL?
 
-The API_URL supports all suffixes, including: https://api.openai.com/v1/chat/completions, https://api.openai.com/v1, and https://api.openai.com/. The bot will automatically allocate different endpoints based on different uses.
+The API_URL supports all suffixes, including: https://galaxyapi.onrender.com/v1/chat/completions, https://galaxyapi.onrender.com/v1, and https://galaxyapi.onrender.com/. The bot will automatically allocate different endpoints based on different uses.
 
 - Is it necessary to configure the web_hook environment variable?
 
