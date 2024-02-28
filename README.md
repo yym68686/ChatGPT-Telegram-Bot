@@ -204,6 +204,21 @@ This script is for restarting the Docker image with a single command. It first r
 
 ## 📄 Q & A
 
+- How to get **free** API Key for testing?
+
+Well, If you're facing high cost of openAI API, you can try this method for testing,
+
+1. Join [Galaxy AI](https://discord.com/invite/zJAk5akk3d) Discord server.
+2. Visit the ``Commands`` channel.
+3. Use ``/generate`` command to generate your private API Key.
+4. Then, You have to replace the ``API_URL`` variable in config.py with value ``https://galaxyapi.onrender.com``, also put your **generated** API Key in the ``API`` variable.
+
+```python
+API_URL = "https://galaxyapi.onrender.com"
+API = "<your-generated-key-here>"
+```
+Alternatively, You can set these variables in **Environment**.
+
 - Why can't I use Google search?
 
 By default, DuckDuckGo search is provided. The official API for Google search needs to be applied for by the user. It can provide real-time information that GPT could not answer before, such as today's trending topics on Weibo, today's weather in a specific location, and the progress of a certain person or news event.
