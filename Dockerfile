@@ -1,1 +1,0 @@
-FROM yym68686/chatgpt:1.0
