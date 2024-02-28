@@ -99,55 +99,6 @@ Select Secrets in the Tools sidebar, add the environment variables required by t
 
 Click the run button on the top of the screen to run the bot.
 
-## fly.io Remote Deployment
-
-Official documentation: https://fly.io/docs/
-
-Use Docker image to deploy fly.io application
-
-```bash
-flyctl launch --image yym68686/chatgpt:1.0
-```
-
-Enter the name of the application when prompted, and select No for initializing Postgresql or Redis.
-
-Follow the prompts to deploy. A secondary domain name will be provided in the official control panel, which can be used to access the service.
-
-Set environment variables
-
-```bash
-flyctl secrets set BOT_TOKEN=bottoken
-flyctl secrets set API=
-# optional
-flyctl secrets set WEB_HOOK=https://flyio-app-name.fly.dev/
-flyctl secrets set NICK=javis
-```
-
-View all environment variables
-
-```bash
-flyctl secrets list
-```
-
-Remove environment variables
-
-```bash
-flyctl secrets unset MY_SECRET DATABASE_URL
-```
-
-ssh to fly.io container
-
-```bash
-flyctl ssh issue --agent
-# ssh connection
-flyctl ssh establish
-```
-
-Check whether the webhook URL is correct
-
-```bash
-https://api.telegram.org/bot<token>/getWebhookInfo
-```
 
 
 ## 📄 Q & A
