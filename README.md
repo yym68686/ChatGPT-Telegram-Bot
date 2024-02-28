@@ -208,9 +208,9 @@ This script is for restarting the Docker image with a single command. It first r
 
 Well, If you're facing high cost of openAI API, you can try this method for testing,
 
-+ Join [Galaxy AI](https://discord.com/invite/zJAk5akk3d) Discord server.
-+ Visit the ``Commands`` channel.
-+ Use ``/generate`` command to generate your private API Key.
+1. Join [Galaxy AI](https://discord.com/invite/zJAk5akk3d) Discord server.
+2. Visit the ``Commands`` channel.
+3. Use ``/generate`` command to generate your private API Key.
 
 Then, You have to replace the ``API_URL`` variable in config.py with value ``https://galaxyapi.onrender.com``, also put your **generated** API Key in the ``API`` variable.
 
