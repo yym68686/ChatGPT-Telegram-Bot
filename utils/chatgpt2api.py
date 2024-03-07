@@ -635,6 +635,7 @@ class Chatbot:
         if need_function_call:
             function_full_response = check_json(function_full_response)
             print("function_full_response", function_full_response)
+            function_response = ""
             if not self.function_calls_counter.get(function_call_name):
                 self.function_calls_counter[function_call_name] = 1
             else:
