@@ -193,7 +193,7 @@ def get_search_url(prompt, chainllm):
     if len(keywords) == 1:
         search_url_num = 12
     # print(keywords)
-    # yield "🌐 正在网上挑选最相关的信息源，请稍候..."
+    yield "🌐 正在网上挑选最相关的信息源，请稍候..."
     if config.USE_GOOGLE:
         search_thread = ThreadWithReturnValue(target=getgooglesearchurl, args=(keywords[0],search_url_num,))
         search_thread.start()
@@ -238,7 +238,7 @@ def cut_message(message: str, max_tokens: int):
 
 def get_url_text_list(prompt):
     start_time = record_time.time()
-    # yield "🌐 正在搜索您的问题，提取关键词..."
+    yield "🌐 正在搜索您的问题，提取关键词..."
 
     # if config.PLUGINS["USE_G4F"]:
     #     chainllm = EducationalLLM()
@@ -246,10 +246,10 @@ def get_url_text_list(prompt):
     #     chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
     chainllm = ChatOpenAI(temperature=config.temperature, openai_api_base=config.bot_api_url.v1_url, model_name=config.GPT_ENGINE, openai_api_key=config.API)
 
-    url_set_list, url_pdf_set_list = get_search_url(prompt, chainllm)
-    # url_set_list, url_pdf_set_list = yield from get_search_url(prompt, chainllm)
+    # url_set_list, url_pdf_set_list = get_search_url(prompt, chainllm)
+    url_set_list, url_pdf_set_list = yield from get_search_url(prompt, chainllm)
 
-    # yield "🌐 已找到一些有用的链接，正在获取详细内容..."
+    yield "🌐 已找到一些有用的链接，正在获取详细内容..."
     threads = []
     for url in url_set_list:
         url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,True,))
@@ -260,7 +260,7 @@ def get_url_text_list(prompt):
     # print("url_text_list", url_text_list)
 
 
-    # yield "🌐 快完成了✅，正在为您整理搜索结果..."
+    yield "🌐 快完成了✅，正在为您整理搜索结果..."
     end_time = record_time.time()
     run_time = end_time - start_time
     print("urls", url_set_list)
@@ -271,7 +271,7 @@ def get_url_text_list(prompt):
 # Plugins 搜索
 def get_search_results(prompt: str):
 
-    url_text_list = get_url_text_list(prompt)
+    url_text_list = yield from get_url_text_list(prompt)
     useful_source_text = "\n\n".join(url_text_list)
 
     # useful_source_text, search_tokens_len = cut_message(useful_source_text, context_max_tokens)

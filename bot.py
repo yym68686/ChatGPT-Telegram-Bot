@@ -8,7 +8,7 @@ import traceback
 import utils.decorators as decorators
 from md2tgmd import escape
 from utils.chatgpt2api import Chatbot as GPT
-from utils.chatgpt2api import claudebot
+from utils.chatgpt2api import claudebot, groqbot
 from utils.prompt import translator_en2zh_prompt, translator_prompt
 from telegram.constants import ChatAction
 from utils.plugins import Document_extract, get_encode_image
@@ -92,10 +92,13 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if message:
             if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claudeBot
+            if "mixtral" in config.GPT_ENGINE and config.GROQ_API_KEY:
+                robot = config.groqBot
             if image_url:
                 robot = config.GPT4visionbot
                 title = "`🤖️ gpt-4-vision-preview`\n\n"
-            message = [{"type": "text", "text": message}]
+            if "gpt" in config.GPT_ENGINE:
+                message = [{"type": "text", "text": message}]
             if (image_url and config.GPT_ENGINE == "gpt-4-vision-preview") or (image_url and robot == config.GPT4visionbot):
                 base64_image = get_encode_image(image_url)
                 message.append(
@@ -264,27 +267,28 @@ buttons = [
         InlineKeyboardButton("gpt-3.5-turbo-16k", callback_data="gpt-3.5-turbo-16k"),
     ],
     [
-        InlineKeyboardButton("gpt-4", callback_data="gpt-4"),
-        InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
-    ],
-    [
-        InlineKeyboardButton("gpt-3.5-turbo-1106", callback_data="gpt-3.5-turbo-1106"),
-    ],
-    [
-        InlineKeyboardButton("gpt-4-turbo-preview", callback_data="gpt-4-turbo-preview"),
+        InlineKeyboardButton("claude-2", callback_data="claude-2"),
+        InlineKeyboardButton("mixtral-8x7b", callback_data="mixtral-8x7b-32768"),
     ],
     [
         InlineKeyboardButton("gpt-4-0125-preview", callback_data="gpt-4-0125-preview"),
     ],
     [
-        InlineKeyboardButton("gpt-4-1106-preview", callback_data="gpt-4-1106-preview"),
-    ],
-    [
         InlineKeyboardButton("gpt-4-vision-preview", callback_data="gpt-4-vision-preview"),
     ],
     [
-        InlineKeyboardButton("claude-2", callback_data="claude-2"),
+        # InlineKeyboardButton("gpt-4", callback_data="gpt-4"),
+        InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
     ],
+    [
+        InlineKeyboardButton("gpt-3.5-turbo-1106", callback_data="gpt-3.5-turbo-1106"),
+    ],
+    # [
+    #     InlineKeyboardButton("gpt-4-turbo-preview", callback_data="gpt-4-turbo-preview"),
+    # ],
+    # [
+    #     InlineKeyboardButton("gpt-4-1106-preview", callback_data="gpt-4-1106-preview"),
+    # ],
     [
         InlineKeyboardButton("返回上一级", callback_data="返回上一级"),
     ],
@@ -338,13 +342,15 @@ async def button_press(update, context):
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
-    if "gpt-" in data or "claude" in data:
+    if "gpt-" in data or "claude" in data or "mixtral" in data:
         config.GPT_ENGINE = data
         if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI):
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
         if config.ClaudeAPI and "claude" in data:
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+        if config.GROQ_API_KEY and "mixtral" in data:
+            config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         try:
             info_message = update_info_message(update)
             message = await callback_query.edit_message_text(
@@ -380,6 +386,8 @@ async def button_press(update, context):
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
         if config.ClaudeAPI:
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+        if config.GROQ_API_KEY:
+            config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
 
         info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
@@ -485,6 +493,8 @@ async def start(update, context): # 当用户输入/start时，返回文本
 
 async def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
+    traceback_string = traceback.format_exception(None, context.error, context.error.__traceback__)
+    logger.warning('Error traceback: %s', ''.join(traceback_string))
     # await update.message.reply_text(escape("出错啦！请重试。"), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.GroupAuthorization

@@ -18,6 +18,7 @@ GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4-0125-preview')
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 # PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
 LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 
 
 from datetime import datetime
@@ -26,7 +27,7 @@ Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUAGE, Current_Date))
 
 from utils.chatgpt2api import Chatbot as GPT
-from utils.chatgpt2api import Imagebot, claudebot
+from utils.chatgpt2api import Imagebot, claudebot, groqbot
 if API:
     try:
         ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
@@ -46,6 +47,9 @@ else:
 ClaudeAPI = os.environ.get('claude_api_key', None)
 if ClaudeAPI:
     claudeBot = claudebot(api_key=f"{ClaudeAPI}")
+
+if GROQ_API_KEY:
+    groqBot = groqbot(api_key=f"{GROQ_API_KEY}")
 
 whitelist = os.environ.get('whitelist', None)
 if whitelist:
