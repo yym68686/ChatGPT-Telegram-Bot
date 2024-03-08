@@ -90,8 +90,10 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     prompt = translator_en2zh_prompt
             message = prompt + message
         if message:
-            if "claude" in config.GPT_ENGINE and config.ClaudeAPI:
+            if "claude-2" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claudeBot
+            if "claude-3" in config.GPT_ENGINE and config.ClaudeAPI:
+                robot = config.claude3Bot
             if "mixtral" in config.GPT_ENGINE and config.GROQ_API_KEY:
                 robot = config.groqBot
             if image_url:
@@ -267,6 +269,10 @@ buttons = [
         InlineKeyboardButton("gpt-3.5-turbo-16k", callback_data="gpt-3.5-turbo-16k"),
     ],
     [
+        InlineKeyboardButton("claude-3-opus", callback_data="claude-3-opus-20240229"),
+        InlineKeyboardButton("claude-3-sonnet", callback_data="claude-3-sonnet-20240229"),
+    ],
+    [
         InlineKeyboardButton("claude-2", callback_data="claude-2"),
         InlineKeyboardButton("mixtral-8x7b", callback_data="mixtral-8x7b-32768"),
     ],
@@ -347,7 +353,9 @@ async def button_press(update, context):
         if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI):
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
-        if config.ClaudeAPI and "claude" in data:
+        if config.ClaudeAPI and "claude-2" in data:
+            config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+        if config.ClaudeAPI and "claude-3" in data:
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.GROQ_API_KEY and "mixtral" in data:
             config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
@@ -425,7 +433,7 @@ async def handle_pdf(update, context):
     file_url = new_file.file_path
     extracted_text_with_prompt = Document_extract(file_url)
     # print(extracted_text_with_prompt)
-    if config.ClaudeAPI and "claude" in config.GPT_ENGINE:
+    if config.ClaudeAPI and "claude-2" in config.GPT_ENGINE:
         robot = config.claudeBot
         role = "Human"
     else:
