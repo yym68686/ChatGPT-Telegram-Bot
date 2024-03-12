@@ -94,7 +94,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 robot = config.claudeBot
             if "claude-3" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claude3Bot
-            if "mixtral" in config.GPT_ENGINE and config.GROQ_API_KEY:
+            if ("mixtral" in config.GPT_ENGINE or "llama" in config.GPT_ENGINE) and config.GROQ_API_KEY:
                 robot = config.groqBot
             if image_url:
                 robot = config.GPT4visionbot
@@ -269,12 +269,15 @@ buttons = [
         InlineKeyboardButton("gpt-3.5-turbo-16k", callback_data="gpt-3.5-turbo-16k"),
     ],
     [
+        InlineKeyboardButton("mixtral-8x7b", callback_data="mixtral-8x7b-32768"),
+        InlineKeyboardButton("llama2-70b", callback_data="llama2-70b-4096"),
+    ],
+    [
         InlineKeyboardButton("claude-3-opus", callback_data="claude-3-opus-20240229"),
         InlineKeyboardButton("claude-3-sonnet", callback_data="claude-3-sonnet-20240229"),
     ],
     [
         InlineKeyboardButton("claude-2", callback_data="claude-2"),
-        InlineKeyboardButton("mixtral-8x7b", callback_data="mixtral-8x7b-32768"),
     ],
     [
         InlineKeyboardButton("gpt-4-0125-preview", callback_data="gpt-4-0125-preview"),
@@ -348,7 +351,7 @@ async def button_press(update, context):
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
-    if "gpt-" in data or "claude" in data or "mixtral" in data:
+    if "gpt-" in data or "claude" in data or "mixtral" in data or "llama" in data:
         config.GPT_ENGINE = data
         if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI):
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
@@ -357,7 +360,7 @@ async def button_press(update, context):
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.ClaudeAPI and "claude-3" in data:
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
-        if config.GROQ_API_KEY and "mixtral" in data:
+        if config.GROQ_API_KEY and ("mixtral" in data or "llama" in data):
             config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         try:
             info_message = update_info_message(update)

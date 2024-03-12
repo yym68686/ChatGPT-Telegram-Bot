@@ -55,6 +55,7 @@ ENGINES = [
     "gpt-4-turbo-preview",
     "gpt-4-vision-preview",
     "mixtral-8x7b-32768",
+    "llama2-70b-4096",
     "claude-2",
     "claude-3-sonnet-20240229",
     "claude-3-opus-20240229",
