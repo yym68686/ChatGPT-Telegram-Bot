@@ -542,14 +542,18 @@ async def post_init(application: Application) -> None:
     ])
 
 if __name__ == '__main__':
+    time_out = 600
     application = (
         ApplicationBuilder()
         .token(BOT_TOKEN)
         .concurrent_updates(True)
         .connection_pool_size(50000)
-        .read_timeout(600)
-        .pool_timeout(1200.0)
-        .get_updates_read_timeout(600)
+        .read_timeout(time_out)
+        .pool_timeout(time_out)
+        .get_updates_read_timeout(time_out)
+        .get_updates_write_timeout(time_out)
+        .get_updates_pool_timeout(time_out)
+        .get_updates_connect_timeout(time_out)
         .rate_limiter(AIORateLimiter(max_retries=5))
         .post_init(post_init)
         .build()
@@ -577,7 +581,4 @@ if __name__ == '__main__':
         print("WEB_HOOK:", WEB_HOOK)
         application.run_webhook("0.0.0.0", PORT, webhook_url=WEB_HOOK)
     else:
-        # application.run_polling()
-        time_out = 600
-        application.run_polling(read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out, timeout=time_out)
-        # application.run_polling(read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out, timeout=time_out)
+        application.run_polling(timeout=time_out)
