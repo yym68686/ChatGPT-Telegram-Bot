@@ -18,16 +18,30 @@ from config import WEB_HOOK, PORT, BOT_TOKEN
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-# logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 
-# 获取 httpx 的 logger
 httpx_logger = logging.getLogger("httpx")
-# 设置 httpx 的日志级别为 WARNING
-httpx_logger.setLevel(logging.WARNING)
+httpx_logger.setLevel(logging.CRITICAL)
 
 httpx_logger = logging.getLogger("chromadb.telemetry.posthog")
 httpx_logger.setLevel(logging.WARNING)
+
+class SpecificStringFilter(logging.Filter):
+    def __init__(self, specific_string):
+        super().__init__()
+        self.specific_string = specific_string
+
+    def filter(self, record):
+        return self.specific_string not in record.getMessage()
+
+specific_string = "httpx.RemoteProtocolError: Server disconnected without sending a response."
+my_filter = SpecificStringFilter(specific_string)
+
+update_logger = logging.getLogger("telegram.ext.Updater")
+update_logger.addFilter(my_filter)
+update_logger = logging.getLogger("root")
+update_logger.addFilter(my_filter)
+
 
 botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
@@ -90,7 +104,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     prompt = translator_en2zh_prompt
             message = prompt + message
         if message:
-            if "claude-2" in config.GPT_ENGINE and config.ClaudeAPI:
+            if "claude-2.1" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claudeBot
             if "claude-3" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claude3Bot
@@ -277,7 +291,7 @@ buttons = [
         InlineKeyboardButton("claude-3-sonnet", callback_data="claude-3-sonnet-20240229"),
     ],
     [
-        InlineKeyboardButton("claude-2", callback_data="claude-2"),
+        InlineKeyboardButton("claude-2.1", callback_data="claude-2.1"),
     ],
     [
         InlineKeyboardButton("gpt-4-0125-preview", callback_data="gpt-4-0125-preview"),
@@ -356,7 +370,7 @@ async def button_press(update, context):
         if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI):
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
-        if config.ClaudeAPI and "claude-2" in data:
+        if config.ClaudeAPI and "claude-2.1" in data:
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.ClaudeAPI and "claude-3" in data:
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
@@ -436,7 +450,7 @@ async def handle_pdf(update, context):
     file_url = new_file.file_path
     extracted_text_with_prompt = Document_extract(file_url)
     # print(extracted_text_with_prompt)
-    if config.ClaudeAPI and "claude-2" in config.GPT_ENGINE:
+    if config.ClaudeAPI and "claude-2.1" in config.GPT_ENGINE:
         robot = config.claudeBot
         role = "Human"
     else:
@@ -503,6 +517,7 @@ async def start(update, context): # 当用户输入/start时，返回文本
     await update.message.reply_text(escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def error(update, context):
+    # if str(context.error) == "httpx.RemoteProtocolError: Server disconnected without sending a response.": return
     logger.warning('Update "%s" caused error "%s"', update, context.error)
     traceback_string = traceback.format_exception(None, context.error, context.error.__traceback__)
     logger.warning('Error traceback: %s', ''.join(traceback_string))
@@ -531,9 +546,10 @@ if __name__ == '__main__':
         ApplicationBuilder()
         .token(BOT_TOKEN)
         .concurrent_updates(True)
-        .read_timeout(10)
         .connection_pool_size(50000)
+        .read_timeout(600)
         .pool_timeout(1200.0)
+        .get_updates_read_timeout(600)
         .rate_limiter(AIORateLimiter(max_retries=5))
         .post_init(post_init)
         .build()

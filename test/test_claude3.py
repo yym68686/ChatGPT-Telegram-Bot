@@ -116,7 +116,7 @@ class claude3bot:
             raise NotImplementedError(
                 f"Engine {self.engine} is not supported. Select from {ENGINES}",
             )
-        tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
+        tiktoken.model.MODEL_TO_ENCODING["claude-2.1"] = "cl100k_base"
         encoding = tiktoken.encoding_for_model(self.engine)
 
         num_tokens = 0

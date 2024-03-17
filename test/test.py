@@ -24,7 +24,7 @@ print(a)
 #     else 14500
 #     if "gpt-3.5-turbo-16k" in engine or "gpt-3.5-turbo-1106" in engine
 #     else 98500
-#     if ("claude-2-web" or "claude-2") in engine
+#     if ("claude-2-web" or "claude-2.1") in engine
 #     else 3400
 # )
 

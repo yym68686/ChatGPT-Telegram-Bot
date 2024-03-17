@@ -23,7 +23,7 @@ GPT_ENGINE_map = {
     "gpt-4-0125-preview": "gpt-4-turbo",
     "gpt-4-vision-preview": "gpt-4",
     "claude-2-web": "gpt-4",
-    "claude-2": "gpt-4",
+    "claude-2.1": "gpt-4",
 }
 
 def ask_stream(message, **kwargs):

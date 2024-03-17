@@ -54,7 +54,7 @@ class claudebot:
     def __init__(
         self,
         api_key: str,
-        engine: str = os.environ.get("GPT_ENGINE") or "claude-2",
+        engine: str = os.environ.get("GPT_ENGINE") or "claude-2.1",
         temperature: float = 0.5,
         top_p: float = 0.7,
         chat_url: str = "https://api.anthropic.com/v1/complete",
@@ -110,7 +110,7 @@ class claudebot:
                 f"Engine {self.engine} is not supported. Select from {ENGINES}",
             )
         tiktoken.get_encoding("cl100k_base")
-        tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
+        tiktoken.model.MODEL_TO_ENCODING["claude-2.1"] = "cl100k_base"
 
         encoding = tiktoken.encoding_for_model(self.engine)
 
@@ -145,8 +145,8 @@ class claudebot:
         url = self.chat_url
         headers = {
             "accept": "application/json",
-            "anthropic-version": "2023-06-01", 
-            "content-type": "application/json",      
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
             "x-api-key": f"{kwargs.get('api_key', self.api_key)}",
         }
 

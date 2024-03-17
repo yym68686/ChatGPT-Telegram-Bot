@@ -56,7 +56,7 @@ ENGINES = [
     "gpt-4-vision-preview",
     "mixtral-8x7b-32768",
     "llama2-70b-4096",
-    "claude-2",
+    "claude-2.1",
     "claude-3-sonnet-20240229",
     "claude-3-opus-20240229",
 ]
@@ -71,7 +71,7 @@ class claudebot:
     def __init__(
         self,
         api_key: str,
-        engine: str = os.environ.get("GPT_ENGINE") or "claude-2",
+        engine: str = os.environ.get("GPT_ENGINE") or "claude-2.1",
         temperature: float = 0.5,
         top_p: float = 0.7,
         chat_url: str = "https://api.anthropic.com/v1/complete",
@@ -132,7 +132,7 @@ class claudebot:
             raise NotImplementedError(
                 f"Engine {self.engine} is not supported. Select from {ENGINES}",
             )
-        tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
+        tiktoken.model.MODEL_TO_ENCODING["claude-2.1"] = "cl100k_base"
         encoding = tiktoken.encoding_for_model(self.engine)
 
         num_tokens = 0
@@ -274,7 +274,7 @@ class claude3bot:
             raise NotImplementedError(
                 f"Engine {self.engine} is not supported. Select from {ENGINES}",
             )
-        tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
+        tiktoken.model.MODEL_TO_ENCODING["claude-2.1"] = "cl100k_base"
         encoding = tiktoken.encoding_for_model(self.engine)
 
         num_tokens = 0
@@ -311,6 +311,8 @@ class claude3bot:
             "x-api-key": f"{kwargs.get('api_key', self.api_key)}",
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
+            "accept": "application/json"
+            # "Accept": "*/*"
         }
 
         json_post = {
@@ -425,15 +427,15 @@ class Chatbot:
         self.system_prompt: str = system_prompt
         self.max_tokens: int = max_tokens or (
             4096
-            if "gpt-4-1106-preview" in engine or "gpt-4-0125-preview" in engine or "gpt-4-turbo-preview" in engine or "gpt-3.5-turbo-1106" in engine or self.engine == "gpt-4-vision-preview"
+            if "gpt-4-1106-preview" in engine or "gpt-4-0125-preview" in engine or "gpt-4-turbo-preview" in engine or "gpt-3.5-turbo-1106" in engine or self.engine == "gpt-4-vision-preview" or "claude" in engine
             else 31000
             if "gpt-4-32k" in engine
             else 7000
             if "gpt-4" in engine
             else 16385
             if "gpt-3.5-turbo-16k" in engine
-            else 99000
-            if "claude-2-web" in engine or "claude-2" in engine
+            # else 99000
+            # if "claude-2.1" in engine
             else 4000
         )
         # context max tokens
@@ -448,7 +450,7 @@ class Chatbot:
             else 14500
             if "gpt-3.5-turbo-16k" in engine or "gpt-3.5-turbo-1106" in engine
             else 98500
-            if "claude-2-web" in engine or "claude-2" in engine
+            if "claude-2.1" in engine
             else 3500
         )
         self.temperature: float = temperature
@@ -548,7 +550,7 @@ class Chatbot:
         while True:
             json_post = self.get_post_body(prompt, role, convo_id, model, pass_history, **kwargs)
             url = config.bot_api_url.chat_url
-            if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine or self.engine == "claude-2" or self.engine == "gpt-4-vision-preview":
+            if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine or self.engine == "claude-2.1" or self.engine == "gpt-4-vision-preview":
                 message_token = {
                     "total": self.get_token_count(convo_id),
                 }
@@ -594,7 +596,7 @@ class Chatbot:
             )
         encoding = tiktoken.get_encoding("cl100k_base")
         # tiktoken.model.MODEL_TO_ENCODING["gpt-4"] = "cl100k_base"
-        # tiktoken.model.MODEL_TO_ENCODING["claude-2"] = "cl100k_base"
+        # tiktoken.model.MODEL_TO_ENCODING["claude-2.1"] = "cl100k_base"
         # encoding = tiktoken.encoding_for_model(self.engine)
 
         num_tokens = 0
@@ -721,7 +723,7 @@ class Chatbot:
         print(json.dumps(json_post, indent=4, ensure_ascii=False))
         # print(self.conversation[convo_id])
 
-        if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-4-vision-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine:
+        if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-4-vision-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine or "claude" in self.engine:
             model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
         elif self.engine == "gpt-3.5-turbo-1106":
             model_max_tokens = min(kwargs.get("max_tokens", self.max_tokens), 16385 - message_token["total"])

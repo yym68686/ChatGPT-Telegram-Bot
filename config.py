@@ -70,6 +70,16 @@ PLUGINS = {
     "VERSION": True,
 }
 
+class userConfig:
+    def __init__(self, user_id: int):
+        self.user_id = user_id
+        self.language = LANGUAGE
+        self.temperature = temperature
+        self.engine = GPT_ENGINE
+        self.system_prompt = systemprompt
+        self.search_system_prompt = prompt.search_system_prompt.format(self.language)
+        self.search_model = "gpt-3.5-turbo-1106"
+
 class openaiAPI:
     def __init__(
         self,
