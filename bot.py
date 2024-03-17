@@ -291,6 +291,7 @@ buttons = [
         InlineKeyboardButton("claude-3-sonnet", callback_data="claude-3-sonnet-20240229"),
     ],
     [
+        InlineKeyboardButton("claude-3-haiku", callback_data="claude-3-haiku-20240307"),
         InlineKeyboardButton("claude-2.1", callback_data="claude-2.1"),
     ],
     [
