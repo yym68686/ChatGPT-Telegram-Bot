@@ -142,6 +142,9 @@ async def reset_chat(update, context):
         config.ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
     if config.ClaudeAPI:
         config.claudeBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
+        config.claude3Bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
+    if config.GROQ_API_KEY:
+        config.groqBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
     await context.bot.send_message(
         chat_id=update.message.chat_id,
         text="重置成功！",
