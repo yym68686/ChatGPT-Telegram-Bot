@@ -329,6 +329,7 @@ class claude3bot:
             "max_tokens": model_max_tokens,
             "stream": True,
         }
+        print(json.dumps(json_post, indent=4, ensure_ascii=False))
 
         response = self.session.post(
             url,

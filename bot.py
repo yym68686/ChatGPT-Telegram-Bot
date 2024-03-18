@@ -9,7 +9,7 @@ import utils.decorators as decorators
 from md2tgmd import escape
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import claudebot, groqbot
-from utils.prompt import translator_en2zh_prompt, translator_prompt
+from utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
 from telegram.constants import ChatAction
 from utils.plugins import Document_extract, get_encode_image
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
@@ -454,10 +454,15 @@ async def handle_pdf(update, context):
     if config.ClaudeAPI and "claude-2.1" in config.GPT_ENGINE:
         robot = config.claudeBot
         role = "Human"
+    elif config.ClaudeAPI and "claude-3" in config.GPT_ENGINE:
+        robot = config.claude3Bot
+        role = "user"
     else:
         robot = config.ChatGPTbot
         role = "user"
     robot.add_to_conversation(extracted_text_with_prompt, role, str(update.effective_chat.id))
+    if config.ClaudeAPI and "claude-3" in config.GPT_ENGINE:
+        robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(update.effective_chat.id))
     message = (
         f"文档上传成功！\n\n"
     )
