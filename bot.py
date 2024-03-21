@@ -173,12 +173,13 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
         for data in get_answer(text, convo_id=str(chatid), pass_history=pass_history):
             if "🌐" not in data:
                 result = result + data
-            tmpresult = title + result
+            tmpresult = result
             modifytime = modifytime + 1
             if re.sub(r"```", '', result).count("`") % 2 != 0:
-                tmpresult = title + result + "`"
+                tmpresult = result + "`"
             if result.count("```") % 2 != 0:
-                tmpresult = title + result + "\n```"
+                tmpresult = tmpresult + "\n```"
+            tmpresult = title + tmpresult
             if 'claude2' in title:
                 tmpresult = re.sub(r",", '，', tmpresult)
             if "🌐" in data:
