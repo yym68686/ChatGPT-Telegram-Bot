@@ -197,6 +197,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     except Exception as e:
         print('\033[31m')
         traceback.print_exc()
+        print(tmpresult)
         print('\033[0m')
         if config.API:
             robot.reset(convo_id=str(chatid), system_prompt=config.systemprompt)
