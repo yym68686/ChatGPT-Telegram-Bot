@@ -1,7 +1,7 @@
 --index-url https://pypi.python.org/simple/
 tiktoken
 requests
-md2tgmd
+md2tgmd==0.1.2
 # jieba
 python-dotenv
 beautifulsoup4
