@@ -362,6 +362,23 @@ def check_json(json_data):
                 json_data = '{"prompt": ' + json.dumps(json_data) + '}'
     return json_data
 
+def is_surrounded_by_chinese(text, index):
+    if 0 < index < len(text) - 1:
+        left_char = text[index - 1]
+        right_char = text[index + 1]
+        return '\u4e00' <= left_char <= '\u9fff' or '\u4e00' <= right_char <= '\u9fff'
+    return False
+
+def replace_char(string, index, new_char):
+    return string[:index] + new_char + string[index+1:]
+
+def claude_replace(text):
+    Punctuation_mapping = {",": "，", ":": "："}
+    for i in range(len(text)):
+        if is_surrounded_by_chinese(text, i) and (text[i] == ',' or text[i] == ':'):
+            text = replace_char(text, i, Punctuation_mapping[text[i]])
+    return text
+
 if __name__ == "__main__":
     os.system("clear")
     print(get_date_time_weekday())

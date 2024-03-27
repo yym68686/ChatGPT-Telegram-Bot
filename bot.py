@@ -11,7 +11,7 @@ from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import claudebot, groqbot
 from utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
 from telegram.constants import ChatAction
-from utils.plugins import Document_extract, get_encode_image
+from utils.plugins import Document_extract, get_encode_image, claude_replace
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
 from config import WEB_HOOK, PORT, BOT_TOKEN
@@ -180,18 +180,18 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             if result.count("```") % 2 != 0:
                 tmpresult = tmpresult + "\n```"
             tmpresult = title + tmpresult
-            if 'claude2' in title:
-                tmpresult = re.sub(r",", '，', tmpresult)
+            if "claude" in title:
+                tmpresult = claude_replace(tmpresult)
             if "🌐" in data:
                 tmpresult = data
-            if "answer:" in result:
-                tmpresult = re.sub(r"thought:[\S\s]+?answer:\s", '', tmpresult)
-                tmpresult = re.sub(r"action:[\S\s]+?answer:\s", '', tmpresult)
-                tmpresult = re.sub(r"answer:\s", '', tmpresult)
-                tmpresult = re.sub(r"thought:[\S\s]+", '', tmpresult)
-                tmpresult = re.sub(r"action:[\S\s]+", '', tmpresult)
-            else:
-                tmpresult = re.sub(r"thought:[\S\s]+", '', tmpresult)
+            # if "answer:" in result:
+            #     tmpresult = re.sub(r"thought:[\S\s]+?answer:\s", '', tmpresult)
+            #     tmpresult = re.sub(r"action:[\S\s]+?answer:\s", '', tmpresult)
+            #     tmpresult = re.sub(r"answer:\s", '', tmpresult)
+            #     tmpresult = re.sub(r"thought:[\S\s]+", '', tmpresult)
+            #     tmpresult = re.sub(r"action:[\S\s]+", '', tmpresult)
+            # else:
+            #     tmpresult = re.sub(r"thought:[\S\s]+", '', tmpresult)
             if (modifytime % 20 == 0 and lastresult != tmpresult) or "🌐" in data:
                 await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
                 lastresult = tmpresult
@@ -544,7 +544,7 @@ async def post_init(application: Application) -> None:
     await application.bot.set_my_commands([
         BotCommand('info', 'basic information'),
         BotCommand('pic', 'Generate image'),
-        BotCommand('copilot', 'Advanced search mode'),
+        # BotCommand('copilot', 'Advanced search mode'),
         BotCommand('search', 'search Google or duckduckgo'),
         BotCommand('en2zh', 'translate to Chinese'),
         BotCommand('zh2en', 'translate to English'),
@@ -578,7 +578,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("reset", reset_chat))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese", robot=config.translate_bot)))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.translate_bot)))
-    application.add_handler(CommandHandler("copilot", lambda update, context: command_bot(update, context, None, None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.copilot_bot)))
+    # application.add_handler(CommandHandler("copilot", lambda update, context: command_bot(update, context, None, None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.copilot_bot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(InlineQueryHandler(inlinequery))
     # application.add_handler(CommandHandler("qa", qa))
