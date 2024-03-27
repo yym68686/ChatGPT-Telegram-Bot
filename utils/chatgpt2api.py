@@ -552,7 +552,7 @@ class Chatbot:
         while True:
             json_post = self.get_post_body(prompt, role, convo_id, model, pass_history, **kwargs)
             url = config.bot_api_url.chat_url
-            if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine or self.engine == "claude-2.1" or self.engine == "gpt-4-vision-preview":
+            if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine or "claude" in self.engine or self.engine == "gpt-4-vision-preview":
                 message_token = {
                     "total": self.get_token_count(convo_id),
                 }
@@ -625,6 +625,7 @@ class Chatbot:
             timeout=None,
         )
         if response.status_code != 200:
+            print(response.text)
             json_response = json.loads(response.text)
             string = json_response["error"]["message"]
             # print(json_response)
