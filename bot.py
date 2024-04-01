@@ -166,15 +166,14 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     messageid = message.message_id
     get_answer = robot.ask_stream
     pass_history = config.PASS_HISTORY
-    if "gpt-4-vision-preview" in title:
-        pass_history = False
+    # if "gpt-4-vision-preview" in title:
+    #     pass_history = False
 
     try:
         for data in get_answer(text, convo_id=str(chatid), pass_history=pass_history):
             if "🌐" not in data:
                 result = result + data
             tmpresult = result
-            modifytime = modifytime + 1
             if re.sub(r"```", '', result).count("`") % 2 != 0:
                 tmpresult = result + "`"
             if result.count("```") % 2 != 0:
@@ -192,6 +191,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             #     tmpresult = re.sub(r"action:[\S\s]+", '', tmpresult)
             # else:
             #     tmpresult = re.sub(r"thought:[\S\s]+", '', tmpresult)
+            modifytime = modifytime + 1
             if (modifytime % 20 == 0 and lastresult != tmpresult) or "🌐" in data:
                 await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
                 lastresult = tmpresult
@@ -475,6 +475,52 @@ async def handle_pdf(update, context):
 
 @decorators.GroupAuthorization
 @decorators.Authorization
+async def handle_photo(update, context):
+    if update.edited_message:
+        update_message = update.edited_message
+    else:
+        update_message = update.message
+
+    chatid = update_message.chat_id
+    messageid = update_message.message_id
+
+    photo = update_message.photo[-1]
+    file_id = photo.file_id
+    photo_file = await context.bot.getFile(file_id)
+    image_url = photo_file.file_path
+
+    if (image_url and config.GPT_ENGINE == "gpt-4-vision-preview") or (image_url and robot == config.GPT4visionbot):
+        base64_image = get_encode_image(image_url)
+        message = [
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": base64_image
+                }
+            }
+        ]
+        # print(message)
+
+    if config.ClaudeAPI and "claude-2.1" in config.GPT_ENGINE:
+        robot = config.claudeBot
+        role = "Human"
+    elif config.ClaudeAPI and "claude-3" in config.GPT_ENGINE:
+        robot = config.claude3Bot
+        role = "user"
+    else:
+        robot = config.ChatGPTbot
+        role = "user"
+
+    robot.add_to_conversation(message, role, str(chatid))
+    if config.ClaudeAPI and "claude-3" in config.GPT_ENGINE:
+        robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(update.effective_chat.id))
+    message = (
+        f"图片上传成功！\n\n"
+    )
+    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+
+@decorators.GroupAuthorization
+@decorators.Authorization
 async def inlinequery(update, context):
     """Handle the inline query."""
     query = update.inline_query.query
@@ -585,6 +631,7 @@ if __name__ == '__main__':
     application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC, handle_pdf))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.CAPTION & filters.PHOTO & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
+    application.add_handler(MessageHandler(~filters.CAPTION & filters.PHOTO & ~filters.COMMAND, handle_photo))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
 

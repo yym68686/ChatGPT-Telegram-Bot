@@ -559,6 +559,8 @@ class Chatbot:
             else:
                 message_token = self.get_message_token(url, json_post)
             print("message_token", message_token, "truncate_limit", self.truncate_limit)
+            if self.engine == "gpt-4-vision-preview":
+                break
             if (
                 message_token["total"] > self.truncate_limit
                 and len(self.conversation[convo_id]) > 1
