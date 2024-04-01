@@ -113,7 +113,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if image_url:
                 robot = config.GPT4visionbot
                 title = "`🤖️ gpt-4-vision-preview`\n\n"
-            if "gpt" in config.GPT_ENGINE:
+            if "gpt" in config.GPT_ENGINE or (config.ClaudeAPI and "claude-3" in config.GPT_ENGINE):
                 message = [{"type": "text", "text": message}]
             if (image_url and config.GPT_ENGINE == "gpt-4-vision-preview") or (image_url and robot == config.GPT4visionbot):
                 base64_image = get_encode_image(image_url)
@@ -489,18 +489,6 @@ async def handle_photo(update, context):
     photo_file = await context.bot.getFile(file_id)
     image_url = photo_file.file_path
 
-    if (image_url and config.GPT_ENGINE == "gpt-4-vision-preview") or (image_url and robot == config.GPT4visionbot):
-        base64_image = get_encode_image(image_url)
-        message = [
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": base64_image
-                }
-            }
-        ]
-        # print(message)
-
     if config.ClaudeAPI and "claude-2.1" in config.GPT_ENGINE:
         robot = config.claudeBot
         role = "Human"
@@ -511,9 +499,34 @@ async def handle_photo(update, context):
         robot = config.ChatGPTbot
         role = "user"
 
+    base64_image = get_encode_image(image_url)
+    if image_url and config.GPT_ENGINE == "gpt-4-vision-preview" or (config.ClaudeAPI is None and "claude-3" in config.GPT_ENGINE):
+        message = [
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": base64_image
+                }
+            }
+        ]
+    if image_url and config.ClaudeAPI and "claude-3" in config.GPT_ENGINE:
+        message = [
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": "image/jpeg",
+                    "data": base64_image.split(",")[1],
+                }
+            }
+        ]
+
+    # print(message)
     robot.add_to_conversation(message, role, str(chatid))
-    if config.ClaudeAPI and "claude-3" in config.GPT_ENGINE:
-        robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(update.effective_chat.id))
+    # print(robot.conversation)
+    # print(robot.conversation[str(chatid)])
+    # if config.ClaudeAPI and "claude-3" in config.GPT_ENGINE:
+    #     robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(update.effective_chat.id))
     message = (
         f"图片上传成功！\n\n"
     )

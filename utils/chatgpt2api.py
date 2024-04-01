@@ -245,7 +245,12 @@ class claude3bot:
 
         if convo_id not in self.conversation or pass_history == False:
             self.reset(convo_id=convo_id)
+        # print("message", message)
         self.conversation[convo_id].append({"role": role, "content": message})
+        index = len(self.conversation[convo_id]) - 2
+        if index >= 0 and self.conversation[convo_id][index]["role"] == self.conversation[convo_id][index + 1]["role"]:
+            self.conversation[convo_id][index]["content"] += self.conversation[convo_id][index + 1]["content"]
+            self.conversation[convo_id].pop(index + 1)
 
     def reset(self, convo_id: str = "default", system_prompt: str = None) -> None:
         """
