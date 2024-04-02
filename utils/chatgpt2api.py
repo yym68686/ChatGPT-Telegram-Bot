@@ -755,7 +755,7 @@ class Chatbot:
             raise t.APIConnectionError(
                 f"{response.status_code} {response.reason} {response.text}",
             )
-        response_role: str or None = None
+        response_role: str = None
         full_response: str = ""
         function_full_response: str = ""
         function_call_name: str = ""
