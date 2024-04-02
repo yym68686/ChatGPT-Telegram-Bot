@@ -8,7 +8,7 @@ import traceback
 import utils.decorators as decorators
 from md2tgmd import escape
 from utils.chatgpt2api import Chatbot as GPT
-from utils.chatgpt2api import claudebot, groqbot
+from utils.chatgpt2api import claudebot, groqbot, claude3bot
 from utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
 from telegram.constants import ChatAction
 from utils.plugins import Document_extract, get_encode_image, claude_replace
@@ -379,7 +379,7 @@ async def button_press(update, context):
         if config.ClaudeAPI and "claude-2.1" in data:
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.ClaudeAPI and "claude-3" in data:
-            config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.claude3Bot = claude3bot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.GROQ_API_KEY and ("mixtral" in data or "llama" in data):
             config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         try:
