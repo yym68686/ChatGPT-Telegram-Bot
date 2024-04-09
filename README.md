@@ -42,6 +42,7 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | whitelist     | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). Please note that here we are referring to the Telegram ID, not the Telegram username, as they are different. The whitelist cannot contain group IDs, to authorize specific groups for use, the environment variable GROUP_LIST must be used. | No |
 | ADMIN_LIST | Set up an admin list. Only admins can use the `info` command to configure the bot. When `GROUP_LIST` is set, only admins can have private chats with the bot. If `ADMIN_LIST` is not set, all users can modify the basic settings of the bot through the `info` command by default. Connect the admin IDs with a comma (','). You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). | No |
 | GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). After setting `GROUP_LIST`, except for the admin, no one else can have a private chat with the bot.You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). | No |
+| CUSTOM_MODELS | Set up a list of custom model name. Connect the model name with a comma (','). | No |
 
 ## 🔌 Plugins
 

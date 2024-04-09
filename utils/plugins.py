@@ -373,7 +373,7 @@ def replace_char(string, index, new_char):
     return string[:index] + new_char + string[index+1:]
 
 def claude_replace(text):
-    Punctuation_mapping = {",": "，", ":": "：", "!": "！", "?": "？"}
+    Punctuation_mapping = {",": "，", ":": "：", "!": "！", "?": "？", ";": "；"}
     for i in range(len(text)):
         if is_surrounded_by_chinese(text, i) and (text[i] == ',' or text[i] == ':'):
             text = replace_char(text, i, Punctuation_mapping[text[i]])

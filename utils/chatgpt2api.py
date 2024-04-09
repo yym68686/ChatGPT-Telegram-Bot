@@ -61,6 +61,7 @@ ENGINES = [
     "claude-3-haiku-20240307",
     "claude-3-opus-20240229",
 ]
+ENGINES.append(config.CUSTOM_MODELS_LIST)
 
 class claudeConversation(dict):
     def Conversation(self, index):

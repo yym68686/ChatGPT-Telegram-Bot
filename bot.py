@@ -12,9 +12,9 @@ from utils.chatgpt2api import claudebot, groqbot, claude3bot
 from utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
 from telegram.constants import ChatAction
 from utils.plugins import Document_extract, get_encode_image, claude_replace
-from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
+from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
-from config import WEB_HOOK, PORT, BOT_TOKEN
+from config import WEB_HOOK, PORT, BOT_TOKEN, update_first_buttons_message, buttons
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -282,71 +282,6 @@ async def delete_message(update, context, messageid, delay=10):
         print("error", e)
         print('\033[0m')
 
-buttons = [
-    [
-        InlineKeyboardButton("gpt-3.5-turbo", callback_data="gpt-3.5-turbo"),
-        InlineKeyboardButton("gpt-3.5-turbo-16k", callback_data="gpt-3.5-turbo-16k"),
-    ],
-    [
-        InlineKeyboardButton("mixtral-8x7b", callback_data="mixtral-8x7b-32768"),
-        InlineKeyboardButton("llama2-70b", callback_data="llama2-70b-4096"),
-    ],
-    [
-        InlineKeyboardButton("claude-3-opus", callback_data="claude-3-opus-20240229"),
-        InlineKeyboardButton("claude-3-sonnet", callback_data="claude-3-sonnet-20240229"),
-    ],
-    [
-        InlineKeyboardButton("claude-3-haiku", callback_data="claude-3-haiku-20240307"),
-        InlineKeyboardButton("claude-2.1", callback_data="claude-2.1"),
-    ],
-    [
-        InlineKeyboardButton("gpt-4-0125-preview", callback_data="gpt-4-0125-preview"),
-    ],
-    [
-        InlineKeyboardButton("gpt-4-vision-preview", callback_data="gpt-4-vision-preview"),
-    ],
-    [
-        # InlineKeyboardButton("gpt-4", callback_data="gpt-4"),
-        InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
-    ],
-    [
-        InlineKeyboardButton("gpt-3.5-turbo-1106", callback_data="gpt-3.5-turbo-1106"),
-    ],
-    # [
-    #     InlineKeyboardButton("gpt-4-turbo-preview", callback_data="gpt-4-turbo-preview"),
-    # ],
-    # [
-    #     InlineKeyboardButton("gpt-4-1106-preview", callback_data="gpt-4-1106-preview"),
-    # ],
-    [
-        InlineKeyboardButton("返回上一级", callback_data="返回上一级"),
-    ],
-]
-
-def get_plugins_status(item):
-    return "✅" if config.PLUGINS[item] else "☑️"
-
-def update_first_buttons_message():
-    history = "✅" if config.PASS_HISTORY else "☑️"
-    language = "🇨🇳 中文" if config.LANGUAGE == "Simplified Chinese" else "🇺🇸 English"
-
-    first_buttons = [
-        [
-            InlineKeyboardButton("更换问答模型", callback_data="更换问答模型"),
-            InlineKeyboardButton(language, callback_data="language"),
-            InlineKeyboardButton(f"历史记录 {history}", callback_data="PASS_HISTORY"),
-        ],
-        [
-            InlineKeyboardButton(f"搜索 {get_plugins_status('SEARCH_USE_GPT')}", callback_data='SEARCH_USE_GPT'),
-            InlineKeyboardButton(f"当前时间 {get_plugins_status('DATE')}", callback_data='DATE'),
-        ],
-        [
-            InlineKeyboardButton(f"URL 总结 {get_plugins_status('URL')}", callback_data='URL'),
-            InlineKeyboardButton(f"版本信息 {get_plugins_status('VERSION')}", callback_data='VERSION'),
-            # InlineKeyboardButton(f"gpt4free {get_plugins_status('USE_G4F')}", callback_data='USE_G4F'),
-        ],
-    ]
-    return first_buttons
 
 def replace_with_asterisk(string, start=10, end=45):
     return string[:start] + '*' * (end - start) + string[end:]
@@ -384,11 +319,12 @@ async def button_press(update, context):
             config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         try:
             info_message = update_info_message(update)
-            message = await callback_query.edit_message_text(
-                text=escape(info_message + banner),
-                reply_markup=InlineKeyboardMarkup(buttons),
-                parse_mode='MarkdownV2'
-            )
+            if  info_message + banner != callback_query.message.text:
+                message = await callback_query.edit_message_text(
+                    text=escape(info_message + banner),
+                    reply_markup=InlineKeyboardMarkup(buttons),
+                    parse_mode='MarkdownV2'
+                )
         except Exception as e:
             logger.info(e)
             pass
