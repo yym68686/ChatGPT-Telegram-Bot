@@ -23,6 +23,8 @@ GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 CUSTOM_MODELS = os.environ.get('CUSTOM_MODELS', None)
 if CUSTOM_MODELS:
     CUSTOM_MODELS_LIST = [id for id in CUSTOM_MODELS.split(",")]
+else:
+    CUSTOM_MODELS_LIST = None
 
 
 from datetime import datetime
