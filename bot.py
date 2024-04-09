@@ -306,9 +306,9 @@ async def button_press(update, context):
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
-    if "gpt-" in data or "claude" in data or "mixtral" in data or "llama" in data:
+    if "gpt-" in data or "claude" in data or "mixtral" in data or "llama" in data or data in config.CUSTOM_MODELS:
         config.GPT_ENGINE = data
-        if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI):
+        if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI) or (config.API and data in config.CUSTOM_MODELS):
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
         if config.ClaudeAPI and "claude-2.1" in data:

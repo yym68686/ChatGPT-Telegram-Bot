@@ -62,7 +62,7 @@ ENGINES = [
     "claude-3-opus-20240229",
 ]
 if config.CUSTOM_MODELS_LIST:
-    ENGINES.append(config.CUSTOM_MODELS_LIST)
+    ENGINES.extend(config.CUSTOM_MODELS_LIST)
 
 class claudeConversation(dict):
     def Conversation(self, index):
@@ -559,7 +559,7 @@ class Chatbot:
         while True:
             json_post = self.get_post_body(prompt, role, convo_id, model, pass_history, **kwargs)
             url = config.bot_api_url.chat_url
-            if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine or "claude" in self.engine or self.engine == "gpt-4-vision-preview":
+            if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine or "claude" in self.engine or self.engine == "gpt-4-vision-preview" or self.engine in config.CUSTOM_MODELS:
                 message_token = {
                     "total": self.get_token_count(convo_id),
                 }
@@ -695,7 +695,7 @@ class Chatbot:
             "n": kwargs.get("n", self.reply_count),
             "user": role,
         }
-        if self.engine != "gpt-4-vision-preview":
+        if self.engine != "gpt-4-vision-preview" and self.engine not in config.CUSTOM_MODELS:
             json_post_body.update(copy.deepcopy(body))
             json_post_body.update(copy.deepcopy(function_call_list["base"]))
             for item in config.PLUGINS.keys():
