@@ -156,6 +156,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     modifytime = 0
     time_out = 600
     lastresult = title
+    tmpresult = ""
 
     message = await context.bot.send_message(
         chat_id=chatid,

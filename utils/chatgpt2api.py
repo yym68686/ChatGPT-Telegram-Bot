@@ -695,7 +695,7 @@ class Chatbot:
             "n": kwargs.get("n", self.reply_count),
             "user": role,
         }
-        if self.engine != "gpt-4-vision-preview" and self.engine not in config.CUSTOM_MODELS:
+        if self.engine != "gpt-4-vision-preview" and (config.CUSTOM_MODELS and self.engine not in config.CUSTOM_MODELS):
             json_post_body.update(copy.deepcopy(body))
             json_post_body.update(copy.deepcopy(function_call_list["base"]))
             for item in config.PLUGINS.keys():
