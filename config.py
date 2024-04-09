@@ -141,12 +141,13 @@ buttons = [
     #     InlineKeyboardButton("gpt-4-1106-preview", callback_data="gpt-4-1106-preview"),
     # ],
 ]
-for model in CUSTOM_MODELS_LIST:
-    buttons.append(
-        [
-            InlineKeyboardButton(model, callback_data=model),
-        ]
-    )
+if CUSTOM_MODELS_LIST:
+    for model in CUSTOM_MODELS_LIST:
+        buttons.append(
+            [
+                InlineKeyboardButton(model, callback_data=model),
+            ]
+        )
 buttons.append(
     [
         InlineKeyboardButton("返回上一级", callback_data="返回上一级"),
