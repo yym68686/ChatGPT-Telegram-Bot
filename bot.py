@@ -310,7 +310,7 @@ async def button_press(update, context):
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
-    if "gpt-" in data or "claude" in data or "mixtral" in data or "llama" in data or (config.CUSTOM_MODELS and data in config.CUSTOM_MODELS):
+    if "gpt-" in data or "claude" in data or "mixtral" in data or "llama" in data or "gemini" in data or (config.CUSTOM_MODELS and data in config.CUSTOM_MODELS):
         config.GPT_ENGINE = data
         if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI) or (config.API and config.CUSTOM_MODELS and data in config.CUSTOM_MODELS):
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
@@ -405,6 +405,9 @@ async def handle_pdf(update, context):
         role = "Human"
     elif config.ClaudeAPI and "claude-3" in config.GPT_ENGINE:
         robot = config.claude3Bot
+        role = "user"
+    elif config.GOOGLE_AI_API_KEY and "gemini" in config.GPT_ENGINE:
+        robot = config.gemini_Bot
         role = "user"
     else:
         robot = config.ChatGPTbot
