@@ -300,7 +300,7 @@ def update_info_message(update):
         f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
     )
 
-banner = "👇下面可以随时更改默认 gpt 模型："
+banner = "👇下面可以随时更改默认模型："
 @decorators.AdminAuthorization
 @decorators.GroupAuthorization
 @decorators.Authorization
