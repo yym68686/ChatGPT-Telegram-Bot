@@ -53,7 +53,7 @@ ENGINES = [
     "gpt-4-1106-preview",
     "gpt-4-0125-preview",
     "gpt-4-turbo-preview",
-    "gpt-4-vision-preview",
+    "gpt-4-turbo-2024-04-09",
     "mixtral-8x7b-32768",
     "llama2-70b-4096",
     "claude-2.1",
@@ -436,7 +436,7 @@ class Chatbot:
         self.system_prompt: str = system_prompt
         self.max_tokens: int = max_tokens or (
             4096
-            if "gpt-4-1106-preview" in engine or "gpt-4-0125-preview" in engine or "gpt-4-turbo-preview" in engine or "gpt-3.5-turbo-1106" in engine or self.engine == "gpt-4-vision-preview" or "claude" in engine
+            if "gpt-4-1106-preview" in engine or "gpt-4-0125-preview" in engine or "gpt-4-turbo" in engine or "gpt-3.5-turbo-1106" in engine or "claude" in engine
             else 31000
             if "gpt-4-32k" in engine
             else 7000
@@ -451,7 +451,7 @@ class Chatbot:
         self.truncate_limit: int = truncate_limit or (
             32000
             # 126500 Control the number of search characters to prevent excessive spending
-            if "gpt-4-1106-preview" in engine or "gpt-4-0125-preview" in engine or "gpt-4-turbo-preview" in engine or self.engine == "gpt-4-vision-preview"
+            if "gpt-4-1106-preview" in engine or "gpt-4-0125-preview" in engine or "gpt-4-turbo" in engine
             else 30500
             if "gpt-4-32k" in engine
             else 6500
@@ -559,15 +559,13 @@ class Chatbot:
         while True:
             json_post = self.get_post_body(prompt, role, convo_id, model, pass_history, **kwargs)
             url = config.bot_api_url.chat_url
-            if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine or "claude" in self.engine or self.engine == "gpt-4-vision-preview" or self.engine in config.CUSTOM_MODELS:
+            if "gpt-4" in self.engine or "claude" in self.engine or (config.CUSTOM_MODELS and self.engine in config.CUSTOM_MODELS):
                 message_token = {
                     "total": self.get_token_count(convo_id),
                 }
             else:
                 message_token = self.get_message_token(url, json_post)
             print("message_token", message_token, "truncate_limit", self.truncate_limit)
-            if self.engine == "gpt-4-vision-preview":
-                break
             if (
                 message_token["total"] > self.truncate_limit
                 and len(self.conversation[convo_id]) > 1
@@ -606,9 +604,6 @@ class Chatbot:
                 f"Engine {self.engine} is not supported. Select from {ENGINES}",
             )
         encoding = tiktoken.get_encoding("cl100k_base")
-        # tiktoken.model.MODEL_TO_ENCODING["gpt-4"] = "cl100k_base"
-        # tiktoken.model.MODEL_TO_ENCODING["claude-2.1"] = "cl100k_base"
-        # encoding = tiktoken.encoding_for_model(self.engine)
 
         num_tokens = 0
         for message in self.conversation[convo_id]:
@@ -616,6 +611,8 @@ class Chatbot:
             num_tokens += 5
             for key, value in message.items():
                 values = list(self.extract_values(value))
+                if "image_url" in values:
+                    continue
                 if values:
                     for value in values:
                         num_tokens += len(encoding.encode(value))
@@ -695,15 +692,16 @@ class Chatbot:
             "n": kwargs.get("n", self.reply_count),
             "user": role,
         }
-        if self.engine != "gpt-4-vision-preview" and (config.CUSTOM_MODELS and self.engine not in config.CUSTOM_MODELS):
-            json_post_body.update(copy.deepcopy(body))
-            json_post_body.update(copy.deepcopy(function_call_list["base"]))
-            for item in config.PLUGINS.keys():
-                try:
-                    if config.PLUGINS[item]:
-                        json_post_body["functions"].append(function_call_list[item])
-                except:
-                    pass
+        if config.CUSTOM_MODELS and self.engine in config.CUSTOM_MODELS and self.engine not in ENGINES:
+            return json_post_body
+        json_post_body.update(copy.deepcopy(body))
+        json_post_body.update(copy.deepcopy(function_call_list["base"]))
+        for item in config.PLUGINS.keys():
+            try:
+                if config.PLUGINS[item]:
+                    json_post_body["functions"].append(function_call_list[item])
+            except:
+                pass
 
         return json_post_body
 
@@ -735,7 +733,7 @@ class Chatbot:
         print(json.dumps(json_post, indent=4, ensure_ascii=False))
         # print(self.conversation[convo_id])
 
-        if self.engine == "gpt-4-1106-preview" or self.engine == "gpt-4-vision-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine or "claude" in self.engine:
+        if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo" in self.engine or "claude" in self.engine:
             model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
         elif self.engine == "gpt-3.5-turbo-1106":
             model_max_tokens = min(kwargs.get("max_tokens", self.max_tokens), 16385 - message_token["total"])
@@ -876,7 +874,7 @@ class Chatbot:
             self.reset(convo_id=convo_id, system_prompt=self.system_prompt)
         self.add_to_conversation(prompt, "user", convo_id=convo_id)
         self.__truncate_conversation(convo_id=convo_id)
-        if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo-preview" in self.engine:
+        if self.engine == "gpt-4-1106-preview" or "gpt-4-0125-preview" in self.engine or "gpt-4-turbo" in self.engine:
             model_max_tokens = kwargs.get("max_tokens", self.max_tokens)
         else:
             model_max_tokens = min(self.get_max_tokens(convo_id=convo_id) - 500, kwargs.get("max_tokens", self.max_tokens))

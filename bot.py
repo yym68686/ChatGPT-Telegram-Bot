@@ -110,12 +110,9 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 robot = config.claude3Bot
             if ("mixtral" in config.GPT_ENGINE or "llama" in config.GPT_ENGINE) and config.GROQ_API_KEY:
                 robot = config.groqBot
-            if image_url:
-                robot = config.GPT4visionbot
-                title = "`🤖️ gpt-4-vision-preview`\n\n"
             if "gpt" in config.GPT_ENGINE or (config.ClaudeAPI and "claude-3" in config.GPT_ENGINE):
                 message = [{"type": "text", "text": message}]
-            if (image_url and config.GPT_ENGINE == "gpt-4-vision-preview") or (image_url and robot == config.GPT4visionbot):
+            if image_url and config.GPT_ENGINE == "gpt-4-turbo-2024-04-09":
                 base64_image = get_encode_image(image_url)
                 message.append(
                     {
@@ -167,8 +164,6 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     messageid = message.message_id
     get_answer = robot.ask_stream
     pass_history = config.PASS_HISTORY
-    # if "gpt-4-vision-preview" in title:
-    #     pass_history = False
 
     try:
         for data in get_answer(text, convo_id=str(chatid), pass_history=pass_history):
@@ -437,7 +432,7 @@ async def handle_photo(update, context):
         role = "user"
 
     base64_image = get_encode_image(image_url)
-    if image_url and config.GPT_ENGINE == "gpt-4-vision-preview" or (config.ClaudeAPI is None and "claude-3" in config.GPT_ENGINE):
+    if image_url and config.GPT_ENGINE == "gpt-4-turbo-2024-04-09" or (config.ClaudeAPI is None and "claude-3" in config.GPT_ENGINE):
         message = [
             {
                 "type": "image_url",

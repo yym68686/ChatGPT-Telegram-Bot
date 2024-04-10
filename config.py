@@ -14,7 +14,7 @@ USE_GOOGLE = (os.environ.get('USE_GOOGLE', "True") == "False") == False
 if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
     USE_GOOGLE = False
 temperature = float(os.environ.get('temperature', '0.5'))
-GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4-0125-preview')
+GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4-turbo-2024-04-09')
 # DEFAULT_SEARCH_MODEL = os.environ.get('DEFAULT_SEARCH_MODEL', 'gpt-3.5-turbo-1106') gpt-3.5-turbo-16k
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 # PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
@@ -40,10 +40,6 @@ if API:
     except:
         ChatGPTbot = GPT(api_key=f"{API}", engine="gpt-3.5-turbo-1106", system_prompt=systemprompt, temperature=temperature)
 
-    try:
-        GPT4visionbot = GPT(api_key=f"{API}", engine="gpt-4-vision-preview", system_prompt=systemprompt, temperature=temperature)
-    except:
-        print("无法使用 gpt-4-vision-preview 模型")
     translate_bot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
     copilot_bot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=prompt.search_system_prompt.format(LANGUAGE), temperature=temperature)
     dallbot = Imagebot(api_key=f"{API}")
@@ -118,10 +114,7 @@ buttons = [
         # InlineKeyboardButton("claude-2.1", callback_data="claude-2.1"),
     ],
     [
-        InlineKeyboardButton("gpt-4-0125-preview", callback_data="gpt-4-0125-preview"),
-    ],
-    [
-        InlineKeyboardButton("gpt-4-vision-preview", callback_data="gpt-4-vision-preview"),
+        InlineKeyboardButton("gpt-4-turbo-2024-04-09", callback_data="gpt-4-turbo-2024-04-09"),
     ],
     [
         InlineKeyboardButton("gpt-3.5-turbo", callback_data="gpt-3.5-turbo"),

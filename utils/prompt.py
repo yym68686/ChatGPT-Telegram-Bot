@@ -77,7 +77,7 @@ search_key_word_prompt = (
 )
 
 system_prompt = (
-    "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {}. Knowledge cutoff: 2023-04. Current date: [ {} ]"
+    "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {}. Knowledge cutoff: 2023-12. Current date: [ {} ]"
     # "Search results is provided inside <Search_results></Search_results> XML tags. Your task is to think about my question step by step and then answer my question based on the Search results provided. Please response with a style that is logical, in-depth, and detailed. Note: In order to make the answer appear highly professional, you should be an expert in textual analysis, aiming to make the answer precise and comprehensive. Directly response markdown format, without using markdown code blocks."
 )
 
