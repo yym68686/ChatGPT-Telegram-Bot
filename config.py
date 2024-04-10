@@ -102,6 +102,10 @@ def get_plugins_status(item):
 
 buttons = [
     [
+        InlineKeyboardButton("gpt-4-turbo", callback_data="gpt-4-turbo-2024-04-09"),
+        InlineKeyboardButton("gpt-3.5-turbo", callback_data="gpt-3.5-turbo"),
+    ],
+    [
         InlineKeyboardButton("mixtral-8x7b", callback_data="mixtral-8x7b-32768"),
         InlineKeyboardButton("llama2-70b", callback_data="llama2-70b-4096"),
     ],
@@ -113,26 +117,6 @@ buttons = [
         InlineKeyboardButton("claude-3-haiku", callback_data="claude-3-haiku-20240307"),
         # InlineKeyboardButton("claude-2.1", callback_data="claude-2.1"),
     ],
-    [
-        InlineKeyboardButton("gpt-4-turbo-2024-04-09", callback_data="gpt-4-turbo-2024-04-09"),
-    ],
-    [
-        InlineKeyboardButton("gpt-3.5-turbo", callback_data="gpt-3.5-turbo"),
-        # InlineKeyboardButton("gpt-3.5-turbo-16k", callback_data="gpt-3.5-turbo-16k"),
-    ],
-    # [
-    #     # InlineKeyboardButton("gpt-4", callback_data="gpt-4"),
-    #     InlineKeyboardButton("gpt-4-32k", callback_data="gpt-4-32k"),
-    # ],
-    # [
-    #     InlineKeyboardButton("gpt-3.5-turbo-1106", callback_data="gpt-3.5-turbo-1106"),
-    # ],
-    # [
-    #     InlineKeyboardButton("gpt-4-turbo-preview", callback_data="gpt-4-turbo-preview"),
-    # ],
-    # [
-    #     InlineKeyboardButton("gpt-4-1106-preview", callback_data="gpt-4-1106-preview"),
-    # ],
 ]
 if CUSTOM_MODELS_LIST:
     for model in CUSTOM_MODELS_LIST:
