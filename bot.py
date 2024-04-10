@@ -8,7 +8,7 @@ import traceback
 import utils.decorators as decorators
 from md2tgmd import escape
 from utils.chatgpt2api import Chatbot as GPT
-from utils.chatgpt2api import claudebot, groqbot, claude3bot
+from utils.chatgpt2api import claudebot, groqbot, claude3bot, gemini_bot
 from utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
 from telegram.constants import ChatAction
 from utils.plugins import Document_extract, get_encode_image, claude_replace
@@ -110,6 +110,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 robot = config.claude3Bot
             if ("mixtral" in config.GPT_ENGINE or "llama" in config.GPT_ENGINE) and config.GROQ_API_KEY:
                 robot = config.groqBot
+            if "gemini" in config.GPT_ENGINE and config.GOOGLE_AI_API_KEY:
+                robot = config.gemini_Bot
             if "gpt" in config.GPT_ENGINE or (config.ClaudeAPI and "claude-3" in config.GPT_ENGINE):
                 message = [{"type": "text", "text": message}]
             if image_url and config.GPT_ENGINE == "gpt-4-turbo-2024-04-09":
@@ -142,6 +144,9 @@ async def reset_chat(update, context):
         config.claude3Bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
     if config.GROQ_API_KEY:
         config.groqBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
+    if config.GOOGLE_AI_API_KEY:
+        config.gemini_Bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
+
     await context.bot.send_message(
         chat_id=update.message.chat_id,
         text="重置成功！",
@@ -152,6 +157,9 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     text = message
     modifytime = 0
     time_out = 600
+    Frequency_Modification = 20
+    if "gemini" in title:
+        Frequency_Modification = 2
     lastresult = title
     tmpresult = ""
 
@@ -188,7 +196,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             # else:
             #     tmpresult = re.sub(r"thought:[\S\s]+", '', tmpresult)
             modifytime = modifytime + 1
-            if (modifytime % 20 == 0 and lastresult != tmpresult) or "🌐" in data:
+            if (modifytime % Frequency_Modification == 0 and lastresult != tmpresult) or "🌐" in data:
                 await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
                 lastresult = tmpresult
     except Exception as e:
@@ -313,6 +321,8 @@ async def button_press(update, context):
             config.claude3Bot = claude3bot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.GROQ_API_KEY and ("mixtral" in data or "llama" in data):
             config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+        if config.GOOGLE_AI_API_KEY and "gemini" in data:
+            config.gemini_Bot = gemini_bot(api_key=f"{config.GOOGLE_AI_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         try:
             info_message = update_info_message(update)
             if  info_message + banner != callback_query.message.text:
@@ -351,6 +361,8 @@ async def button_press(update, context):
             config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.GROQ_API_KEY:
             config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+        if config.GOOGLE_AI_API_KEY:
+            config.gemini_Bot = gemini_bot(api_key=f"{config.GOOGLE_AI_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
 
         info_message = update_info_message(update)
         message = await callback_query.edit_message_text(

@@ -20,6 +20,7 @@ API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions'
 # PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
 LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
+GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
 CUSTOM_MODELS = os.environ.get('CUSTOM_MODELS', None)
 if CUSTOM_MODELS:
     CUSTOM_MODELS_LIST = [id for id in CUSTOM_MODELS.split(",")]
@@ -33,7 +34,7 @@ Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUAGE, Current_Date))
 
 from utils.chatgpt2api import Chatbot as GPT
-from utils.chatgpt2api import Imagebot, claudebot, groqbot, claude3bot
+from utils.chatgpt2api import Imagebot, claudebot, groqbot, claude3bot, gemini_bot
 if API:
     try:
         ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
@@ -53,6 +54,8 @@ if ClaudeAPI:
 
 if GROQ_API_KEY:
     groqBot = groqbot(api_key=f"{GROQ_API_KEY}")
+if GOOGLE_AI_API_KEY:
+    gemini_Bot = gemini_bot(api_key=f"{GOOGLE_AI_API_KEY}")
 
 whitelist = os.environ.get('whitelist', None)
 if whitelist:
@@ -100,68 +103,69 @@ bot_api_url = openaiAPI()
 def get_plugins_status(item):
     return "✅" if PLUGINS[item] else "☑️"
 
+def delete_model_digit_tail(lst):
+    for i in range(len(lst) - 1, -1, -1):
+        if not lst[i].isdigit():
+            if i == len(lst) - 1:
+                return "-".join(lst)
+            else:
+                return "-".join(lst[:i + 1])
+
 def create_buttons(strings):
     # 过滤出长度小于15的字符串
-    filtered_strings1 = [s for s in strings if len(s) <= 15]
-    filtered_strings2 = [s for s in strings if len(s) > 15]
+    filtered_strings1 = [s for s in strings if len(delete_model_digit_tail(s.split("-"))) <= 14]
+    filtered_strings2 = [s for s in strings if len(delete_model_digit_tail(s.split("-"))) > 14]
 
-    buttons_top = []
-    buttons_bottom = []
+    buttons = []
     temp = []
 
     for string in filtered_strings1:
-        button = InlineKeyboardButton(string, callback_data=string)
+        button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string)
         temp.append(button)
 
         # 每两个按钮一组
         if len(temp) == 2:
-            buttons_top.append(temp)
+            buttons.append(temp)
             temp = []
 
     # 如果最后一组不足两个，也添加进去
     if temp:
-        buttons_bottom.append(temp)
+        buttons.append(temp)
 
     for string in filtered_strings2:
-        button = InlineKeyboardButton(string, callback_data=string)
-        buttons_bottom.append([button])
+        button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string)
+        buttons.append([button])
 
-    return buttons_top, buttons_bottom
+    return buttons
 
-buttons = [
-    [
-        InlineKeyboardButton("gpt-4-turbo", callback_data="gpt-4-turbo-2024-04-09"),
-        InlineKeyboardButton("gpt-3.5-turbo", callback_data="gpt-3.5-turbo"),
-    ],
-    [
-        InlineKeyboardButton("mixtral-8x7b", callback_data="mixtral-8x7b-32768"),
-        InlineKeyboardButton("llama2-70b", callback_data="llama2-70b-4096"),
-    ],
-    [
-        InlineKeyboardButton("claude-3-opus", callback_data="claude-3-opus-20240229"),
-        InlineKeyboardButton("claude-3-sonnet", callback_data="claude-3-sonnet-20240229"),
-    ],
-    [
-        InlineKeyboardButton("claude-3-haiku", callback_data="claude-3-haiku-20240307"),
-    ],
+initial_model = [
+    "gpt-4-turbo-2024-04-09",
+    "gpt-3.5-turbo",
+    "claude-3-opus-20240229",
+    "claude-3-sonnet-20240229",
+    "claude-3-haiku-20240307",
 ]
 
-button_name = []
-for row in buttons:
-    for button in row:
-        button_name.append(button.callback_data)
-        button_name.append(button.text)
+if GROQ_API_KEY:
+    initial_model.extend([
+        "mixtral-8x7b-32768",
+        "llama2-70b-4096",
+    ])
+if GOOGLE_AI_API_KEY:
+    initial_model.extend([
+        "gemini-1.5-pro-latest",
+    ])
 
 if CUSTOM_MODELS_LIST:
-    invalid_models = [model for model in CUSTOM_MODELS_LIST if model not in button_name]
-    buttons_top, buttons_bottom = create_buttons(invalid_models)
-    if buttons_top:
-        buttons_top.extend(buttons)
-        buttons_top.extend(buttons_bottom)
-        buttons = buttons_top
-    else:
-        buttons.extend(buttons_bottom)
+    delete_models = [model[1:] for model in CUSTOM_MODELS_LIST if model[0] == "-"]
+    for target in delete_models:
+        for model in initial_model:
+            if target in model:
+                initial_model.remove(model)
 
+    initial_model.extend([model for model in CUSTOM_MODELS_LIST if model not in initial_model and model[0] != "-"])
+
+buttons = create_buttons(initial_model)
 buttons.append(
     [
         InlineKeyboardButton("返回上一级", callback_data="返回上一级"),
