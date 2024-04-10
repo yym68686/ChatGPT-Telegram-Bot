@@ -100,6 +100,34 @@ bot_api_url = openaiAPI()
 def get_plugins_status(item):
     return "✅" if PLUGINS[item] else "☑️"
 
+def create_buttons(strings):
+    # 过滤出长度小于15的字符串
+    filtered_strings1 = [s for s in strings if len(s) <= 15]
+    filtered_strings2 = [s for s in strings if len(s) > 15]
+
+    buttons_top = []
+    buttons_bottom = []
+    temp = []
+
+    for string in filtered_strings1:
+        button = InlineKeyboardButton(string, callback_data=string)
+        temp.append(button)
+
+        # 每两个按钮一组
+        if len(temp) == 2:
+            buttons_top.append(temp)
+            temp = []
+
+    # 如果最后一组不足两个，也添加进去
+    if temp:
+        buttons_bottom.append(temp)
+
+    for string in filtered_strings2:
+        button = InlineKeyboardButton(string, callback_data=string)
+        buttons_bottom.append([button])
+
+    return buttons_top, buttons_bottom
+
 buttons = [
     [
         InlineKeyboardButton("gpt-4-turbo", callback_data="gpt-4-turbo-2024-04-09"),
@@ -117,13 +145,23 @@ buttons = [
         InlineKeyboardButton("claude-3-haiku", callback_data="claude-3-haiku-20240307"),
     ],
 ]
+
+button_name = []
+for row in buttons:
+    for button in row:
+        button_name.append(button.callback_data)
+        button_name.append(button.text)
+
 if CUSTOM_MODELS_LIST:
-    for model in CUSTOM_MODELS_LIST:
-        buttons.append(
-            [
-                InlineKeyboardButton(model, callback_data=model),
-            ]
-        )
+    invalid_models = [model for model in CUSTOM_MODELS_LIST if model not in button_name]
+    buttons_top, buttons_bottom = create_buttons(invalid_models)
+    if buttons_top:
+        buttons_top.extend(buttons)
+        buttons_top.extend(buttons_bottom)
+        buttons = buttons_top
+    else:
+        buttons.extend(buttons_bottom)
+
 buttons.append(
     [
         InlineKeyboardButton("返回上一级", callback_data="返回上一级"),
