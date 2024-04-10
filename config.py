@@ -115,7 +115,6 @@ buttons = [
     ],
     [
         InlineKeyboardButton("claude-3-haiku", callback_data="claude-3-haiku-20240307"),
-        # InlineKeyboardButton("claude-2.1", callback_data="claude-2.1"),
     ],
 ]
 if CUSTOM_MODELS_LIST:
