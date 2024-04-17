@@ -79,7 +79,7 @@ class claudebot:
         temperature: float = 0.5,
         top_p: float = 0.7,
         chat_url: str = "https://api.anthropic.com/v1/complete",
-        timeout: float = None,
+        timeout: float = 5,
         system_prompt: str = "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally",
         **kwargs,
     ):
@@ -177,21 +177,29 @@ class claudebot:
         }
 
         json_post = {
-                "model": os.environ.get("MODEL_NAME") or model or self.engine,
-                "prompt": self.conversation.Conversation(convo_id) if pass_history else f"\n\nHuman:{prompt}\n\nAssistant:",
-                "stream": True,
-                "temperature": kwargs.get("temperature", self.temperature),
-                "top_p": kwargs.get("top_p", self.top_p),
-                "max_tokens_to_sample": model_max_tokens,
+            "model": os.environ.get("MODEL_NAME") or model or self.engine,
+            "prompt": self.conversation.Conversation(convo_id) if pass_history else f"\n\nHuman:{prompt}\n\nAssistant:",
+            "stream": True,
+            "temperature": kwargs.get("temperature", self.temperature),
+            "top_p": kwargs.get("top_p", self.top_p),
+            "max_tokens_to_sample": model_max_tokens,
         }
 
-        response = self.session.post(
-            url,
-            headers=headers,
-            json=json_post,
-            timeout=kwargs.get("timeout", self.timeout),
-            stream=True,
-        )
+        try:
+            response = self.session.post(
+                url,
+                headers=headers,
+                json=json_post,
+                timeout=kwargs.get("timeout", self.timeout),
+                stream=True,
+            )
+        except ConnectionError:
+            print("连接错误，请检查服务器状态或网络连接。")
+            return
+        except Exception as e:
+            print(f"发生了未预料的错误: {e}")
+            return
+
         if response.status_code != 200:
             print(response.text)
             raise BaseException(f"{response.status_code} {response.reason} {response.text}")
@@ -219,7 +227,7 @@ class claude3bot:
         temperature: float = 0.5,
         top_p: float = 0.7,
         chat_url: str = "https://api.anthropic.com/v1/messages",
-        timeout: float = None,
+        timeout: float = 5,
         system_prompt: str = "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally",
         **kwargs,
     ):
@@ -330,21 +338,31 @@ class claude3bot:
                 "role": "user",
                 "content": prompt
             }],
-            "system": self.system_prompt,
             "temperature": kwargs.get("temperature", self.temperature),
             "top_p": kwargs.get("top_p", self.top_p),
             "max_tokens": model_max_tokens,
             "stream": True,
         }
+        if self.system_prompt:
+            json_post["system"] = self.system_prompt
+
         print(json.dumps(json_post, indent=4, ensure_ascii=False))
 
-        response = self.session.post(
-            url,
-            headers=headers,
-            json=json_post,
-            timeout=kwargs.get("timeout", self.timeout),
-            stream=True,
-        )
+        try:
+            response = self.session.post(
+                url,
+                headers=headers,
+                json=json_post,
+                timeout=kwargs.get("timeout", self.timeout),
+                stream=True,
+            )
+        except ConnectionError:
+            print("连接错误，请检查服务器状态或网络连接。")
+            return
+        except Exception as e:
+            print(f"发生了未预料的错误: {e}")
+            return
+
         if response.status_code != 200:
             print(response.text)
             raise BaseException(f"{response.status_code} {response.reason} {response.text}")
@@ -371,7 +389,7 @@ class Imagebot:
     def __init__(
         self,
         api_key: str,
-        timeout: float = None,
+        timeout: float = 5,
     ):
         self.api_key: str = api_key
         self.engine: str = "dall-e-3"
@@ -393,13 +411,21 @@ class Imagebot:
                 "n": 1,
                 "size": "1024x1024",
         }
-        response = self.session.post(
-            url,
-            headers=headers,
-            json=json_post,
-            timeout=kwargs.get("timeout", self.timeout),
-            stream=True,
-        )
+        try:
+            response = self.session.post(
+                url,
+                headers=headers,
+                json=json_post,
+                timeout=kwargs.get("timeout", self.timeout),
+                stream=True,
+            )
+        except ConnectionError:
+            print("连接错误，请检查服务器状态或网络连接。")
+            return
+        except Exception as e:
+            print(f"发生了未预料的错误: {e}")
+            return
+
         if response.status_code != 200:
             raise t.APIConnectionError(
                 f"{response.status_code} {response.reason} {response.text}",
@@ -744,13 +770,20 @@ class Chatbot:
 
         url = config.bot_api_url.chat_url
         headers = {"Authorization": f"Bearer {kwargs.get('api_key', self.api_key)}"}
-        response = self.session.post(
-            url,
-            headers=headers,
-            json=json_post,
-            timeout=kwargs.get("timeout", self.timeout),
-            stream=True,
-        )
+        try:
+            response = self.session.post(
+                url,
+                headers=headers,
+                json=json_post,
+                timeout=kwargs.get("timeout", self.timeout),
+                stream=True,
+            )
+        except ConnectionError:
+            print("连接错误，请检查服务器状态或网络连接。")
+            return
+        except Exception as e:
+            print(f"发生了未预料的错误: {e}")
+            return
         if response.status_code != 200:
             raise t.APIConnectionError(
                 f"{response.status_code} {response.reason} {response.text}",
@@ -1065,7 +1098,7 @@ class groqbot:
         temperature: float = 0.5,
         top_p: float = 1,
         chat_url: str = "https://api.groq.com/openai/v1/chat/completions",
-        timeout: float = None,
+        timeout: float = 5,
         system_prompt: str = "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally",
         **kwargs,
     ):
@@ -1180,13 +1213,21 @@ class groqbot:
             "stream": True,
         }
 
-        response = self.session.post(
-            url,
-            headers=headers,
-            json=json_post,
-            timeout=kwargs.get("timeout", self.timeout),
-            stream=True,
-        )
+        try:
+            response = self.session.post(
+                url,
+                headers=headers,
+                json=json_post,
+                timeout=kwargs.get("timeout", self.timeout),
+                stream=True,
+            )
+        except ConnectionError:
+            print("连接错误，请检查服务器状态或网络连接。")
+            return
+        except Exception as e:
+            print(f"发生了未预料的错误: {e}")
+            return
+
         if response.status_code != 200:
             print(response.text)
             raise BaseException(f"{response.status_code} {response.reason} {response.text}")
@@ -1232,7 +1273,7 @@ class gemini_bot:
         temperature: float = 0.5,
         top_p: float = 0.7,
         chat_url: str = "https://generativelanguage.googleapis.com/v1beta/models/{model}:{stream}?key={api_key}",
-        timeout: float = None,
+        timeout: float = 5,
         system_prompt: str = "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally",
         **kwargs,
     ):
@@ -1340,13 +1381,22 @@ class gemini_bot:
         print(json.dumps(json_post, indent=4, ensure_ascii=False))
 
         url = self.chat_url.format(model=os.environ.get("MODEL_NAME") or model or self.engine, stream="streamGenerateContent", api_key=self.api_key)
-        response = self.session.post(
-            url,
-            headers=headers,
-            json=json_post,
-            timeout=kwargs.get("timeout", self.timeout),
-            stream=True,
-        )
+
+        try:
+            response = self.session.post(
+                url,
+                headers=headers,
+                json=json_post,
+                timeout=kwargs.get("timeout", self.timeout),
+                stream=True,
+            )
+        except ConnectionError:
+            print("连接错误，请检查服务器状态或网络连接。")
+            return
+        except Exception as e:
+            print(f"发生了未预料的错误: {e}")
+            return
+
         if response.status_code != 200:
             print(response.text)
             raise BaseException(f"{response.status_code} {response.reason} {response.text}")

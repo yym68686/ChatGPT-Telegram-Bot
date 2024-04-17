@@ -363,10 +363,12 @@ def check_json(json_data):
     return json_data
 
 def is_surrounded_by_chinese(text, index):
+    left_char = text[index - 1]
     if 0 < index < len(text) - 1:
-        left_char = text[index - 1]
         right_char = text[index + 1]
         return '\u4e00' <= left_char <= '\u9fff' or '\u4e00' <= right_char <= '\u9fff'
+    if index == len(text) - 1:
+        return '\u4e00' <= left_char <= '\u9fff'
     return False
 
 def replace_char(string, index, new_char):
@@ -374,8 +376,9 @@ def replace_char(string, index, new_char):
 
 def claude_replace(text):
     Punctuation_mapping = {",": "，", ":": "：", "!": "！", "?": "？", ";": "；"}
+    key_list = list(Punctuation_mapping.keys())
     for i in range(len(text)):
-        if is_surrounded_by_chinese(text, i) and (text[i] == ',' or text[i] == ':'):
+        if is_surrounded_by_chinese(text, i) and (text[i] in key_list):
             text = replace_char(text, i, Punctuation_mapping[text[i]])
     return text
 

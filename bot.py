@@ -140,8 +140,8 @@ async def reset_chat(update, context):
     if config.API:
         config.ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
     if config.ClaudeAPI:
-        config.claudeBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
-        config.claude3Bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
+        config.claudeBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.claude_systemprompt)
+        config.claude3Bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.claude_systemprompt)
     if config.GROQ_API_KEY:
         config.groqBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
     if config.GOOGLE_AI_API_KEY:
@@ -316,9 +316,9 @@ async def button_press(update, context):
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
         if config.ClaudeAPI and "claude-2.1" in data:
-            config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
         if config.ClaudeAPI and "claude-3" in data:
-            config.claude3Bot = claude3bot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.claude3Bot = claude3bot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
         if config.GROQ_API_KEY and ("mixtral" in data or "llama" in data):
             config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.GOOGLE_AI_API_KEY and "gemini" in data:
@@ -350,15 +350,18 @@ async def button_press(update, context):
         if config.LANGUAGE == "Simplified Chinese":
             config.LANGUAGE = "English"
             config.systemprompt = config.systemprompt.replace("Simplified Chinese", "English")
+            config.claude_systemprompt = config.claude_systemprompt.replace("Simplified Chinese", "English")
         else:
             config.LANGUAGE = "Simplified Chinese"
             config.systemprompt = config.systemprompt.replace("English", "Simplified Chinese")
+            config.claude_systemprompt = config.claude_systemprompt.replace("English", "Simplified Chinese")
         # config.systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {config.LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {config.Current_Date} ]"
         if config.API:
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
         if config.ClaudeAPI:
-            config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
+            config.claude3Bot = claude3bot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
         if config.GROQ_API_KEY:
             config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.GOOGLE_AI_API_KEY:

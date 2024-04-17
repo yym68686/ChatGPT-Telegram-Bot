@@ -32,6 +32,7 @@ from datetime import datetime
 current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUAGE, Current_Date))
+claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt)
 
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import Imagebot, claudebot, groqbot, claude3bot, gemini_bot
@@ -49,8 +50,8 @@ else:
 
 ClaudeAPI = os.environ.get('claude_api_key', None)
 if ClaudeAPI:
-    claudeBot = claudebot(api_key=f"{ClaudeAPI}", system_prompt=systemprompt)
-    claude3Bot = claude3bot(api_key=f"{ClaudeAPI}", system_prompt=systemprompt)
+    claudeBot = claudebot(api_key=f"{ClaudeAPI}", system_prompt=claude_systemprompt)
+    claude3Bot = claude3bot(api_key=f"{ClaudeAPI}", system_prompt=claude_systemprompt)
 
 if GROQ_API_KEY:
     groqBot = groqbot(api_key=f"{GROQ_API_KEY}")
