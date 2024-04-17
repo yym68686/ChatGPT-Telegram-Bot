@@ -49,8 +49,8 @@ else:
 
 ClaudeAPI = os.environ.get('claude_api_key', None)
 if ClaudeAPI:
-    claudeBot = claudebot(api_key=f"{ClaudeAPI}")
-    claude3Bot = claude3bot(api_key=f"{ClaudeAPI}")
+    claudeBot = claudebot(api_key=f"{ClaudeAPI}", system_prompt=systemprompt)
+    claude3Bot = claude3bot(api_key=f"{ClaudeAPI}", system_prompt=systemprompt)
 
 if GROQ_API_KEY:
     groqBot = groqbot(api_key=f"{GROQ_API_KEY}")

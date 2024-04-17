@@ -692,7 +692,7 @@ class Chatbot:
             "n": kwargs.get("n", self.reply_count),
             "user": role,
         }
-        if config.CUSTOM_MODELS and self.engine in config.CUSTOM_MODELS and self.engine not in ENGINES:
+        if config.CUSTOM_MODELS and self.engine in config.CUSTOM_MODELS and "gpt-" not in self.engine and "claude-3" not in self.engine:
             return json_post_body
         json_post_body.update(copy.deepcopy(body))
         json_post_body.update(copy.deepcopy(function_call_list["base"]))
