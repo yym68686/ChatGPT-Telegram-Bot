@@ -94,6 +94,43 @@ def Web_crawler(url: str, isSearch=False) -> str:
     # print("url content", result + "\n\n")
     return result
 
+def jina_ai_Web_crawler(url: str, isSearch=False) -> str:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+    }
+    result = ''
+    try:
+        requests.packages.urllib3.disable_warnings()
+        url = "https://r.jina.ai/" + url
+        response = requests.get(url, headers=headers, verify=False, timeout=5, stream=True)
+        if response.status_code == 404:
+            print("Page not found:", url)
+            return "抱歉，网页不存在，目前无法访问该网页。@Trash@"
+        content_length = int(response.headers.get('Content-Length', 0))
+        if content_length > 5000000:
+            print("Skipping large file:", url)
+            return result
+        soup = BeautifulSoup(response.text.encode(response.encoding), 'lxml', from_encoding='utf-8')
+
+        table_contents = ""
+        tables = soup.find_all('table')
+        for table in tables:
+            table_contents += table.get_text()
+            table.decompose()
+        body = "".join(soup.find('body').get_text().split('\n'))
+        result = table_contents + body
+        if result == '' and not isSearch:
+            result = "抱歉，可能反爬虫策略，目前无法访问该网页。@Trash@"
+        if result.count("\"") > 1000:
+            result = ""
+    except Exception as e:
+        print('\033[31m')
+        print("error url", url)
+        print("error", e)
+        print('\033[0m')
+    # print(result + "\n\n")
+    return result
+
 def getddgsearchurl(result, numresults=4):
     try:
         search = DuckDuckGoSearchResults(num_results=numresults)
@@ -252,6 +289,7 @@ def get_url_text_list(prompt):
     yield "🌐 已找到一些有用的链接，正在获取详细内容..."
     threads = []
     for url in url_set_list:
+        # url_search_thread = ThreadWithReturnValue(target=jina_ai_Web_crawler, args=(url,True,))
         url_search_thread = ThreadWithReturnValue(target=Web_crawler, args=(url,True,))
         url_search_thread.start()
         threads.append(url_search_thread)

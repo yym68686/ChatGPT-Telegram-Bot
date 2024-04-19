@@ -61,10 +61,35 @@ function_call_list = \
     },
     "DATE": {
         "name": "get_date_time_weekday",
-        "description": "Get the current time, date, and day of the week"
+        "description": "Get the current time, date, and day of the week",
+        "parameters": {
+            "type": "object",
+            "properties": {}
+        }
     },
     "VERSION": {
         "name": "get_version_info",
-        "description": "Get version information"
+        "description": "Get version information",
+        "parameters": {
+            "type": "object",
+            "properties": {}
+        }
     },
 }
+def gpt2claude_tools_json(json_dict):
+    import copy
+    json_dict = copy.deepcopy(json_dict)
+    keys_to_change = {
+        "parameters": "input_schema",
+        "functions": "tools",
+        "function_call": None  # 如果没有新的键名，则设置为None或留空
+    }
+    for old_key, new_key in keys_to_change.items():
+        if old_key in json_dict:
+            if new_key:
+                json_dict[new_key] = json_dict.pop(old_key)
+            else:
+                json_dict.pop(old_key)
+    return json_dict
+
+claude_tools_list = {f"{key}": gpt2claude_tools_json(function_call_list[key]) for key in function_call_list.keys()}

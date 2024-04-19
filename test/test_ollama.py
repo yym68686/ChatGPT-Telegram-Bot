@@ -35,13 +35,16 @@ if __name__ == "__main__":
     console = Console()
     # model = 'llama2'
     # model = 'mistral'
-    model = 'codeqwen:7b-chat'
+    # model = 'llama3:8b'
+    model = 'qwen:14b'
+    # model = 'wizardlm2:7b'
+    # model = 'codeqwen:7b-chat'
     # model = 'phi'
 
     # 查询答案
     prompt = r'''
 
-
+详细讲解一下SAFE块是怎么进行进行时间特征聚合的？
 
 '''
     answer = ""

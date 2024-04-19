@@ -214,8 +214,6 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
         tmpresult = f"`{e}`"
     print(tmpresult)
     if lastresult != tmpresult and messageid:
-        if 'claude2' in title:
-            tmpresult = re.sub(r",", '，', tmpresult)
         await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
 
 @decorators.GroupAuthorization
@@ -402,7 +400,6 @@ async def handle_pdf(update, context):
     new_file = await context.bot.get_file(file_id)
     file_url = new_file.file_path
     extracted_text_with_prompt = Document_extract(file_url)
-    # print(extracted_text_with_prompt)
     if config.ClaudeAPI and "claude-2.1" in config.GPT_ENGINE:
         robot = config.claudeBot
         role = "Human"

@@ -14,7 +14,7 @@ from typing import Set
 
 import config
 from utils.plugins import *
-from utils.function_call import function_call_list
+from utils.function_call import function_call_list, claude_tools_list
 
 def get_filtered_keys_from_object(obj: object, *keys: str) -> Set[str]:
     """
@@ -79,7 +79,7 @@ class claudebot:
         temperature: float = 0.5,
         top_p: float = 0.7,
         chat_url: str = "https://api.anthropic.com/v1/complete",
-        timeout: float = 5,
+        timeout: float = 20,
         system_prompt: str = "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally",
         **kwargs,
     ):
@@ -196,6 +196,9 @@ class claudebot:
         except ConnectionError:
             print("连接错误，请检查服务器状态或网络连接。")
             return
+        except requests.exceptions.ReadTimeout:
+            print("请求超时，请检查网络连接或增加超时时间。{e}")
+            return
         except Exception as e:
             print(f"发生了未预料的错误: {e}")
             return
@@ -227,7 +230,7 @@ class claude3bot:
         temperature: float = 0.5,
         top_p: float = 0.7,
         chat_url: str = "https://api.anthropic.com/v1/messages",
-        timeout: float = 5,
+        timeout: float = 20,
         system_prompt: str = "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally",
         **kwargs,
     ):
@@ -328,8 +331,7 @@ class claude3bot:
             "x-api-key": f"{kwargs.get('api_key', self.api_key)}",
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
-            "accept": "application/json"
-            # "Accept": "*/*"
+            # "anthropic-beta": "tools-2024-04-04"
         }
 
         json_post = {
@@ -359,6 +361,9 @@ class claude3bot:
         except ConnectionError:
             print("连接错误，请检查服务器状态或网络连接。")
             return
+        except requests.exceptions.ReadTimeout:
+            print("请求超时，请检查网络连接或增加超时时间。{e}")
+            return
         except Exception as e:
             print(f"发生了未预料的错误: {e}")
             return
@@ -371,6 +376,11 @@ class claude3bot:
         for line in response.iter_lines():
             if not line or line.decode("utf-8")[:6] == "event:" or line.decode("utf-8") == "data: {}":
                 continue
+            # print(line.decode("utf-8"))
+            # if "tool_use" in line.decode("utf-8"):
+            #     tool_input = json.loads(line.decode("utf-8")["content"][1]["input"])
+            # else:
+            #     line = line.decode("utf-8")[6:]
             line = line.decode("utf-8")[6:]
             # print(line)
             resp: dict = json.loads(line)
@@ -389,7 +399,7 @@ class Imagebot:
     def __init__(
         self,
         api_key: str,
-        timeout: float = 5,
+        timeout: float = 20,
     ):
         self.api_key: str = api_key
         self.engine: str = "dall-e-3"
@@ -421,6 +431,9 @@ class Imagebot:
             )
         except ConnectionError:
             print("连接错误，请检查服务器状态或网络连接。")
+            return
+        except requests.exceptions.ReadTimeout:
+            print("请求超时，请检查网络连接或增加超时时间。{e}")
             return
         except Exception as e:
             print(f"发生了未预料的错误: {e}")
@@ -781,6 +794,9 @@ class Chatbot:
         except ConnectionError:
             print("连接错误，请检查服务器状态或网络连接。")
             return
+        except requests.exceptions.ReadTimeout:
+            print("请求超时，请检查网络连接或增加超时时间。{e}")
+            return
         except Exception as e:
             print(f"发生了未预料的错误: {e}")
             return
@@ -858,6 +874,7 @@ class Chatbot:
                 if function_call_name == "get_url_content":
                     url = json.loads(function_full_response)["url"]
                     print("\n\nurl", url)
+                    # function_response = jina_ai_Web_crawler(url)
                     function_response = Web_crawler(url)
                     function_response, text_len = cut_message(function_response, function_call_max_tokens)
                     function_response = (
@@ -879,7 +896,6 @@ class Chatbot:
             if self.conversation[convo_id][-1]["role"] == "function" and self.conversation[convo_id][-1]["name"] == "get_search_results":
                 mess = self.conversation[convo_id].pop(-1)
                 # print("Truncate message:", mess)
-            self.add_to_conversation(full_response, "assistant", convo_id=convo_id)
             yield from self.ask_stream(function_response, response_role, convo_id=convo_id, function_name=function_call_name)
         else:
             if self.conversation[convo_id][-1]["role"] == "function" and self.conversation[convo_id][-1]["name"] == "get_search_results":
@@ -1098,7 +1114,7 @@ class groqbot:
         temperature: float = 0.5,
         top_p: float = 1,
         chat_url: str = "https://api.groq.com/openai/v1/chat/completions",
-        timeout: float = 5,
+        timeout: float = 20,
         system_prompt: str = "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally",
         **kwargs,
     ):
@@ -1224,6 +1240,9 @@ class groqbot:
         except ConnectionError:
             print("连接错误，请检查服务器状态或网络连接。")
             return
+        except requests.exceptions.ReadTimeout:
+            print("请求超时，请检查网络连接或增加超时时间。{e}")
+            return
         except Exception as e:
             print(f"发生了未预料的错误: {e}")
             return
@@ -1273,7 +1292,7 @@ class gemini_bot:
         temperature: float = 0.5,
         top_p: float = 0.7,
         chat_url: str = "https://generativelanguage.googleapis.com/v1beta/models/{model}:{stream}?key={api_key}",
-        timeout: float = 5,
+        timeout: float = 20,
         system_prompt: str = "You are ChatGPT, a large language model trained by OpenAI. Respond conversationally",
         **kwargs,
     ):
@@ -1410,6 +1429,9 @@ class gemini_bot:
             )
         except ConnectionError:
             print("连接错误，请检查服务器状态或网络连接。")
+            return
+        except requests.exceptions.ReadTimeout:
+            print("请求超时，请检查网络连接或增加超时时间。{e}")
             return
         except Exception as e:
             print(f"发生了未预料的错误: {e}")
