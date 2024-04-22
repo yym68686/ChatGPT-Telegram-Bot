@@ -14,7 +14,7 @@ python-telegram-bot[webhooks,rate-limiter]==21.0.1
 fake_useragent
 openai==0.28.1
 google-api-python-client
-duckduckgo-search==4.1.0
+duckduckgo-search==5.3.0
 langchain==0.0.271
 oauth2client==3.0.0
 pdfminer.six

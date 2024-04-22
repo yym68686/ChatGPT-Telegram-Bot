@@ -98,7 +98,7 @@ if __name__ == '__main__':
     # urls = getddgsearchurl1("test")
     # urls = getddgsearchurl("你知道今天有什么热点新闻吗")
     # urls = getddg("尊嘟假嘟 含义")
-    urls = getddgsearchurl("它会返回一个包含搜索结果的列表")
+    urls = getddgsearchurl("你知道今天有什么热点新闻吗")
     print(urls)
     # for url in urls:
     #     print(Web_crawler(url))
