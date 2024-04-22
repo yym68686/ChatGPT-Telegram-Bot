@@ -124,6 +124,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                         }
                     }
                 )
+            # print("robot", robot)
             await context.bot.send_chat_action(chat_id=chatid, action=ChatAction.TYPING)
             await getChatGPT(update, context, title, robot, message, chatid, messageid)
     else:
@@ -170,11 +171,10 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
         reply_to_message_id=messageid,
     )
     messageid = message.message_id
-    get_answer = robot.ask_stream
     pass_history = config.PASS_HISTORY
 
     try:
-        for data in get_answer(text, convo_id=str(chatid), pass_history=pass_history):
+        for data in robot.ask_stream(text, convo_id=str(chatid), pass_history=pass_history):
             if "🌐" not in data:
                 result = result + data
             tmpresult = result
@@ -310,6 +310,7 @@ async def button_press(update, context):
     data = callback_query.data
     if "gpt-" in data or "claude" in data or "mixtral" in data or "llama" in data or "gemini" in data or (config.CUSTOM_MODELS and data in config.CUSTOM_MODELS):
         config.GPT_ENGINE = data
+        # print("config.GPT_ENGINE", config.GPT_ENGINE)
         if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI) or (config.API and config.CUSTOM_MODELS and data in config.CUSTOM_MODELS):
             config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)

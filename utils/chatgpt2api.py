@@ -56,6 +56,7 @@ ENGINES = [
     "gpt-4-turbo-2024-04-09",
     "mixtral-8x7b-32768",
     "llama2-70b-4096",
+    "llama3-70b-8192",
     "claude-2.1",
     "claude-3-sonnet-20240229",
     "claude-3-haiku-20240307",
@@ -177,7 +178,7 @@ class claudebot:
         }
 
         json_post = {
-            "model": os.environ.get("MODEL_NAME") or model or self.engine,
+            "model": model or self.engine,
             "prompt": self.conversation.Conversation(convo_id) if pass_history else f"\n\nHuman:{prompt}\n\nAssistant:",
             "stream": True,
             "temperature": kwargs.get("temperature", self.temperature),
@@ -335,7 +336,7 @@ class claude3bot:
         }
 
         json_post = {
-            "model": os.environ.get("MODEL_NAME") or model or self.engine,
+            "model": model or self.engine,
             "messages": self.conversation[convo_id] if pass_history else [{
                 "role": "user",
                 "content": prompt
@@ -711,7 +712,7 @@ class Chatbot:
         **kwargs,
     ):
         json_post_body = {
-            "model": os.environ.get("MODEL_NAME") or model or self.engine,
+            "model": model or self.engine,
             "messages": self.conversation[convo_id] if pass_history else [{"role": "system","content": self.system_prompt},{"role": role, "content": prompt}],
             "max_tokens": 5000,
             "stream": True,
@@ -1110,7 +1111,7 @@ class groqbot:
     def __init__(
         self,
         api_key: str,
-        engine: str = os.environ.get("GPT_ENGINE") or "mixtral-8x7b-32768",
+        engine: str = os.environ.get("GPT_ENGINE") or "llama3-70b-8192",
         temperature: float = 0.5,
         top_p: float = 1,
         chat_url: str = "https://api.groq.com/openai/v1/chat/completions",
@@ -1221,13 +1222,15 @@ class groqbot:
                 "role": "user",
                 "content": prompt
             }],
-            "model": os.environ.get("GPT_ENGINE") or model or self.engine,
+            "model": model or self.engine,
             "temperature": kwargs.get("temperature", self.temperature),
             "max_tokens": model_max_tokens,
             "top_p": kwargs.get("top_p", self.top_p),
             "stop": None,
             "stream": True,
         }
+        # print("json_post", json_post)
+        # print(os.environ.get("GPT_ENGINE"), model, self.engine)
 
         try:
             response = self.session.post(
@@ -1288,7 +1291,7 @@ class gemini_bot:
     def __init__(
         self,
         api_key: str,
-        engine: str = os.environ.get("GPT_ENGINE") or "claude-3-opus-20240229",
+        engine: str = os.environ.get("GPT_ENGINE") or "gemini-1.5-pro-latest",
         temperature: float = 0.5,
         top_p: float = 0.7,
         chat_url: str = "https://generativelanguage.googleapis.com/v1beta/models/{model}:{stream}?key={api_key}",
@@ -1417,7 +1420,7 @@ class gemini_bot:
         }
         print(json.dumps(json_post, indent=4, ensure_ascii=False))
 
-        url = self.chat_url.format(model=os.environ.get("MODEL_NAME") or model or self.engine, stream="streamGenerateContent", api_key=self.api_key)
+        url = self.chat_url.format(model=model or self.engine, stream="streamGenerateContent", api_key=self.api_key)
 
         try:
             response = self.session.post(

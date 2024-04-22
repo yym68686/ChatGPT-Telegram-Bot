@@ -1,6 +1,6 @@
 --index-url https://pypi.python.org/simple/
-tiktoken
 requests
+tiktoken==0.6.0
 md2tgmd==0.1.2
 # jieba
 python-dotenv

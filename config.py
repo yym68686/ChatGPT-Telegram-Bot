@@ -37,10 +37,7 @@ claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt
 from utils.chatgpt2api import Chatbot as GPT
 from utils.chatgpt2api import Imagebot, claudebot, groqbot, claude3bot, gemini_bot
 if API:
-    try:
-        ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
-    except:
-        ChatGPTbot = GPT(api_key=f"{API}", engine="gpt-3.5-turbo-1106", system_prompt=systemprompt, temperature=temperature)
+    ChatGPTbot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
 
     translate_bot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
     copilot_bot = GPT(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=prompt.search_system_prompt.format(LANGUAGE), temperature=temperature)
@@ -150,7 +147,7 @@ initial_model = [
 if GROQ_API_KEY:
     initial_model.extend([
         "mixtral-8x7b-32768",
-        "llama2-70b-4096",
+        "llama3-70b-8192",
     ])
 if GOOGLE_AI_API_KEY:
     initial_model.extend([
