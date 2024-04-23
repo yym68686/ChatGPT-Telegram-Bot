@@ -47,14 +47,16 @@ botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
 print("nick:", botNick)
 
-def CutNICK(update_text, update_chat):
-    if config.NICK is None:
+def CutNICK(update_text, update_message):
+    update_chat = update_message.chat
+    update_reply_to_message = update_message.reply_to_message
+    if botNick is None:
         return update_text
     else:
         if update_text[:botNicKLength].lower() == botNick:
             return update_text[botNicKLength:].strip()
         else:
-            if update_chat.type == 'private':
+            if update_chat.type == 'private' or (botNick and update_reply_to_message and update_reply_to_message.text and update_reply_to_message.from_user.is_bot):
                 return update_text
             else:
                 return None
@@ -65,7 +67,7 @@ async def GetMesage(update_message, context):
     chatid = update_message.chat_id
     messageid = update_message.message_id
     if update_message.text:
-        message = CutNICK(update_message.text, update_message.chat)
+        message = CutNICK(update_message.text, update_message)
         rawtext = update_message.text
 
     if update_message.reply_to_message:
@@ -77,7 +79,7 @@ async def GetMesage(update_message, context):
         photo_file = await context.bot.getFile(file_id)
         image_url = photo_file.file_path
 
-        message = rawtext = CutNICK(update_message.caption, update_message.chat)
+        message = rawtext = CutNICK(update_message.caption, update_message)
     return message, rawtext, image_url, chatid, messageid, reply_to_message_text
 
 @decorators.GroupAuthorization
@@ -86,14 +88,14 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
     image_url = None
     if update.edited_message:
         message, rawtext, image_url, chatid, messageid, reply_to_message_text = await GetMesage(update.edited_message, context)
+        update_message = update.edited_message
     else:
         message, rawtext, image_url, chatid, messageid, reply_to_message_text = await GetMesage(update.message, context)
+        update_message = update.message
 
     print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
 
     if has_command == False or len(context.args) > 0:
-        if reply_to_message_text:
-            message = reply_to_message_text + "\n" + message
         if has_command:
             message = ' '.join(context.args)
         if prompt and has_command:
@@ -104,6 +106,11 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     prompt = translator_en2zh_prompt
             message = prompt + message
         if message:
+            if reply_to_message_text and update_message.reply_to_message.from_user.is_bot:
+                message = '\n'.join(reply_to_message_text.split('\n')[1:]) + "\n" + message
+            elif reply_to_message_text and not update_message.reply_to_message.from_user.is_bot:
+                message = reply_to_message_text + "\n" + message
+
             if "claude-2.1" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claudeBot
             if "claude-3" in config.GPT_ENGINE and config.ClaudeAPI:
