@@ -171,7 +171,8 @@ start_time = time.time()
 # for url in ['https://s.weibo.com/top/summary?cate=realtimehot']:
 # for url in ['https://tophub.today/n/KqndgxeLl9']:
 # for url in ['https://support.apple.com/zh-cn/HT213931']:
-for url in ['https://finance.sina.com.cn/stock/roll/2023-06-26/doc-imyyrexk4053724.shtml', 'https://s.weibo.com/top/summary?cate=realtimehot', 'https://tophub.today/n/KqndgxeLl9', 'https://www.whatsonweibo.com/', 'https://www.trendingonweibo.com/?ref=producthunt', 'https://www.trendingonweibo.com/', 'https://www.statista.com/statistics/1377073/china-most-popular-news-on-weibo/']:
+for url in ["https://zeta.zeabur.app", "https://www.anthropic.com/research/probes-catch-sleeper-agents"]:
+# for url in ['https://finance.sina.com.cn/stock/roll/2023-06-26/doc-imyyrexk4053724.shtml', 'https://s.weibo.com/top/summary?cate=realtimehot', 'https://tophub.today/n/KqndgxeLl9', 'https://www.whatsonweibo.com/', 'https://www.trendingonweibo.com/?ref=producthunt', 'https://www.trendingonweibo.com/', 'https://www.statista.com/statistics/1377073/china-most-popular-news-on-weibo/']:
 # for url in ['https://www.usnews.com/news/entertainment/articles/2023-12-22/china-drafts-new-rules-proposing-restrictions-on-online-gaming']:
 # for url in ['https://developer.aliyun.com/article/721836']:
 # for url in ['https://cn.aliyun.com/page-source/price/detail/machinelearning_price']:
@@ -181,8 +182,8 @@ for url in ['https://finance.sina.com.cn/stock/roll/2023-06-26/doc-imyyrexk40537
 # for url in ['https://www.reddit.com/r/China_irl/comments/15qojkh/46%E6%9C%88%E5%A4%96%E8%B5%84%E5%AF%B9%E4%B8%AD%E5%9B%BD%E7%9B%B4%E6%8E%A5%E6%8A%95%E8%B5%84%E5%87%8F87/', 'https://www.apple.com.cn/job-creation/Apple_China_CSR_Report_2020.pdf', 'https://hdr.undp.org/system/files/documents/hdr2013chpdf.pdf']:
 # for url in ['https://www.airuniversity.af.edu/JIPA/Display/Article/3111127/the-uschina-trade-war-vietnam-emerges-as-the-greatest-winner/']:
 # for url in ['https://zhuanlan.zhihu.com/p/646786536', 'https://zh.wikipedia.org/wiki/%E4%BF%84%E7%BE%85%E6%96%AF%E5%85%A5%E4%BE%B5%E7%83%8F%E5%85%8B%E8%98%AD', 'https://stock.finance.sina.com.cn/usstock/quotes/aapl.html']:
-    # Web_crawler(url)
-    jina_ai_Web_crawler(url)
+    Web_crawler(url)
+    # jina_ai_Web_crawler(url)
     print('-----------------------------')
 end_time = time.time()
 run_time = end_time - start_time

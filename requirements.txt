@@ -5,6 +5,7 @@ md2tgmd==0.1.2
 # jieba
 python-dotenv
 beautifulsoup4
+lxml
 python-telegram-bot[webhooks,rate-limiter]==21.0.1
 # python-telegram-bot[webhooks,rate-limiter]==20.6
 
