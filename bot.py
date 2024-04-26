@@ -56,7 +56,7 @@ def CutNICK(update_text, update_message):
         if update_text[:botNicKLength].lower() == botNick:
             return update_text[botNicKLength:].strip()
         else:
-            if update_chat.type == 'private' or (botNick and update_reply_to_message and update_reply_to_message.text and update_reply_to_message.from_user.is_bot):
+            if update_chat.type == 'private' or (botNick and update_reply_to_message and update_reply_to_message.text and update_reply_to_message.from_user.is_bot and update_reply_to_message.sender_chat == None):
                 return update_text
             else:
                 return None
@@ -85,6 +85,7 @@ async def GetMesage(update_message, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
+    print("update", update)
     image_url = None
     if update.edited_message:
         message, rawtext, image_url, chatid, messageid, reply_to_message_text = await GetMesage(update.edited_message, context)
