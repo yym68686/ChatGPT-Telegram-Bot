@@ -186,10 +186,14 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             if "🌐" not in data:
                 result = result + data
             tmpresult = result
-            if re.sub(r"```", '', result).count("`") % 2 != 0:
+            if re.sub(r"```", '', result.split("\n")[-1]).count("`") % 2 != 0:
                 tmpresult = result + "`"
-            if result.count("```") % 2 != 0:
+            # if re.sub(r"```", '', result).count("`") % 2 != 0:
+            #     tmpresult = result + "`"
+            if sum([line.strip().startswith("```") for line in result.split('\n')]) % 2 != 0:
                 tmpresult = tmpresult + "\n```"
+            # if result.count("```") % 2 != 0:
+            #     tmpresult = tmpresult + "\n```"
             tmpresult = title + tmpresult
             if "claude" in title:
                 tmpresult = claude_replace(tmpresult)
@@ -219,10 +223,15 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             await context.bot.delete_message(chat_id=chatid, message_id=messageid)
             messageid = ''
             config.API = ''
-        tmpresult = f"`{e}`"
+        tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
     if lastresult != tmpresult and messageid:
-        await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+        if "Can't parse entities: can't find end of code entity at byte offset" in tmpresult:
+            # await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=tmpresult, disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+            await update.message.reply_text(tmpresult)
+            print(escape(tmpresult))
+        else:
+            await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
 
 @decorators.GroupAuthorization
 @decorators.Authorization
