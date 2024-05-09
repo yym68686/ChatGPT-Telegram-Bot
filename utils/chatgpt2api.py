@@ -831,7 +831,7 @@ class Chatbot:
             delta = choices[0].get("delta")
             if not delta:
                 continue
-            if "role" in delta:
+            if "role" in delta and response_role == None:
                 response_role = delta["role"]
             if "content" in delta and delta["content"]:
                 need_function_call = False
