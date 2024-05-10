@@ -15,9 +15,8 @@ import config
 from config import WEB_HOOK, PORT, BOT_TOKEN, update_first_buttons_message, buttons
 
 from telegram.constants import ChatAction
-from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
+from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
-
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
@@ -578,6 +577,32 @@ async def post_init(application: Application) -> None:
         BotCommand('reset', 'Reset the bot'),
     ])
 
+from http.server import BaseHTTPRequestHandler
+import json
+class handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length).decode('utf-8')
+        update = Update.de_json(json.loads(post_data), application.bot)
+
+        async def process_update(update):
+            await application.process_update(update)
+
+        application.run_async(process_update(update))
+
+        self.send_response(200)
+        self.end_headers()
+        return
+
+# class handler(BaseHTTPRequestHandler):
+#     def do_POST(self):
+#         content_length = int(self.headers['Content-Length'])
+#         post_data = self.rfile.read(content_length).decode('utf-8')
+#         update = Update.de_json(json.loads(post_data), application.bot)
+#         application.process_update(update)
+#         self.send_response(200)
+#         self.end_headers()
+#         return
 if __name__ == '__main__':
     time_out = 600
     application = (
