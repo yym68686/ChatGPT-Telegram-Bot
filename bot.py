@@ -3,7 +3,7 @@ import sys
 sys.dont_write_bytecode = True
 import logging
 import traceback
-import utils.decorators as decorators
+import decorators
 from md2tgmd import escape
 
 from ModelMerge.models import chatgpt, claude, groq, claude3, gemini
