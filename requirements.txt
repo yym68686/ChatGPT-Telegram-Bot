@@ -1,25 +1,8 @@
 --index-url https://pypi.python.org/simple/
-requests
-tiktoken==0.6.0
-md2tgmd==0.1.9
-# jieba
-python-dotenv
-beautifulsoup4
-lxml
-python-telegram-bot[webhooks,rate-limiter]==21.0.1
-# python-telegram-bot[webhooks,rate-limiter]==20.6
-
-# langchain
-# chromadb
-# unstructured[md,pdf]
-fake_useragent
-openai==0.28.1
-google-api-python-client
-duckduckgo-search==5.3.0
-langchain==0.0.271
-oauth2client==3.0.0
-pdfminer.six
-# g4f==0.1.9.6
-
-# plugin
 pytz
+python-dotenv
+md2tgmd==0.1.9
+fake_useragent
+ModelMerge==0.2.9
+oauth2client==3.0.0
+python-telegram-bot[webhooks,rate-limiter]==21.0.1

@@ -1,20 +1,22 @@
 import re
-import os
 import sys
 sys.dont_write_bytecode = True
-import config
 import logging
 import traceback
 import utils.decorators as decorators
 from md2tgmd import escape
-from utils.chatgpt2api import Chatbot as GPT
-from utils.chatgpt2api import claudebot, groqbot, claude3bot, gemini_bot
-from utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
+
+from ModelMerge.models import chatgpt, claude, groq, claude3, gemini
+from ModelMerge.models.config import PLUGINS
+from ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
+from ModelMerge.utils.scripts import Document_extract, get_encode_image, claude_replace
+
+import config
+from config import WEB_HOOK, PORT, BOT_TOKEN, update_first_buttons_message, buttons
+
 from telegram.constants import ChatAction
-from utils.plugins import Document_extract, get_encode_image, claude_replace
 from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
-from config import WEB_HOOK, PORT, BOT_TOKEN, update_first_buttons_message, buttons
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -269,7 +271,7 @@ async def image(update, context):
     start_messageid = message.message_id
 
     try:
-        for data in robot.dall_e_3(text):
+        for data in robot.generate(text):
             result = data
             await context.bot.delete_message(chat_id=chatid, message_id=start_messageid)
             await context.bot.send_photo(chat_id=chatid, photo=result, reply_to_message_id=messageid)
@@ -329,16 +331,16 @@ async def button_press(update, context):
         config.GPT_ENGINE = data
         # print("config.GPT_ENGINE", config.GPT_ENGINE)
         if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI) or (config.API and config.CUSTOM_MODELS and data in config.CUSTOM_MODELS):
-            config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.ChatGPTbot = chatgpt(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
         if config.ClaudeAPI and "claude-2.1" in data:
-            config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
+            config.claudeBot = claude(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
         if config.ClaudeAPI and "claude-3" in data:
-            config.claude3Bot = claude3bot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
+            config.claude3Bot = claude3(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
         if config.GROQ_API_KEY and ("mixtral" in data or "llama" in data):
-            config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.groqBot = groq(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.GOOGLE_AI_API_KEY and "gemini" in data:
-            config.gemini_Bot = gemini_bot(api_key=f"{config.GOOGLE_AI_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.gemini_Bot = gemini(api_key=f"{config.GOOGLE_AI_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         try:
             info_message = update_info_message(update)
             if  info_message + banner != callback_query.message.text:
@@ -373,15 +375,15 @@ async def button_press(update, context):
             config.claude_systemprompt = config.claude_systemprompt.replace("English", "Simplified Chinese")
         # config.systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {config.LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {config.Current_Date} ]"
         if config.API:
-            config.ChatGPTbot = GPT(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.ChatGPTbot = chatgpt(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
             config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
         if config.ClaudeAPI:
-            config.claudeBot = claudebot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
-            config.claude3Bot = claude3bot(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
+            config.claudeBot = claude(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
+            config.claude3Bot = claude3(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
         if config.GROQ_API_KEY:
-            config.groqBot = groqbot(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.groqBot = groq(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
         if config.GOOGLE_AI_API_KEY:
-            config.gemini_Bot = gemini_bot(api_key=f"{config.GOOGLE_AI_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+            config.gemini_Bot = gemini(api_key=f"{config.GOOGLE_AI_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
 
         info_message = update_info_message(update)
         message = await callback_query.edit_message_text(
@@ -391,7 +393,7 @@ async def button_press(update, context):
         )
     else:
         try:
-            config.PLUGINS[data] = not config.PLUGINS[data]
+            PLUGINS[data] = not PLUGINS[data]
         except:
             setattr(config, data, not getattr(config, data))
         info_message = update_info_message(update)
