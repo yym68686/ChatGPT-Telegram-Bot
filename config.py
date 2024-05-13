@@ -3,22 +3,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from utils.i18n import strings
+from datetime import datetime
+from ModelMerge.utils import prompt
+from ModelMerge.models import chatgpt, claude, groq, claude3, gemini, dalle3
+from ModelMerge.models.config import PLUGINS
 from telegram import InlineKeyboardButton
 
+NICK = os.environ.get('NICK', None)
+PORT = int(os.environ.get('PORT', '8080'))
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
 BOT_TOKEN = os.environ.get('BOT_TOKEN', None)
-PORT = int(os.environ.get('PORT', '8080'))
-NICK = os.environ.get('NICK', None)
+
 API = os.environ.get('API', None)
-PASS_HISTORY = (os.environ.get('PASS_HISTORY', "False") == "False") == False
+API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
+GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4-turbo-2024-04-09')
+PASS_HISTORY = (os.environ.get('PASS_HISTORY', "True") == "False") == False
+
 USE_GOOGLE = (os.environ.get('USE_GOOGLE', "True") == "False") == False
 if os.environ.get('GOOGLE_API_KEY', None) == None and os.environ.get('GOOGLE_CSE_ID', None) == None:
     USE_GOOGLE = False
+
 temperature = float(os.environ.get('temperature', '0.5'))
-GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4-turbo-2024-04-09')
-# DEFAULT_SEARCH_MODEL = os.environ.get('DEFAULT_SEARCH_MODEL', 'gpt-3.5-turbo-1106') gpt-3.5-turbo-16k
-API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
-# PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
 LANGUAGE = os.environ.get('LANGUAGE', 'English')
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
@@ -28,15 +33,11 @@ if CUSTOM_MODELS:
 else:
     CUSTOM_MODELS_LIST = None
 
-
-from ModelMerge.utils import prompt
-from datetime import datetime
 current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUAGE, Current_Date))
 claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt.format(LANGUAGE))
 
-from ModelMerge.models import chatgpt, claude, groq, claude3, gemini, dalle3
 if API:
     ChatGPTbot = chatgpt(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
 
@@ -76,7 +77,6 @@ class userConfig:
         self.search_system_prompt = prompt.search_system_prompt.format(self.language)
         self.search_model = "gpt-3.5-turbo-1106"
 
-from ModelMerge.models.config import PLUGINS
 def get_plugins_status(item):
     return "✅" if PLUGINS[item] else "☑️"
 
