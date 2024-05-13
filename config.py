@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+from utils.i18n import strings
 from telegram import InlineKeyboardButton
 
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
@@ -18,7 +19,7 @@ GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4-turbo-2024-04-09')
 # DEFAULT_SEARCH_MODEL = os.environ.get('DEFAULT_SEARCH_MODEL', 'gpt-3.5-turbo-1106') gpt-3.5-turbo-16k
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 # PDF_EMBEDDING = (os.environ.get('PDF_EMBEDDING', "True") == "False") == False
-LANGUAGE = os.environ.get('LANGUAGE', 'Simplified Chinese')
+LANGUAGE = os.environ.get('LANGUAGE', 'English')
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
 CUSTOM_MODELS = os.environ.get('CUSTOM_MODELS', None)
@@ -33,7 +34,7 @@ from datetime import datetime
 current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUAGE, Current_Date))
-claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt)
+claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt.format(LANGUAGE))
 
 from ModelMerge.models import chatgpt, claude, groq, claude3, gemini, dalle3
 if API:
@@ -141,30 +142,48 @@ if CUSTOM_MODELS_LIST:
 
     initial_model.extend([model for model in CUSTOM_MODELS_LIST if model not in initial_model and model[0] != "-"])
 
-buttons = create_buttons(initial_model)
-buttons.append(
-    [
-        InlineKeyboardButton("返回上一级", callback_data="返回上一级"),
-    ],
-)
+def update_model_buttons():
+    buttons = create_buttons(initial_model)
+    if LANGUAGE == "Simplified Chinese":
+        lang = "zh"
+    else:
+        lang = "en"
+    buttons.append(
+        [
+            InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
+        ],
+    )
+    return buttons
+
+def get_current_lang():
+    if LANGUAGE == "Simplified Chinese":
+        lang = "zh"
+    else:
+        lang = "en"
+    return lang
 
 def update_first_buttons_message():
     history = "✅" if PASS_HISTORY else "☑️"
-    language = "🇨🇳 中文" if LANGUAGE == "Simplified Chinese" else "🇺🇸 English"
+
+    if LANGUAGE == "Simplified Chinese":
+        lang = "zh"
+    else:
+        lang = "en"
+
 
     first_buttons = [
         [
-            InlineKeyboardButton("更换问答模型", callback_data="更换问答模型"),
-            InlineKeyboardButton(language, callback_data="language"),
-            InlineKeyboardButton(f"历史记录 {history}", callback_data="PASS_HISTORY"),
+            InlineKeyboardButton(strings["button_change_model"][lang], callback_data="MODEL"),
+            InlineKeyboardButton(strings['button_language'][lang], callback_data="language"),
+            InlineKeyboardButton(f"{strings['button_history'][lang]} {history}", callback_data="PASS_HISTORY"),
         ],
         [
-            InlineKeyboardButton(f"搜索 {get_plugins_status('SEARCH')}", callback_data='SEARCH'),
-            InlineKeyboardButton(f"当前时间 {get_plugins_status('DATE')}", callback_data='DATE'),
+            InlineKeyboardButton(f"{strings['button_search'][lang]} {get_plugins_status('SEARCH')}", callback_data='SEARCH'),
+            InlineKeyboardButton(f"{strings['button_current_time'][lang]} {get_plugins_status('DATE')}", callback_data='DATE'),
         ],
         [
-            InlineKeyboardButton(f"URL 总结 {get_plugins_status('URL')}", callback_data='URL'),
-            InlineKeyboardButton(f"版本信息 {get_plugins_status('VERSION')}", callback_data='VERSION'),
+            InlineKeyboardButton(f"{strings['button_url'][lang]} {get_plugins_status('URL')}", callback_data='URL'),
+            InlineKeyboardButton(f"{strings['button_version'][lang]} {get_plugins_status('VERSION')}", callback_data='VERSION'),
         ],
     ]
     return first_buttons

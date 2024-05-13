@@ -3,7 +3,7 @@ import sys
 sys.dont_write_bytecode = True
 import logging
 import traceback
-import decorators
+import utils.decorators as decorators
 from md2tgmd import escape
 
 from ModelMerge.models import chatgpt, claude, groq, claude3, gemini
@@ -12,7 +12,8 @@ from ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt, 
 from ModelMerge.utils.scripts import Document_extract, get_encode_image, claude_replace
 
 import config
-from config import WEB_HOOK, PORT, BOT_TOKEN, update_first_buttons_message, buttons
+from config import WEB_HOOK, PORT, BOT_TOKEN, update_first_buttons_message, update_model_buttons, get_current_lang
+from utils.i18n import strings
 
 from telegram.constants import ChatAction
 from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update
@@ -175,7 +176,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
 
     message = await context.bot.send_message(
         chat_id=chatid,
-        text="思考中💭",
+        text=strings['message_think'][get_current_lang()],
         parse_mode='MarkdownV2',
         reply_to_message_id=messageid,
     )
@@ -316,7 +317,7 @@ def update_info_message(update):
         f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
     )
 
-banner = "👇下面可以随时更改默认模型："
+
 @decorators.AdminAuthorization
 @decorators.GroupAuthorization
 @decorators.Authorization
@@ -326,6 +327,7 @@ async def button_press(update, context):
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
+    banner = strings['message_banner'][get_current_lang()]
     if "gpt-" in data or "claude" in data or "mixtral" in data or "llama" in data or "gemini" in data or (config.CUSTOM_MODELS and data in config.CUSTOM_MODELS):
         config.GPT_ENGINE = data
         # print("config.GPT_ENGINE", config.GPT_ENGINE)
@@ -345,19 +347,19 @@ async def button_press(update, context):
             if  info_message + banner != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message + banner),
-                    reply_markup=InlineKeyboardMarkup(buttons),
+                    reply_markup=InlineKeyboardMarkup(update_model_buttons()),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
             logger.info(e)
             pass
-    elif "更换问答模型" in data:
+    elif "MODEL" in data:
         message = await callback_query.edit_message_text(
             text=escape(info_message + banner),
-            reply_markup=InlineKeyboardMarkup(buttons),
+            reply_markup=InlineKeyboardMarkup(update_model_buttons()),
             parse_mode='MarkdownV2'
         )
-    elif "返回" in data:
+    elif "BACK" in data:
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
@@ -512,44 +514,14 @@ async def inlinequery(update, context):
 
     await update.inline_query.answer(results)
 
-# @decorators.GroupAuthorization
-# @decorators.Authorization
-# async def qa(update, context):
-#     if (len(context.args) != 2):
-#         message = (
-#             f"格式错误哦~，需要两个参数，注意路径或者链接、问题之间的空格\n\n"
-#             f"请输入 `/qa 知识库链接 要问的问题`\n\n"
-#             f"例如知识库链接为 https://abc.com ，问题是 蘑菇怎么分类？\n\n"
-#             f"则输入 `/qa https://abc.com 蘑菇怎么分类？`\n\n"
-#             f"问题务必不能有空格，👆点击上方命令复制格式\n\n"
-#             f"除了输入网址，同时支持本地知识库，本地知识库文件夹路径为 `./wiki`，问题是 蘑菇怎么分类？\n\n"
-#             f"则输入 `/qa ./wiki 蘑菇怎么分类？`\n\n"
-#             f"问题务必不能有空格，👆点击上方命令复制格式\n\n"
-#             f"本地知识库目前只支持 Markdown 文件\n\n"
-#         )
-#         await context.bot.send_message(chat_id=update.effective_chat.id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-#         return
-#     print("\033[32m", update.effective_user.username, update.effective_user.id, update.message.text, "\033[0m")
-#     await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-#     result = await docQA(context.args[0], context.args[1], get_doc_from_local)
-#     print(result["answer"])
-#     # source_url = set([i.metadata['source'] for i in result["source_documents"]])
-#     # source_url = "\n".join(source_url)
-#     # message = (
-#     #     f"{result['result']}\n\n"
-#     #     f"参考链接：\n"
-#     #     f"{source_url}"
-#     # )
-#     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(result["answer"]), parse_mode='MarkdownV2', disable_web_page_preview=True)
-
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
     message = (
-        "我是人见人爱的 ChatGPT~\n\n"
-        "欢迎访问 https://github.com/yym68686/ChatGPT-Telegram-Bot 查看源码\n\n"
-        "有 bug 可以联系 @yym68686"
+        f"Hi `{user.username}` ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.\n\n"
+        # "我是人见人爱的 ChatGPT~\n\n"
+        # "欢迎访问 https://github.com/yym68686/ChatGPT-Telegram-Bot 查看源码\n\n"
+        # "有 bug 可以联系 @yym68686"
     )
-    await update.message.reply_html(rf"Hi {user.mention_html()} ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.",)
     await update.message.reply_text(escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def error(update, context):
@@ -594,15 +566,6 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         return
 
-# class handler(BaseHTTPRequestHandler):
-#     def do_POST(self):
-#         content_length = int(self.headers['Content-Length'])
-#         post_data = self.rfile.read(content_length).decode('utf-8')
-#         update = Update.de_json(json.loads(post_data), application.bot)
-#         application.process_update(update)
-#         self.send_response(200)
-#         self.end_headers()
-#         return
 if __name__ == '__main__':
     time_out = 600
     application = (
