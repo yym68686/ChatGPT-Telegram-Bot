@@ -16,7 +16,7 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN', None)
 
 API = os.environ.get('API', None)
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
-GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4-turbo-2024-04-09')
+GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4o')
 PASS_HISTORY = (os.environ.get('PASS_HISTORY', "True") == "False") == False
 
 USE_GOOGLE = (os.environ.get('USE_GOOGLE', "True") == "False") == False
