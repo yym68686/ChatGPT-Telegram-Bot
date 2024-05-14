@@ -5,6 +5,7 @@ load_dotenv()
 from utils.i18n import strings
 from datetime import datetime
 from ModelMerge.utils import prompt
+from ModelMerge.utils.scripts import get_encode_image
 from ModelMerge.models import chatgpt, claude, groq, claude3, gemini, dalle3
 from ModelMerge.models.config import PLUGINS
 from telegram import InlineKeyboardButton
@@ -82,8 +83,11 @@ def update_ENGINE(data = None):
         gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
 update_ENGINE()
 
-def reset_ENGINE(chat_id):
-    global ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot
+def reset_ENGINE(chat_id, message=None):
+    global ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot, systemprompt, claude_systemprompt
+    if message:
+        systemprompt = message
+        claude_systemprompt = message
     if API and ChatGPTbot:
         ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
     if CLAUDE_API and claudeBot:
@@ -114,6 +118,30 @@ def get_robot():
 
     return robot, role
 
+def get_image_message(image_url, message):
+    if image_url:
+        base64_image = get_encode_image(image_url)
+        if "gpt-4" in GPT_ENGINE or (CLAUDE_API is None and "claude-3" in GPT_ENGINE):
+            message.append(
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": base64_image
+                    }
+                }
+            )
+        if CLAUDE_API and "claude-3" in GPT_ENGINE:
+            message.append(
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": base64_image.split(",")[1],
+                    }
+                }
+            )
+    return message
 
 whitelist = os.environ.get('whitelist', None)
 if whitelist:
@@ -163,7 +191,7 @@ def delete_model_digit_tail(lst):
             else:
                 return "-".join(lst[:i + 1])
 
-def create_buttons(strings):
+def create_buttons(strings, plugins_status=False, lang="English", button_text=None):
     # 过滤出长度小于15的字符串
     filtered_strings1 = [s for s in strings if len(delete_model_digit_tail(s.split("-"))) <= 14]
     filtered_strings2 = [s for s in strings if len(delete_model_digit_tail(s.split("-"))) > 14]
@@ -172,7 +200,10 @@ def create_buttons(strings):
     temp = []
 
     for string in filtered_strings1:
-        button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + "ENGINE")
+        if plugins_status:
+            button = InlineKeyboardButton(f"{get_plugins_status(string)}{button_text[string][lang]}", callback_data=string)
+        else:
+            button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + "ENGINE")
         temp.append(button)
 
         # 每两个按钮一组
@@ -185,7 +216,10 @@ def create_buttons(strings):
         buttons.append(temp)
 
     for string in filtered_strings2:
-        button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + "ENGINE")
+        if plugins_status:
+            button = InlineKeyboardButton(f"{get_plugins_status(string)}{button_text[string][lang]}", callback_data=string)
+        else:
+            button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + "ENGINE")
         buttons.append([button])
 
     return buttons
@@ -255,13 +289,16 @@ def update_first_buttons_message():
             InlineKeyboardButton(strings['button_language'][lang], callback_data="language"),
             InlineKeyboardButton(f"{history} {strings['button_history'][lang]}", callback_data="PASS_HISTORY"),
         ],
-        [
-            InlineKeyboardButton(f"{get_plugins_status('SEARCH')}{strings['button_search'][lang]}", callback_data='SEARCH'),
-            InlineKeyboardButton(f"{get_plugins_status('DATE')}{strings['button_current_time'][lang]}", callback_data='DATE'),
-        ],
-        [
-            InlineKeyboardButton(f"{get_plugins_status('URL')}{strings['button_url'][lang]}", callback_data='URL'),
-            InlineKeyboardButton(f"{get_plugins_status('VERSION')}{strings['button_version'][lang]}", callback_data='VERSION'),
-        ],
     ]
+    PLUGINS_LIST = list(PLUGINS.keys())
+    buttons = create_buttons(PLUGINS_LIST, plugins_status=True, lang=lang, button_text=strings)
+    first_buttons.extend(buttons)
+        # [
+        #     InlineKeyboardButton(f"{get_plugins_status('SEARCH')}{strings['SEARCH'][lang]}", callback_data='SEARCH'),
+        #     InlineKeyboardButton(f"{get_plugins_status('DATE')}{strings['DATE'][lang]}", callback_data='DATE'),
+        # ],
+        # [
+        #     InlineKeyboardButton(f"{get_plugins_status('URL')}{strings['URL'][lang]}", callback_data='URL'),
+        #     InlineKeyboardButton(f"{get_plugins_status('VERSION')}{strings['VERSION'][lang]}", callback_data='VERSION'),
+        # ],
     return first_buttons

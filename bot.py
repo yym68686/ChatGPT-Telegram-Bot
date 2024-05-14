@@ -8,7 +8,7 @@ from md2tgmd import escape
 
 from ModelMerge.models.config import PLUGINS
 from ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
-from ModelMerge.utils.scripts import Document_extract, get_encode_image, claude_replace
+from ModelMerge.utils.scripts import Document_extract, claude_replace
 
 import config
 from config import (
@@ -22,7 +22,8 @@ from config import (
     update_ENGINE,
     reset_ENGINE,
     update_language,
-    get_robot
+    get_robot,
+    get_image_message
 )
 
 from utils.i18n import strings
@@ -129,16 +130,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             robot, role = get_robot()
             if "gpt" in config.GPT_ENGINE or (config.CLAUDE_API and "claude-3" in config.GPT_ENGINE):
                 message = [{"type": "text", "text": message}]
-            if image_url and (config.GPT_ENGINE == "gpt-4-turbo-2024-04-09" or "gpt-4o" in config.GPT_ENGINE):
-                base64_image = get_encode_image(image_url)
-                message.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": base64_image
-                        }
-                    }
-                )
+            message = get_image_message(image_url, message)
             # print("robot", robot)
             await context.bot.send_chat_action(chat_id=chatid, action=ChatAction.TYPING)
             await getChatGPT(update, context, title, robot, message, chatid, messageid)
@@ -153,7 +145,10 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def reset_chat(update, context):
-    reset_ENGINE(update.message.chat_id)
+    message = None
+    if (len(context.args) > 0):
+        message = ' '.join(context.args)
+    reset_ENGINE(update.message.chat_id, message)
 
     await context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -187,25 +182,13 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             tmpresult = result
             if re.sub(r"```", '', result.split("\n")[-1]).count("`") % 2 != 0:
                 tmpresult = result + "`"
-            # if re.sub(r"```", '', result).count("`") % 2 != 0:
-            #     tmpresult = result + "`"
             if sum([line.strip().startswith("```") for line in result.split('\n')]) % 2 != 0:
                 tmpresult = tmpresult + "\n```"
-            # if result.count("```") % 2 != 0:
-            #     tmpresult = tmpresult + "\n```"
             tmpresult = title + tmpresult
             if "claude" in title:
                 tmpresult = claude_replace(tmpresult)
             if "🌐" in data:
                 tmpresult = data
-            # if "answer:" in result:
-            #     tmpresult = re.sub(r"thought:[\S\s]+?answer:\s", '', tmpresult)
-            #     tmpresult = re.sub(r"action:[\S\s]+?answer:\s", '', tmpresult)
-            #     tmpresult = re.sub(r"answer:\s", '', tmpresult)
-            #     tmpresult = re.sub(r"thought:[\S\s]+", '', tmpresult)
-            #     tmpresult = re.sub(r"action:[\S\s]+", '', tmpresult)
-            # else:
-            #     tmpresult = re.sub(r"thought:[\S\s]+", '', tmpresult)
             modifytime = modifytime + 1
             if (modifytime % Frequency_Modification == 0 and lastresult != tmpresult) or "🌐" in data:
                 await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
@@ -217,11 +200,6 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
         print('\033[0m')
         if config.API:
             robot.reset(convo_id=str(chatid), system_prompt=config.systemprompt)
-        if "You exceeded your current quota, please check your plan and billing details." in str(e):
-            print("OpenAI api 已过期！")
-            await context.bot.delete_message(chat_id=chatid, message_id=messageid)
-            messageid = ''
-            config.API = ''
         tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
     if lastresult != tmpresult and messageid:
@@ -400,33 +378,9 @@ async def handle_photo(update, context):
     image_url = photo_file.file_path
 
     robot, role = get_robot()
+    message = get_image_message(image_url, [])
 
-    base64_image = get_encode_image(image_url)
-    if image_url and ("gpt-4" in config.GPT_ENGINE or (config.CLAUDE_API is None and "claude-3" in config.GPT_ENGINE)):
-        message = [
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": base64_image
-                }
-            }
-        ]
-    if image_url and config.CLAUDE_API and "claude-3" in config.GPT_ENGINE:
-        message = [
-            {
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": "image/jpeg",
-                    "data": base64_image.split(",")[1],
-                }
-            }
-        ]
-
-    # print(message)
     robot.add_to_conversation(message, role, str(chatid))
-    # print(robot.conversation)
-    # print(robot.conversation[str(chatid)])
     # if config.CLAUDE_API and "claude-3" in config.GPT_ENGINE:
     #     robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(update.effective_chat.id))
     message = (
@@ -475,7 +429,6 @@ async def post_init(application: Application) -> None:
     await application.bot.set_my_commands([
         BotCommand('info', 'basic information'),
         BotCommand('pic', 'Generate image'),
-        # BotCommand('copilot', 'Advanced search mode'),
         BotCommand('search', 'search Google or duckduckgo'),
         BotCommand('en2zh', 'translate to Chinese'),
         BotCommand('zh2en', 'translate to English'),
@@ -521,15 +474,12 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("pic", image, block = False))
     application.add_handler(CommandHandler("search", lambda update, context: command_bot(update, context, prompt="search: ", title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command="search")))
-    # application.add_handler(CommandHandler("search", lambda update, context: search(update, context, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot)))
     application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(CommandHandler("reset", reset_chat))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese", robot=config.translate_bot)))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.translate_bot)))
-    # application.add_handler(CommandHandler("copilot", lambda update, context: command_bot(update, context, None, None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.copilot_bot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(InlineQueryHandler(inlinequery))
-    # application.add_handler(CommandHandler("qa", qa))
     application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC, handle_pdf))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
     application.add_handler(MessageHandler(filters.CAPTION & filters.PHOTO & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
