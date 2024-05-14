@@ -156,14 +156,15 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def reset_chat(update, context):
-    if config.API:
+    if config.API and config.ChatGPTbot:
         config.ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
-    if config.CLAUDE_API:
+    if config.CLAUDE_API and config.claudeBot:
         config.claudeBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.claude_systemprompt)
+    if config.CLAUDE_API and config.claude3Bot:
         config.claude3Bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.claude_systemprompt)
-    if config.GROQ_API_KEY:
+    if config.GROQ_API_KEY and config.groqBot:
         config.groqBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
-    if config.GOOGLE_AI_API_KEY:
+    if config.GOOGLE_AI_API_KEY and config.gemini_Bot:
         config.gemini_Bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
 
     await context.bot.send_message(

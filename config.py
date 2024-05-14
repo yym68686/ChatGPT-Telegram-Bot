@@ -63,6 +63,7 @@ def update_language():
 temperature = float(os.environ.get('temperature', '0.5'))
 CLAUDE_API = os.environ.get('claude_api_key', None)
 
+ChatGPTbot, translate_bot, dallbot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None, None
 def update_ENGINE(data = None):
     global GPT_ENGINE, ChatGPTbot, translate_bot, dallbot, claudeBot, claude3Bot, groqBot, gemini_Bot
     if data:
