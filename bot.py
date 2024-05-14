@@ -6,13 +6,23 @@ import traceback
 import utils.decorators as decorators
 from md2tgmd import escape
 
-from ModelMerge.models import chatgpt, claude, groq, claude3, gemini
 from ModelMerge.models.config import PLUGINS
 from ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
 from ModelMerge.utils.scripts import Document_extract, get_encode_image, claude_replace
 
 import config
-from config import WEB_HOOK, PORT, BOT_TOKEN, update_first_buttons_message, update_model_buttons, get_current_lang
+from config import (
+    WEB_HOOK,
+    PORT,
+    BOT_TOKEN,
+    update_first_buttons_message,
+    update_model_buttons,
+    get_current_lang,
+    update_info_message,
+    update_ENGINE,
+    update_language
+)
+
 from utils.i18n import strings
 
 from telegram.constants import ChatAction
@@ -114,8 +124,6 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             elif reply_to_message_text and not update_message.reply_to_message.from_user.is_bot:
                 message = reply_to_message_text + "\n" + message
 
-            if "claude-2.1" in config.GPT_ENGINE and config.ClaudeAPI:
-                robot = config.claudeBot
             if "claude-3" in config.GPT_ENGINE and config.ClaudeAPI:
                 robot = config.claude3Bot
             if ("mixtral" in config.GPT_ENGINE or "llama" in config.GPT_ENGINE) and config.GROQ_API_KEY:
@@ -124,7 +132,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 robot = config.gemini_Bot
             if "gpt" in config.GPT_ENGINE or (config.ClaudeAPI and "claude-3" in config.GPT_ENGINE):
                 message = [{"type": "text", "text": message}]
-            if image_url and config.GPT_ENGINE == "gpt-4-turbo-2024-04-09":
+            if image_url and (config.GPT_ENGINE == "gpt-4-turbo-2024-04-09" or "gpt-4o" in config.GPT_ENGINE):
                 base64_image = get_encode_image(image_url)
                 message.append(
                     {
@@ -303,47 +311,21 @@ async def delete_message(update, context, messageid, delay=10):
         print("error", e)
         print('\033[0m')
 
-
-def replace_with_asterisk(string, start=10, end=45):
-    return string[:start] + '*' * (end - start) + string[end:]
-
-def update_info_message(update):
-    return (
-        f"`Hi, {update.effective_user.username}!`\n\n"
-        f"**Default engine:** `{config.GPT_ENGINE}`\n"
-        f"**Temperature:** `{config.temperature}`\n"
-        f"**API_URL:** `{config.API_URL}`\n\n"
-        f"**API:** `{replace_with_asterisk(config.API)}`\n\n"
-        f"**WEB_HOOK:** `{config.WEB_HOOK}`\n\n"
-    )
-
-
 @decorators.AdminAuthorization
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def button_press(update, context):
     """Function to handle the button press"""
-    info_message = update_info_message(update)
+    info_message = update_info_message()
     callback_query = update.callback_query
     await callback_query.answer()
     data = callback_query.data
     banner = strings['message_banner'][get_current_lang()]
-    if "gpt-" in data or "claude" in data or "mixtral" in data or "llama" in data or "gemini" in data or (config.CUSTOM_MODELS and data in config.CUSTOM_MODELS):
-        config.GPT_ENGINE = data
-        # print("config.GPT_ENGINE", config.GPT_ENGINE)
-        if (config.API and "gpt-" in data) or (config.API and not config.ClaudeAPI) or (config.API and config.CUSTOM_MODELS and data in config.CUSTOM_MODELS):
-            config.ChatGPTbot = chatgpt(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
-            config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
-        if config.ClaudeAPI and "claude-2.1" in data:
-            config.claudeBot = claude(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
-        if config.ClaudeAPI and "claude-3" in data:
-            config.claude3Bot = claude3(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
-        if config.GROQ_API_KEY and ("mixtral" in data or "llama" in data):
-            config.groqBot = groq(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
-        if config.GOOGLE_AI_API_KEY and "gemini" in data:
-            config.gemini_Bot = gemini(api_key=f"{config.GOOGLE_AI_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
+    if data.endswith("ENGINE"):
+        data = data[:-6]
+        update_ENGINE(data)
         try:
-            info_message = update_info_message(update)
+            info_message = update_info_message()
             if  info_message + banner != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message + banner),
@@ -366,27 +348,9 @@ async def button_press(update, context):
             parse_mode='MarkdownV2'
         )
     elif "language" in data:
-        if config.LANGUAGE == "Simplified Chinese":
-            config.LANGUAGE = "English"
-            config.systemprompt = config.systemprompt.replace("Simplified Chinese", "English")
-            config.claude_systemprompt = config.claude_systemprompt.replace("Simplified Chinese", "English")
-        else:
-            config.LANGUAGE = "Simplified Chinese"
-            config.systemprompt = config.systemprompt.replace("English", "Simplified Chinese")
-            config.claude_systemprompt = config.claude_systemprompt.replace("English", "Simplified Chinese")
-        # config.systemprompt = f"You are ChatGPT, a large language model trained by OpenAI. Respond conversationally in {config.LANGUAGE}. Knowledge cutoff: 2021-09. Current date: [ {config.Current_Date} ]"
-        if config.API:
-            config.ChatGPTbot = chatgpt(api_key=f"{config.API}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
-            config.ChatGPTbot.reset(convo_id=str(update.effective_chat.id), system_prompt=config.systemprompt)
-        if config.ClaudeAPI:
-            config.claudeBot = claude(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
-            config.claude3Bot = claude3(api_key=f"{config.ClaudeAPI}", engine=config.GPT_ENGINE, system_prompt=config.claude_systemprompt, temperature=config.temperature)
-        if config.GROQ_API_KEY:
-            config.groqBot = groq(api_key=f"{config.GROQ_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
-        if config.GOOGLE_AI_API_KEY:
-            config.gemini_Bot = gemini(api_key=f"{config.GOOGLE_AI_API_KEY}", engine=config.GPT_ENGINE, system_prompt=config.systemprompt, temperature=config.temperature)
-
-        info_message = update_info_message(update)
+        update_language()
+        update_ENGINE()
+        info_message = update_info_message()
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
@@ -397,7 +361,7 @@ async def button_press(update, context):
             PLUGINS[data] = not PLUGINS[data]
         except:
             setattr(config, data, not getattr(config, data))
-        info_message = update_info_message(update)
+        info_message = update_info_message()
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
@@ -408,7 +372,7 @@ async def button_press(update, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def info(update, context):
-    info_message = update_info_message(update)
+    info_message = update_info_message()
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message()), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.GroupAuthorization
