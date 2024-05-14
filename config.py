@@ -80,8 +80,40 @@ def update_ENGINE(data = None):
         groqBot = groq(api_key=f"{GROQ_API_KEY}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
     if GOOGLE_AI_API_KEY and "gemini" in GPT_ENGINE:
         gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
-
 update_ENGINE()
+
+def reset_ENGINE(chat_id):
+    global ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot
+    if API and ChatGPTbot:
+        ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
+    if CLAUDE_API and claudeBot:
+        claudeBot.reset(convo_id=str(chat_id), system_prompt=claude_systemprompt)
+    if CLAUDE_API and claude3Bot:
+        claude3Bot.reset(convo_id=str(chat_id), system_prompt=claude_systemprompt)
+    if GROQ_API_KEY and groqBot:
+        groqBot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
+    if GOOGLE_AI_API_KEY and gemini_Bot:
+        gemini_Bot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
+
+def get_robot():
+    global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot
+    if CLAUDE_API and "claude-2.1" in GPT_ENGINE:
+        robot = claudeBot
+        role = "Human"
+    elif CLAUDE_API and "claude-3" in GPT_ENGINE:
+        robot = claude3Bot
+        role = "user"
+    elif ("mixtral" in GPT_ENGINE or "llama" in GPT_ENGINE) and GROQ_API_KEY:
+        robot = groqBot
+    elif GOOGLE_AI_API_KEY and "gemini" in GPT_ENGINE:
+        robot = gemini_Bot
+        role = "user"
+    else:
+        robot = ChatGPTbot
+        role = "user"
+
+    return robot, role
+
 
 whitelist = os.environ.get('whitelist', None)
 if whitelist:

@@ -20,7 +20,9 @@ from config import (
     get_current_lang,
     update_info_message,
     update_ENGINE,
-    update_language
+    reset_ENGINE,
+    update_language,
+    get_robot
 )
 
 from utils.i18n import strings
@@ -124,12 +126,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             elif reply_to_message_text and not update_message.reply_to_message.from_user.is_bot:
                 message = reply_to_message_text + "\n" + message
 
-            if "claude-3" in config.GPT_ENGINE and config.CLAUDE_API:
-                robot = config.claude3Bot
-            if ("mixtral" in config.GPT_ENGINE or "llama" in config.GPT_ENGINE) and config.GROQ_API_KEY:
-                robot = config.groqBot
-            if "gemini" in config.GPT_ENGINE and config.GOOGLE_AI_API_KEY:
-                robot = config.gemini_Bot
+            robot, role = get_robot()
             if "gpt" in config.GPT_ENGINE or (config.CLAUDE_API and "claude-3" in config.GPT_ENGINE):
                 message = [{"type": "text", "text": message}]
             if image_url and (config.GPT_ENGINE == "gpt-4-turbo-2024-04-09" or "gpt-4o" in config.GPT_ENGINE):
@@ -156,16 +153,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def reset_chat(update, context):
-    if config.API and config.ChatGPTbot:
-        config.ChatGPTbot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
-    if config.CLAUDE_API and config.claudeBot:
-        config.claudeBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.claude_systemprompt)
-    if config.CLAUDE_API and config.claude3Bot:
-        config.claude3Bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.claude_systemprompt)
-    if config.GROQ_API_KEY and config.groqBot:
-        config.groqBot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
-    if config.GOOGLE_AI_API_KEY and config.gemini_Bot:
-        config.gemini_Bot.reset(convo_id=str(update.message.chat_id), system_prompt=config.systemprompt)
+    reset_ENGINE(update.message.chat_id)
 
     await context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -386,18 +374,7 @@ async def handle_pdf(update, context):
     new_file = await context.bot.get_file(file_id)
     file_url = new_file.file_path
     extracted_text_with_prompt = Document_extract(file_url)
-    if config.CLAUDE_API and "claude-2.1" in config.GPT_ENGINE:
-        robot = config.claudeBot
-        role = "Human"
-    elif config.CLAUDE_API and "claude-3" in config.GPT_ENGINE:
-        robot = config.claude3Bot
-        role = "user"
-    elif config.GOOGLE_AI_API_KEY and "gemini" in config.GPT_ENGINE:
-        robot = config.gemini_Bot
-        role = "user"
-    else:
-        robot = config.ChatGPTbot
-        role = "user"
+    robot, role = get_robot()
     robot.add_to_conversation(extracted_text_with_prompt, role, str(update.effective_chat.id))
     if config.CLAUDE_API and "claude-3" in config.GPT_ENGINE:
         robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(update.effective_chat.id))
@@ -422,18 +399,10 @@ async def handle_photo(update, context):
     photo_file = await context.bot.getFile(file_id)
     image_url = photo_file.file_path
 
-    if config.CLAUDE_API and "claude-2.1" in config.GPT_ENGINE:
-        robot = config.claudeBot
-        role = "Human"
-    elif config.CLAUDE_API and "claude-3" in config.GPT_ENGINE:
-        robot = config.claude3Bot
-        role = "user"
-    else:
-        robot = config.ChatGPTbot
-        role = "user"
+    robot, role = get_robot()
 
     base64_image = get_encode_image(image_url)
-    if image_url and (config.GPT_ENGINE == "gpt-4-turbo-2024-04-09" or "gpt-4o" in config.GPT_ENGINE or (config.CLAUDE_API is None and "claude-3" in config.GPT_ENGINE)):
+    if image_url and ("gpt-4" in config.GPT_ENGINE or (config.CLAUDE_API is None and "claude-3" in config.GPT_ENGINE)):
         message = [
             {
                 "type": "image_url",
