@@ -433,7 +433,7 @@ async def handle_photo(update, context):
         role = "user"
 
     base64_image = get_encode_image(image_url)
-    if image_url and config.GPT_ENGINE == "gpt-4-turbo-2024-04-09" or (config.CLAUDE_API is None and "claude-3" in config.GPT_ENGINE):
+    if image_url and (config.GPT_ENGINE == "gpt-4-turbo-2024-04-09" or "gpt-4o" in config.GPT_ENGINE or (config.CLAUDE_API is None and "claude-3" in config.GPT_ENGINE)):
         message = [
             {
                 "type": "image_url",
