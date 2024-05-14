@@ -1,11 +1,9 @@
-version: "3.5"
+version: '3'
 services:
-  chatgptbot:
-    container_name: chatgptbot
-    image: yym68686/chatgpt:1.0
-    environment:
-      - BOT_TOKEN=
-      - API=
-      - API_URL=
-    ports:
-      - 80:8080
+  chatgpt-telegram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.build
+    volumes:
+      - .:/app
+    restart: unless-stopped

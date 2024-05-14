@@ -130,60 +130,26 @@ https://api.telegram.org/bot<token>/getWebhookInfo
 
 Start the container
 
-```bash
-docker run -p 80:8080 --name chatbot -dit \
-    -e BOT_TOKEN="telegram bot token" \
-    -e API="" \
-    -e API_URL= \
-    yym68686/chatgpt:1.0
-```
-
-Or if you want to use Docker Compose, here is a docker-compose.yml example:
+If you want to use Docker Compose, here is a docker-compose.yml example:
 
 ```yaml
-version: "3.5"
+version: '3'
 services:
-  chatgptbot:
-    container_name: chatgptbot
-    image: yym68686/chatgpt:1.0
-    environment:
-      - BOT_TOKEN=
-      - API=
-      - API_URL=
-    ports:
-      - 80:8080
+  chatgpt-telegram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    restart: unless-stopped
 ```
 
 Run Docker Compose container in the background
 
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
-Package the Docker image in the repository and upload it to Docker Hub
-
-```bash
-docker build --no-cache -t chatgpt:1.0 -f Dockerfile.build --platform linux/amd64 .
-docker tag chatgpt:1.0 yym68686/chatgpt:1.0
-docker push yym68686/chatgpt:1.0
-```
-
-One-Click Restart Docker Image
-
-```bash
-set -eu
-docker rm -f chatbot
-docker pull yym68686/chatgpt:1.0
-docker run -p 8080:8080 -dit --name chatbot \
--e BOT_TOKEN= \
--e API= \
--e API_URL= \
--e GOOGLE_API_KEY= \
--e GOOGLE_CSE_ID= \
--e claude_api_key= \
-yym68686/chatgpt:1.0
-docker logs -f chatbot
-```
 
 This script is for restarting the Docker image with a single command. It first removes the existing Docker container named "chatbot" if it exists. Then, it runs a new Docker container with the name "chatbot", exposing port 8080 and setting various environment variables. The Docker image used is "yym68686/chatgpt:1.0". Finally, it follows the logs of the "chatbot" container.
 
