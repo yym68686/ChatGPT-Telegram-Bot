@@ -24,7 +24,7 @@ WEB_HOOK = os.environ.get('WEB_HOOK', None)
 
 def update_info_message():
     return (
-        f"**Default engine:** `{GPT_ENGINE}`\n"
+        f"**Model:** `{GPT_ENGINE}`\n\n"
         f"**API_URL:** `{API_URL}`\n\n"
         f"**API:** `{replace_with_asterisk(API)}`\n\n"
         f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
