@@ -108,7 +108,7 @@ def update_info_message(user_id = None):
         f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
     )
 
-ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None, None
+ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None
 def update_ENGINE(data = None, chat_id=None):
     global Users, ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot
     if data:
