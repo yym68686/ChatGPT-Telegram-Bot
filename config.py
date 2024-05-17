@@ -22,14 +22,6 @@ API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions'
 API = os.environ.get('API', None)
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
 
-def update_info_message():
-    return (
-        f"**Model:** `{GPT_ENGINE}`\n\n"
-        f"**API_URL:** `{API_URL}`\n\n"
-        f"**API:** `{replace_with_asterisk(API)}`\n\n"
-        f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
-    )
-
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
 
@@ -64,23 +56,77 @@ def update_language():
 temperature = float(os.environ.get('temperature', '0.5'))
 CLAUDE_API = os.environ.get('claude_api_key', None)
 
+class UserConfig:
+    def __init__(self, user_id: str = None, language="English", engine="gpt-4o", mode="global"):
+        self.user_id = user_id
+        self.language = language
+        self.engine = engine
+        self.users = {
+            "global": {
+                "language": self.language,
+                "engine": self.engine,
+            }
+        }
+        self.mode = mode
+        self.parameter_name_list = list(self.users["global"].keys())
+    def user_init(self, user_id = None):
+        if user_id == None:
+            user_id = "global"
+        self.user_id = user_id
+        if self.user_id not in self.users.keys():
+            self.users[self.user_id] = {"language": LANGUAGE, "engine": GPT_ENGINE}
+
+    def get_config(self, user_id = None, parameter_name = None):
+        if parameter_name not in self.parameter_name_list:
+            raise ValueError("parameter_name is not in the parameter_name_list")
+        if self.mode == "global":
+            return self.users["global"][parameter_name]
+        if self.mode == "multiusers":
+            self.user_init(user_id)
+            return self.users[self.user_id][parameter_name]
+
+    def set_config(self, user_id = None, parameter_name = None, value = None):
+        if parameter_name not in self.parameter_name_list:
+            raise ValueError("parameter_name is not in the parameter_name_list")
+        if self.mode == "global":
+            self.users["global"][parameter_name] = value
+        if self.mode == "multiusers":
+            self.user_init(user_id)
+            self.users[self.user_id][parameter_name] = value
+
+CHAT_MODE = os.environ.get('CHAT_MODE', "global")
+Users = UserConfig(mode=CHAT_MODE)
+
+def get_ENGINE(user_id = None):
+    return Users.get_config(user_id, "engine")
+
+def update_info_message(user_id = None):
+    return (
+        f"**Model:** `{get_ENGINE(user_id)}`\n\n"
+        f"**API_URL:** `{API_URL}`\n\n"
+        f"**API:** `{replace_with_asterisk(API)}`\n\n"
+        f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
+    )
+
 ChatGPTbot, translate_bot, dallbot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None, None
-def update_ENGINE(data = None):
-    global GPT_ENGINE, ChatGPTbot, translate_bot, dallbot, claudeBot, claude3Bot, groqBot, gemini_Bot
+def update_ENGINE(data = None, chat_id=None):
+    global Users, ChatGPTbot, translate_bot, dallbot, claudeBot, claude3Bot, groqBot, gemini_Bot
     if data:
-        GPT_ENGINE = data
+        Users.set_config(chat_id, "engine", data)
+    engine = Users.get_config(chat_id, "engine")
     if API:
-        ChatGPTbot = chatgpt(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
-        translate_bot = chatgpt(api_key=f"{API}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
+        ChatGPTbot = chatgpt(api_key=f"{API}", engine=engine, system_prompt=systemprompt, temperature=temperature)
+        translate_bot = chatgpt(api_key=f"{API}", engine=engine, system_prompt=systemprompt, temperature=temperature)
         dallbot = dalle3(api_key=f"{API}")
-    if CLAUDE_API and "claude-2.1" in GPT_ENGINE:
-        claudeBot = claude(api_key=f"{CLAUDE_API}", engine=GPT_ENGINE, system_prompt=claude_systemprompt, temperature=temperature)
-    if CLAUDE_API and "claude-3" in GPT_ENGINE:
-        claude3Bot = claude3(api_key=f"{CLAUDE_API}", engine=GPT_ENGINE, system_prompt=claude_systemprompt, temperature=temperature)
-    if GROQ_API_KEY and ("mixtral" in GPT_ENGINE or "llama" in GPT_ENGINE):
-        groqBot = groq(api_key=f"{GROQ_API_KEY}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
-    if GOOGLE_AI_API_KEY and "gemini" in GPT_ENGINE:
-        gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=GPT_ENGINE, system_prompt=systemprompt, temperature=temperature)
+    if CLAUDE_API and "claude-2.1" in engine:
+        claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
+    if CLAUDE_API and "claude-3" in engine:
+        claude3Bot = claude3(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
+    if GROQ_API_KEY and ("mixtral" in engine or "llama" in engine):
+        groqBot = groq(api_key=f"{GROQ_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature)
+    if GOOGLE_AI_API_KEY and "gemini" in engine:
+        gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature)
+
 update_ENGINE()
 
 def reset_ENGINE(chat_id, message=None):
@@ -99,17 +145,18 @@ def reset_ENGINE(chat_id, message=None):
     if GOOGLE_AI_API_KEY and gemini_Bot:
         gemini_Bot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
 
-def get_robot():
+def get_robot(chat_id = None):
     global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot
-    if CLAUDE_API and "claude-2.1" in GPT_ENGINE:
+    engine = Users.get_config(chat_id, "engine")
+    if CLAUDE_API and "claude-2.1" in engine:
         robot = claudeBot
         role = "Human"
-    elif CLAUDE_API and "claude-3" in GPT_ENGINE:
+    elif CLAUDE_API and "claude-3" in engine:
         robot = claude3Bot
         role = "user"
-    elif ("mixtral" in GPT_ENGINE or "llama" in GPT_ENGINE) and GROQ_API_KEY:
+    elif ("mixtral" in engine or "llama" in engine) and GROQ_API_KEY:
         robot = groqBot
-    elif GOOGLE_AI_API_KEY and "gemini" in GPT_ENGINE:
+    elif GOOGLE_AI_API_KEY and "gemini" in engine:
         robot = gemini_Bot
         role = "user"
     else:
@@ -118,10 +165,11 @@ def get_robot():
 
     return robot, role
 
-def get_image_message(image_url, message):
+def get_image_message(image_url, message, chatid = None):
+    engine = get_ENGINE(chatid)
     if image_url:
         base64_image = get_encode_image(image_url)
-        if "gpt-4" in GPT_ENGINE or (CLAUDE_API is None and "claude-3" in GPT_ENGINE):
+        if "gpt-4" in engine or (CLAUDE_API is None and "claude-3" in engine):
             message.append(
                 {
                     "type": "image_url",
@@ -130,7 +178,7 @@ def get_image_message(image_url, message):
                     }
                 }
             )
-        if CLAUDE_API and "claude-3" in GPT_ENGINE:
+        if CLAUDE_API and "claude-3" in engine:
             message.append(
                 {
                     "type": "image",
@@ -152,36 +200,6 @@ if ADMIN_LIST:
 GROUP_LIST = os.environ.get('GROUP_LIST', None)
 if GROUP_LIST:
     GROUP_LIST = [int(id) for id in GROUP_LIST.split(",")]
-
-class UserConfig:
-    def __init__(self, user_id: str = "default", language="English", engine="gpt-4o"):
-        self.user_id = user_id
-        self.language = language
-        self.engine = engine
-        self.users = {
-            "default": {
-                "language": self.language,
-                "engine": self.engine,
-            }
-        }
-    def user_init(self, user_id):
-        if user_id not in self.users:
-            self.users[user_id] = {"language": LANGUAGE, "engine": GPT_ENGINE}
-    def get_language(self, user_id):
-        self.user_init(user_id)
-        return self.users[user_id]["language"]
-    def set_language(self, user_id, language):
-        self.user_init(user_id)
-        self.users[user_id]["language"] = language
-
-    def get_engine(self, user_id):
-        self.user_init(user_id)
-        return self.users[user_id]["engine"]
-    def set_engine(self, user_id, engine):
-        self.user_init(user_id)
-        self.users[user_id]["engine"] = engine
-
-Users = UserConfig()
 
 def delete_model_digit_tail(lst):
     for i in range(len(lst) - 1, -1, -1):

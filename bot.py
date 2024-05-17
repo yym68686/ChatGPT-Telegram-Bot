@@ -23,7 +23,8 @@ from config import (
     reset_ENGINE,
     update_language,
     get_robot,
-    get_image_message
+    get_image_message,
+    get_ENGINE
 )
 
 from utils.i18n import strings
@@ -127,12 +128,15 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             elif reply_to_message_text and not update_message.reply_to_message.from_user.is_bot:
                 message = reply_to_message_text + "\n" + message
 
-            robot, role = get_robot()
-            if "gpt" in config.GPT_ENGINE or (config.CLAUDE_API and "claude-3" in config.GPT_ENGINE):
+            if robot is None:
+                robot, role = get_robot(chatid)
+            engine = get_ENGINE(chatid)
+            if "gpt" in engine or (config.CLAUDE_API and "claude-3" in engine):
                 message = [{"type": "text", "text": message}]
-            message = get_image_message(image_url, message)
+            message = get_image_message(image_url, message, chatid)
             # print("robot", robot)
             await context.bot.send_chat_action(chat_id=chatid, action=ChatAction.TYPING)
+            title = f"`🤖️ {engine}`\n\n"
             await getChatGPT(update, context, title, robot, message, chatid, messageid)
     else:
         message = await context.bot.send_message(
@@ -283,16 +287,17 @@ async def delete_message(update, context, messageid, delay=10):
 @decorators.Authorization
 async def button_press(update, context):
     """Function to handle the button press"""
-    info_message = update_info_message()
     callback_query = update.callback_query
+    chatid = callback_query.message.chat_id
+    info_message = update_info_message(chatid)
     await callback_query.answer()
     data = callback_query.data
     banner = strings['message_banner'][get_current_lang()]
     if data.endswith("ENGINE"):
         data = data[:-6]
-        update_ENGINE(data)
+        update_ENGINE(data, chatid)
         try:
-            info_message = update_info_message()
+            info_message = update_info_message(chatid)
             if  info_message + banner != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message + banner),
@@ -317,7 +322,7 @@ async def button_press(update, context):
     elif "language" in data:
         update_language()
         update_ENGINE()
-        info_message = update_info_message()
+        info_message = update_info_message(chatid)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
@@ -328,7 +333,7 @@ async def button_press(update, context):
             PLUGINS[data] = not PLUGINS[data]
         except:
             setattr(config, data, not getattr(config, data))
-        info_message = update_info_message()
+        info_message = update_info_message(chatid)
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
@@ -339,7 +344,8 @@ async def button_press(update, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def info(update, context):
-    info_message = update_info_message()
+    chatid = update.message.chat_id
+    info_message = update_info_message(chatid)
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message()), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.GroupAuthorization
@@ -354,7 +360,9 @@ async def handle_pdf(update, context):
     extracted_text_with_prompt = Document_extract(file_url)
     robot, role = get_robot()
     robot.add_to_conversation(extracted_text_with_prompt, role, str(update.effective_chat.id))
-    if config.CLAUDE_API and "claude-3" in config.GPT_ENGINE:
+    chatid = update.message.chat_id
+    engine = get_ENGINE(chatid)
+    if config.CLAUDE_API and "claude-3" in engine:
         robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(update.effective_chat.id))
     message = (
         f"文档上传成功！\n\n"
@@ -378,7 +386,7 @@ async def handle_photo(update, context):
     image_url = photo_file.file_path
 
     robot, role = get_robot()
-    message = get_image_message(image_url, [])
+    message = get_image_message(image_url, [], chatid)
 
     robot.add_to_conversation(message, role, str(chatid))
     # if config.CLAUDE_API and "claude-3" in config.GPT_ENGINE:
@@ -473,7 +481,7 @@ if __name__ == '__main__':
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("pic", image, block = False))
-    application.add_handler(CommandHandler("search", lambda update, context: command_bot(update, context, prompt="search: ", title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command="search")))
+    application.add_handler(CommandHandler("search", lambda update, context: command_bot(update, context, prompt="search: ", has_command="search")))
     application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(CommandHandler("reset", reset_chat))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese", robot=config.translate_bot)))
@@ -481,8 +489,8 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("info", info))
     application.add_handler(InlineQueryHandler(inlinequery))
     application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC, handle_pdf))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
-    application.add_handler(MessageHandler(filters.CAPTION & filters.PHOTO & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, title=f"`🤖️ {config.GPT_ENGINE}`\n\n", robot=config.ChatGPTbot, has_command=False)))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
+    application.add_handler(MessageHandler(filters.CAPTION & filters.PHOTO & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
     application.add_handler(MessageHandler(~filters.CAPTION & filters.PHOTO & ~filters.COMMAND, handle_photo))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
