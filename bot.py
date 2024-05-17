@@ -30,7 +30,7 @@ from config import (
 from utils.i18n import strings
 
 from telegram.constants import ChatAction
-from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update
+from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -176,7 +176,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
         parse_mode='MarkdownV2',
         reply_to_message_id=messageid,
     )
-    messageid = message.message_id
+    answer_messageid = message.message_id
     pass_history = config.PASS_HISTORY
     image_has_send = 0
 
@@ -196,11 +196,11 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
                 tmpresult = data
             history = robot.conversation[str(chatid)]
             if history[-1]['role'] == "function" and history[-1]['name'] == "generate_image" and not image_has_send:
-                await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)
+                await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=answer_messageid)
                 image_has_send = 1
             modifytime = modifytime + 1
             if (modifytime % Frequency_Modification == 0 and lastresult != tmpresult) or "🌐" in data:
-                await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+                await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
                 lastresult = tmpresult
     except Exception as e:
         print('\033[31m')
@@ -211,23 +211,30 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             robot.reset(convo_id=str(chatid), system_prompt=config.systemprompt)
         tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
-    if lastresult != tmpresult and messageid:
+    if lastresult != tmpresult and answer_messageid:
         if "Can't parse entities: can't find end of code entity at byte offset" in tmpresult:
             # await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=tmpresult, disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
             await update.message.reply_text(tmpresult)
             print(escape(tmpresult))
         else:
-            await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
-
-import time
-async def delete_message(update, context, messageid, delay=10):
-    time.sleep(delay)
-    try:
-        await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=messageid)
-    except Exception as e:
-        print('\033[31m')
-        print("error", e)
-        print('\033[0m')
+            sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+    if config.FOLLOW_UP:
+        prompt = (
+            f"You are a professional Q&A expert. You will now be given reference information. Based on the reference information, please help me ask three most relevant questions that you most want to know from my perspective. Be concise and to the point. Do not have numbers in front of questions. Separate each question with a line break. Only output three questions in {config.LANGUAGE}, no need for any explanation. reference infomation is provided inside <infomation></infomation> XML tags."
+            "Here is the reference infomation, inside <infomation></infomation> XML tags:"
+            "<infomation>"
+            "{}"
+            "</infomation>"
+        ).format("\n\n".join(tmpresult.split("\n\n")[1:]))
+        result = config.SummaryBot.ask(prompt, convo_id=str(chatid), pass_history=False).split('\n')
+        keyboard = []
+        result = [i for i in result if i.strip() and len(i) > 5]
+        print(result)
+        for ques in result:
+            keyboard.append([KeyboardButton(ques)])
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+        await context.bot.delete_message(chat_id=chatid, message_id=sent_message.message_id)
+        await update.message.reply_text(text=escape(tmpresult), parse_mode='MarkdownV2', reply_to_message_id=messageid, reply_markup=reply_markup)
 
 @decorators.AdminAuthorization
 @decorators.GroupAuthorization
@@ -361,9 +368,9 @@ async def inlinequery(update: Update, context) -> None:
     # if current_time - last_query_time < DEBOUNCE_TIME:
     #     return
 
-    query = update.inline_query.query
-    # print(repr(query))
     chatid = update.effective_user.id
+    engine = get_ENGINE(chatid)
+    query = update.inline_query.query
     # 调用 getChatGPT 函数获取结果
     if (query.endswith(';') or query.endswith('；')) and query.strip():
         prompt = "Answer the following questions as concisely as possible:\n\n"
@@ -372,8 +379,9 @@ async def inlinequery(update: Update, context) -> None:
         results = [
             InlineQueryResultArticle(
                 id=str(chatid),
-                title="ChatGPT Response",
+                title=f"{engine}",
                 thumbnail_url="https://pb.yym68686.top/TTGk",
+                description=f"{result}",
                 input_message_content=InputTextMessageContent(escape(result), parse_mode='MarkdownV2')),
         ]
 
@@ -387,6 +395,7 @@ async def start(update, context): # 当用户输入/start时，返回文本
         # "欢迎访问 https://github.com/yym68686/ChatGPT-Telegram-Bot 查看源码\n\n"
         # "有 bug 可以联系 @yym68686"
     )
+
     await update.message.reply_text(escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def error(update, context):
@@ -450,6 +459,8 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("search", lambda update, context: command_bot(update, context, prompt="search: ", has_command="search")))
     application.add_handler(CallbackQueryHandler(button_press))
+    # application.add_handler(ChosenInlineResultHandler(chosen_inline_result))
+    # application.add_handler(MessageHandler(filters.TEXT & filters.VIA_BOT, handle_message))
     application.add_handler(CommandHandler("reset", reset_chat))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese", robot=config.translate_bot)))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.translate_bot)))

@@ -21,6 +21,7 @@ GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4o')
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 API = os.environ.get('API', None)
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
+FOLLOW_UP = (os.environ.get('FOLLOW_UP', "False") == "False") == False
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
@@ -108,14 +109,15 @@ def update_info_message(user_id = None):
         f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
     )
 
-ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None
+ChatGPTbot, SummaryBot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None, None
 def update_ENGINE(data = None, chat_id=None):
-    global Users, ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot
+    global Users, ChatGPTbot, SummaryBot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot
     if data:
         Users.set_config(chat_id, "engine", data)
     engine = Users.get_config(chat_id, "engine")
     if API:
         ChatGPTbot = chatgpt(api_key=f"{API}", engine=engine, system_prompt=systemprompt, temperature=temperature)
+        SummaryBot = chatgpt(api_key=f"{API}", engine="gpt-3.5-turbo", system_prompt=systemprompt, temperature=temperature)
         translate_bot = chatgpt(api_key=f"{API}", engine=engine, system_prompt=systemprompt, temperature=temperature)
     if CLAUDE_API and "claude-2.1" in engine:
         claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
