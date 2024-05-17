@@ -47,4 +47,8 @@ strings = {
         "zh": "旅行信息",
         "en": "Travel info",
     },
+    "IMAGE": {
+        "zh": "DALL·E 3",
+        "en": "DALL·E 3",
+    },
 }

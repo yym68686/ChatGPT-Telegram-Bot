@@ -12,11 +12,11 @@
   </a>
 </p>
 
-The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT models, including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALLE 3, Groq Mixtral-8x7b/LLaMA2-70b and the official Claude2.1/Claude3 opus/sonnet API. It enables users to engage in efficient conversations and information searches on Telegram.
+The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT models, including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALL·E 3, Groq Mixtral-8x7b/LLaMA2-70b and the official Claude2.1/Claude3 opus/sonnet API. It enables users to engage in efficient conversations and information searches on Telegram.
 
 ## ✨ Features
 
-- **Multiple AI Models**: Integrates a variety of AI models including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALLE 3, and Claude2.1 API.
+- **Multiple AI Models**: Integrates a variety of AI models including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALL·E 3 and Claude2.1 API.
 - **Powerful Online Search**: Supports online search with DuckDuckGo and Google, providing users with a robust information retrieval tool.
 - **User-friendly Interface**: Allows flexible model switching within the chat window and supports streaming output for a typewriter-like effect.
 - **Efficient Message Processing**: Asynchronously processes messages, answers questions in a multi-threaded manner, supports isolated dialogues, and provides unique dialogues for different users.
@@ -45,6 +45,7 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | CUSTOM_MODELS | Set up a list of custom model name. Connect the model name with a comma (','). | No |
 | GOOGLE_AI_API_KEY       | Google AI offical API key.                              | No |
 | GROQ_API_KEY       | Groq AI offical API key.                              | No |
+| CHAT_MODE       | Introduce multi-user mode, different users' configurations are not shared, the default is that each user has the same configuration, and the CHAT_MODE environment variable is used to control the configuration behavior. When CHAT_MODE is global, all users share the configuration. When CHAT_MODE is multiusers, user configurations are independent of each other.                             | No |
 
 ## Zeabur Remote Deployment (Recommended)
 

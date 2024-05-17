@@ -6,7 +6,7 @@ from utils.i18n import strings
 from datetime import datetime
 from ModelMerge.utils import prompt
 from ModelMerge.utils.scripts import get_encode_image
-from ModelMerge.models import chatgpt, claude, groq, claude3, gemini, dalle3
+from ModelMerge.models import chatgpt, claude, groq, claude3, gemini
 from ModelMerge.models.config import PLUGINS
 from telegram import InlineKeyboardButton
 
@@ -108,16 +108,15 @@ def update_info_message(user_id = None):
         f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
     )
 
-ChatGPTbot, translate_bot, dallbot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None, None
+ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None, None
 def update_ENGINE(data = None, chat_id=None):
-    global Users, ChatGPTbot, translate_bot, dallbot, claudeBot, claude3Bot, groqBot, gemini_Bot
+    global Users, ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot
     if data:
         Users.set_config(chat_id, "engine", data)
     engine = Users.get_config(chat_id, "engine")
     if API:
         ChatGPTbot = chatgpt(api_key=f"{API}", engine=engine, system_prompt=systemprompt, temperature=temperature)
         translate_bot = chatgpt(api_key=f"{API}", engine=engine, system_prompt=systemprompt, temperature=temperature)
-        dallbot = dalle3(api_key=f"{API}")
     if CLAUDE_API and "claude-2.1" in engine:
         claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
     if CLAUDE_API and "claude-3" in engine:
@@ -289,11 +288,11 @@ def update_model_buttons():
     return buttons
 
 def get_plugins_status(item):
-    return "✅" if PLUGINS[item] else "☑️"
+    return "✅ " if PLUGINS[item] else "☑️ "
 
 PASS_HISTORY = (os.environ.get('PASS_HISTORY', "True") == "False") == False
 def update_first_buttons_message():
-    history = "✅" if PASS_HISTORY else "☑️"
+    history = "✅ " if PASS_HISTORY else "☑️ "
 
     if LANGUAGE == "Simplified Chinese":
         lang = "zh"
@@ -305,18 +304,10 @@ def update_first_buttons_message():
         [
             InlineKeyboardButton(strings["button_change_model"][lang], callback_data="MODEL"),
             InlineKeyboardButton(strings['button_language'][lang], callback_data="language"),
-            InlineKeyboardButton(f"{history} {strings['button_history'][lang]}", callback_data="PASS_HISTORY"),
+            InlineKeyboardButton(f"{history}{strings['button_history'][lang]}", callback_data="PASS_HISTORY"),
         ],
     ]
     PLUGINS_LIST = list(PLUGINS.keys())
     buttons = create_buttons(PLUGINS_LIST, plugins_status=True, lang=lang, button_text=strings)
     first_buttons.extend(buttons)
-        # [
-        #     InlineKeyboardButton(f"{get_plugins_status('SEARCH')}{strings['SEARCH'][lang]}", callback_data='SEARCH'),
-        #     InlineKeyboardButton(f"{get_plugins_status('DATE')}{strings['DATE'][lang]}", callback_data='DATE'),
-        # ],
-        # [
-        #     InlineKeyboardButton(f"{get_plugins_status('URL')}{strings['URL'][lang]}", callback_data='URL'),
-        #     InlineKeyboardButton(f"{get_plugins_status('VERSION')}{strings['VERSION'][lang]}", callback_data='VERSION'),
-        # ],
     return first_buttons

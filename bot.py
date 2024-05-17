@@ -178,6 +178,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     )
     messageid = message.message_id
     pass_history = config.PASS_HISTORY
+    image_has_send = 0
 
     try:
         for data in robot.ask_stream(text, convo_id=str(chatid), pass_history=pass_history):
@@ -193,6 +194,10 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
                 tmpresult = claude_replace(tmpresult)
             if "🌐" in data:
                 tmpresult = data
+            history = robot.conversation[str(chatid)]
+            if history[-1]['role'] == "function" and history[-1]['name'] == "generate_image" and not image_has_send:
+                await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)
+                image_has_send = 1
             modifytime = modifytime + 1
             if (modifytime % Frequency_Modification == 0 and lastresult != tmpresult) or "🌐" in data:
                 await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
@@ -213,64 +218,6 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             print(escape(tmpresult))
         else:
             await context.bot.edit_message_text(chat_id=chatid, message_id=messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
-
-@decorators.GroupAuthorization
-@decorators.Authorization
-async def image(update, context):
-    if update.edited_message:
-        message = update.edited_message.text if config.NICK is None else update.edited_message.text[botNicKLength:].strip() if update.edited_message.text[:botNicKLength].lower() == botNick else None
-        rawtext = update.edited_message.text
-        chatid = update.edited_message.chat_id
-        messageid = update.edited_message.message_id
-    else:
-        message = update.message.text if config.NICK is None else update.message.text[botNicKLength:].strip() if update.message.text[:botNicKLength].lower() == botNick else None
-        rawtext = update.message.text
-        chatid = update.message.chat_id
-        messageid = update.message.message_id
-    print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
-
-    if (len(context.args) == 0):
-        message = (
-            f"格式错误哦~，示例：\n\n"
-            f"`/pic 一只可爱长毛金渐层趴在路由器上`\n\n"
-            f"👆点击上方命令复制格式\n\n"
-        )
-        await context.bot.send_message(chat_id=chatid, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-        return
-    message = ' '.join(context.args)
-    result = ""
-    robot = config.dallbot
-    text = message
-    message = await context.bot.send_message(
-        chat_id=chatid,
-        text="生成中💭",
-        parse_mode='MarkdownV2',
-        reply_to_message_id=messageid,
-    )
-    start_messageid = message.message_id
-
-    try:
-        for data in robot.generate(text):
-            result = data
-            await context.bot.delete_message(chat_id=chatid, message_id=start_messageid)
-            await context.bot.send_photo(chat_id=chatid, photo=result, reply_to_message_id=messageid)
-    except Exception as e:
-        print('\033[31m')
-        print(e)
-        print('\033[0m')
-        if "You exceeded your current quota, please check your plan and billing details." in str(e):
-            print("OpenAI api 已过期！")
-            result += "OpenAI api 已过期！"
-            config.API = ''
-        elif "content_policy_violation" in str(e) or "violates OpenAI's policies" in str(e):
-            result += "当前 prompt 未能成功生成图片，可能因为版权，政治，色情，暴力，种族歧视等违反 OpenAI 的内容政策😣，换句话试试吧～"
-        elif "server is busy" in str(e):
-            result += "服务器繁忙，请稍后再试～"
-        elif "billing_hard_limit_reached" in str(e):
-            result += "当前账号余额不足～"
-        else:
-            result += f"`{e}`"
-        await context.bot.edit_message_text(chat_id=chatid, message_id=start_messageid, text=escape(result), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 import time
 async def delete_message(update, context, messageid, delay=10):
@@ -440,7 +387,6 @@ async def post_init(application: Application) -> None:
         BotCommand('en2zh', 'translate to Chinese'),
         BotCommand('zh2en', 'translate to English'),
         BotCommand('search', 'search Google or duckduckgo'),
-        BotCommand('pic', 'Generate image'),
         BotCommand('start', 'Start the bot'),
     ])
 
@@ -480,7 +426,6 @@ if __name__ == '__main__':
     )
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("pic", image, block = False))
     application.add_handler(CommandHandler("search", lambda update, context: command_bot(update, context, prompt="search: ", has_command="search")))
     application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(CommandHandler("reset", reset_chat))
@@ -489,7 +434,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("info", info))
     application.add_handler(InlineQueryHandler(inlinequery))
     application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC, handle_pdf))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False), block = False))
     application.add_handler(MessageHandler(filters.CAPTION & filters.PHOTO & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
     application.add_handler(MessageHandler(~filters.CAPTION & filters.PHOTO & ~filters.COMMAND, handle_photo))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
