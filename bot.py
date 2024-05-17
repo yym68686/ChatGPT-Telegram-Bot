@@ -343,19 +343,41 @@ async def handle_photo(update, context):
     )
     await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
+# DEBOUNCE_TIME = 4
 @decorators.GroupAuthorization
 @decorators.Authorization
-async def inlinequery(update, context):
+async def inlinequery(update: Update, context) -> None:
     """Handle the inline query."""
-    query = update.inline_query.query
-    results = [
-        InlineQueryResultArticle(
-            id=update.effective_user.id,
-            title="Reverse",
-            input_message_content=InputTextMessageContent(query[::-1], parse_mode='MarkdownV2'))
-    ]
+    # current_time = time.time()
 
-    await update.inline_query.answer(results)
+    # # 获取上次查询时间
+    # if context.user_data == {}:
+    #     context.user_data['last_query_time'] = current_time
+    # last_query_time = context.user_data.get('last_query_time', 0)
+    # context.user_data['last_query_time'] = current_time
+
+    # # 如果距离上次查询时间不足去抖动时间，则跳过处理
+    # print("current_time - last_query_time", current_time - last_query_time)
+    # if current_time - last_query_time < DEBOUNCE_TIME:
+    #     return
+
+    query = update.inline_query.query
+    # print(repr(query))
+    chatid = update.effective_user.id
+    # 调用 getChatGPT 函数获取结果
+    if (query.endswith(';') or query.endswith('；')) and query.strip():
+        prompt = "Answer the following questions as concisely as possible:\n\n"
+        result = config.ChatGPTbot.ask(prompt + query, convo_id=str(chatid), pass_history=False)
+
+        results = [
+            InlineQueryResultArticle(
+                id=str(chatid),
+                title="ChatGPT Response",
+                thumbnail_url="https://pb.yym68686.top/TTGk",
+                input_message_content=InputTextMessageContent(escape(result), parse_mode='MarkdownV2')),
+        ]
+
+        await update.inline_query.answer(results)
 
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
