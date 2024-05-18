@@ -2,7 +2,7 @@
 pytz
 python-dotenv
 md2tgmd==0.1.9
-ModelMerge==0.4.6
+ModelMerge==0.4.7
 fake_useragent
 oauth2client==3.0.0
 python-telegram-bot[webhooks,rate-limiter]==21.0.1
