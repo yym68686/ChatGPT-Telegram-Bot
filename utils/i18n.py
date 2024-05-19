@@ -51,4 +51,8 @@ strings = {
         "zh": "DALL·E 3",
         "en": "DALL·E 3",
     },
+    "CODE": {
+        "zh": "代码执行",
+        "en": "Code execution",
+    },
 }

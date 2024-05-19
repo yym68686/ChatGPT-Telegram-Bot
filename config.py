@@ -107,6 +107,7 @@ def update_info_message(user_id = None):
         f"**API_URL:** `{API_URL}`\n\n"
         f"**API:** `{replace_with_asterisk(API)}`\n\n"
         f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
+        f"**tokens usage:** `{get_robot(user_id)[0].tokens_usage[str(user_id)]}`\n\n"
     )
 
 ChatGPTbot, SummaryBot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None, None
