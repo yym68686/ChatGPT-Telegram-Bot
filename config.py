@@ -75,7 +75,7 @@ class UserConfig:
             user_id = "global"
         self.user_id = user_id
         if self.user_id not in self.users.keys():
-            self.users[self.user_id] = {"language": LANGUAGE, "engine": GPT_ENGINE}
+            self.users[self.user_id] = {"language": LANGUAGE, "engine": self.engine}
 
     def get_config(self, user_id = None, parameter_name = None):
         if parameter_name not in self.parameter_name_list:
@@ -96,7 +96,10 @@ class UserConfig:
             self.users[self.user_id][parameter_name] = value
 
 CHAT_MODE = os.environ.get('CHAT_MODE', "global")
-Users = UserConfig(mode=CHAT_MODE)
+if GPT_ENGINE != "gpt-4o":
+    Users = UserConfig(mode=CHAT_MODE, engine=GPT_ENGINE)
+else:
+    Users = UserConfig(mode=CHAT_MODE)
 
 def get_ENGINE(user_id = None):
     return Users.get_config(user_id, "engine")
