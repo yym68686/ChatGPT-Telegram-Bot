@@ -15,6 +15,7 @@ from config import (
     WEB_HOOK,
     PORT,
     BOT_TOKEN,
+    Users,
     update_first_buttons_message,
     update_model_buttons,
     get_current_lang,
@@ -181,7 +182,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     image_has_send = 0
 
     try:
-        for data in robot.ask_stream(text, convo_id=str(chatid), pass_history=pass_history):
+        for data in robot.ask_stream(text, convo_id=str(chatid), pass_history=pass_history, model=Users.get_config(chatid, "engine")):
             if "🌐" not in data:
                 result = result + data
             tmpresult = result
