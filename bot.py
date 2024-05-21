@@ -15,6 +15,7 @@ from config import (
     WEB_HOOK,
     PORT,
     BOT_TOKEN,
+    LONG_TEXT,
     Users,
     update_first_buttons_message,
     update_model_buttons,
@@ -144,18 +145,19 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 robot, role = get_robot(chatid)
             engine = get_ENGINE(chatid)
 
-            current_time = time.time()
-            if message_cache[chatid]["last_update"] == 0:
-                message_cache[chatid]["last_update"] = current_time
-            print("current_time - message_cache[chatid][]", current_time - message_cache[chatid]["last_update"])
-            if current_time - message_cache[chatid]["last_update"] < MERGE_INTERVAL:
-                message_cache[chatid]["messages"].append(message)
-                message_cache[chatid]["last_update"] = current_time
-                if len(message_cache[chatid]["messages"]) > 1:
-                    return
-            await asyncio.sleep(WAIT_INTERVAL)
-            message = "\n".join(message_cache[chatid]["messages"])
-            message_cache[chatid] = {"messages": [], "last_update": current_time}
+            if LONG_TEXT:
+                current_time = time.time()
+                if message_cache[chatid]["last_update"] == 0:
+                    message_cache[chatid]["last_update"] = current_time
+                print("cache interval:", current_time - message_cache[chatid]["last_update"])
+                if current_time - message_cache[chatid]["last_update"] < MERGE_INTERVAL:
+                    message_cache[chatid]["messages"].append(message)
+                    message_cache[chatid]["last_update"] = current_time
+                    if len(message_cache[chatid]["messages"]) > 1:
+                        return
+                await asyncio.sleep(WAIT_INTERVAL)
+                message = "\n".join(message_cache[chatid]["messages"])
+                message_cache[chatid] = {"messages": [], "last_update": 0}
 
             if "gpt" in engine or (config.CLAUDE_API and "claude-3" in engine):
                 message = [{"type": "text", "text": message}]

@@ -13,6 +13,7 @@ from telegram import InlineKeyboardButton
 NICK = os.environ.get('NICK', None)
 PORT = int(os.environ.get('PORT', '8080'))
 BOT_TOKEN = os.environ.get('BOT_TOKEN', None)
+LONG_TEXT = (os.environ.get('LONG_TEXT', "True") == "False") == False
 
 def replace_with_asterisk(string, start=10, end=45):
     return string[:start] + '*' * (end - start) + string[end:]
