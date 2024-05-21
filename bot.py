@@ -34,6 +34,10 @@ from telegram.constants import ChatAction
 from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
 
+import asyncio
+from collections import defaultdict
+import time
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 
@@ -99,6 +103,13 @@ async def GetMesage(update_message, context):
         message = rawtext = CutNICK(update_message.caption, update_message)
     return message, rawtext, image_url, chatid, messageid, reply_to_message_text
 
+# 定义一个缓存来存储消息
+message_cache = defaultdict(lambda: {"messages": [], "last_update": 0})
+
+# 合并消息的时间间隔（秒）
+MERGE_INTERVAL = 0.5
+WAIT_INTERVAL = 0.5
+
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
@@ -132,10 +143,23 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if robot is None:
                 robot, role = get_robot(chatid)
             engine = get_ENGINE(chatid)
+
+            current_time = time.time()
+            if message_cache[chatid]["last_update"] == 0:
+                message_cache[chatid]["last_update"] = current_time
+            print("current_time - message_cache[chatid][]", current_time - message_cache[chatid]["last_update"])
+            if current_time - message_cache[chatid]["last_update"] < MERGE_INTERVAL:
+                message_cache[chatid]["messages"].append(message)
+                message_cache[chatid]["last_update"] = current_time
+                if len(message_cache[chatid]["messages"]) > 1:
+                    return
+            await asyncio.sleep(WAIT_INTERVAL)
+            message = "\n".join(message_cache[chatid]["messages"])
+            message_cache[chatid] = {"messages": [], "last_update": current_time}
+
             if "gpt" in engine or (config.CLAUDE_API and "claude-3" in engine):
                 message = [{"type": "text", "text": message}]
             message = get_image_message(image_url, message, chatid)
-            # print("robot", robot)
             await context.bot.send_chat_action(chat_id=chatid, action=ChatAction.TYPING)
             title = f"`🤖️ {engine}`\n\n"
             await getChatGPT(update, context, title, robot, message, chatid, messageid)
