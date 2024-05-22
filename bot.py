@@ -6,7 +6,7 @@ import traceback
 import utils.decorators as decorators
 from md2tgmd import escape
 
-from ModelMerge.models.config import PLUGINS
+from ModelMerge.plugins import PLUGINS
 from ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
 from ModelMerge.utils.scripts import Document_extract, claude_replace
 
