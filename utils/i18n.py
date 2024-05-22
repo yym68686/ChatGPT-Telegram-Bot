@@ -7,9 +7,17 @@ strings = {
         "zh": "切换模型",
         "en": "Change model",
     },
-    "button_history": {
-        "zh": "历史记录",
-        "en": "Chat history",
+    "button_preferences": {
+        "zh": "偏好设置",
+        "en": "Preferences",
+    },
+    "button_language": {
+        "zh": "语言",
+        "en": "Language",
+    },
+    "button_plugins": {
+        "zh": "插件",
+        "en": "Plugins",
     },
     "button_back": {
         "zh": "⬅️ 返回",
@@ -18,6 +26,26 @@ strings = {
     "button_language": {
         "zh": "🇨🇳 中文",
         "en": "🇺🇸 English",
+    },
+    "English": {
+        "zh": "🇺🇸 英文",
+        "en": "🇺🇸 English",
+    },
+    "Simplified Chinese": {
+        "zh": "🇨🇳 中文",
+        "en": "🇨🇳 Simplified Chinese",
+    },
+    "PASS_HISTORY": {
+        "zh": "历史记录",
+        "en": "Chat history",
+    },
+    "FOLLOW_UP": {
+        "zh": "后续提问",
+        "en": "Follow-up question",
+    },
+    "LONG_TEXT": {
+        "zh": "长文本合并",
+        "en": "Long text merge",
     },
     "message_think": {
         "zh": "`思考中💭`",

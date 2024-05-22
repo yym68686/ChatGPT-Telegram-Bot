@@ -15,18 +15,21 @@ from config import (
     WEB_HOOK,
     PORT,
     BOT_TOKEN,
-    LONG_TEXT,
     Users,
+    PREFERENCES,
     update_first_buttons_message,
-    update_model_buttons,
     get_current_lang,
     update_info_message,
     update_ENGINE,
     reset_ENGINE,
-    update_language,
     get_robot,
     get_image_message,
-    get_ENGINE
+    get_ENGINE,
+    update_language_status,
+    update_models_buttons,
+    update_preferences_buttons,
+    update_language_buttons,
+    update_plugins_buttons,
 )
 
 from utils.i18n import strings
@@ -145,7 +148,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 robot, role = get_robot(chatid)
             engine = get_ENGINE(chatid)
 
-            if LONG_TEXT:
+            if PREFERENCES["LONG_TEXT"]:
                 current_time = time.time()
                 if message_cache[chatid]["last_update"] == 0:
                     message_cache[chatid]["last_update"] = current_time
@@ -204,7 +207,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
         reply_to_message_id=messageid,
     )
     answer_messageid = message.message_id
-    pass_history = config.PASS_HISTORY
+    pass_history = PREFERENCES["PASS_HISTORY"]
     image_has_send = 0
 
     try:
@@ -245,7 +248,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             print(escape(tmpresult))
         else:
             sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
-    if config.FOLLOW_UP:
+    if PREFERENCES["FOLLOW_UP"]:
         prompt = (
             f"You are a professional Q&A expert. You will now be given reference information. Based on the reference information, please help me ask three most relevant questions that you most want to know from my perspective. Be concise and to the point. Do not have numbers in front of questions. Separate each question with a line break. Only output three questions in {config.LANGUAGE}, no need for any explanation. reference infomation is provided inside <infomation></infomation> XML tags."
             "Here is the reference infomation, inside <infomation></infomation> XML tags:"
@@ -273,48 +276,97 @@ async def button_press(update, context):
     info_message = update_info_message(chatid)
     await callback_query.answer()
     data = callback_query.data
+    # print("data", data)
     banner = strings['message_banner'][get_current_lang()]
-    if data.endswith("ENGINE"):
-        data = data[:-6]
+    if data.endswith("_MODELS"):
+        data = data[:-7]
         update_ENGINE(data, chatid)
         try:
             info_message = update_info_message(chatid)
             if  info_message + banner != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message + banner),
-                    reply_markup=InlineKeyboardMarkup(update_model_buttons()),
+                    reply_markup=InlineKeyboardMarkup(update_models_buttons()),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
             logger.info(e)
             pass
-    elif "MODEL" in data:
+    elif data.startswith("MODELS"):
         message = await callback_query.edit_message_text(
             text=escape(info_message + banner),
-            reply_markup=InlineKeyboardMarkup(update_model_buttons()),
+            reply_markup=InlineKeyboardMarkup(update_models_buttons()),
             parse_mode='MarkdownV2'
         )
-    elif "BACK" in data:
+    elif data.endswith("_LANGUAGES"):
+        data = data[:-10]
+        # print("LANGUAGES data", data)
+        update_language_status(data)
+        try:
+            info_message = update_info_message(chatid)
+            if  info_message != callback_query.message.text:
+                message = await callback_query.edit_message_text(
+                    text=escape(info_message),
+                    reply_markup=InlineKeyboardMarkup(update_language_buttons()),
+                    parse_mode='MarkdownV2'
+                )
+        except Exception as e:
+            logger.info(e)
+            pass
+    elif data.startswith("LANGUAGE"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
+            reply_markup=InlineKeyboardMarkup(update_language_buttons()),
             parse_mode='MarkdownV2'
         )
-    elif "language" in data:
-        update_language()
-        update_ENGINE()
-        info_message = update_info_message(chatid)
+    if data.endswith("_PREFERENCES"):
+        data = data[:-12]
+        try:
+            PREFERENCES[data] = not PREFERENCES[data]
+        except Exception as e:
+            logger.info(e)
+        try:
+            info_message = update_info_message(chatid)
+            if  info_message != callback_query.message.text:
+                message = await callback_query.edit_message_text(
+                    text=escape(info_message),
+                    reply_markup=InlineKeyboardMarkup(update_preferences_buttons()),
+                    parse_mode='MarkdownV2'
+                )
+        except Exception as e:
+            logger.info(e)
+            pass
+    elif data.startswith("PREFERENCES"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
+            reply_markup=InlineKeyboardMarkup(update_preferences_buttons()),
             parse_mode='MarkdownV2'
         )
-    else:
+    if data.endswith("_PLUGINS"):
+        data = data[:-8]
         try:
             PLUGINS[data] = not PLUGINS[data]
-        except:
-            setattr(config, data, not getattr(config, data))
-        info_message = update_info_message(chatid)
+        except Exception as e:
+            logger.info(e)
+        try:
+            info_message = update_info_message(chatid)
+            if  info_message != callback_query.message.text:
+                message = await callback_query.edit_message_text(
+                    text=escape(info_message),
+                    reply_markup=InlineKeyboardMarkup(update_plugins_buttons()),
+                    parse_mode='MarkdownV2'
+                )
+        except Exception as e:
+            logger.info(e)
+            pass
+    elif data.startswith("PLUGINS"):
+        message = await callback_query.edit_message_text(
+            text=escape(info_message),
+            reply_markup=InlineKeyboardMarkup(update_plugins_buttons()),
+            parse_mode='MarkdownV2'
+        )
+
+    elif data.startswith("BACK"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
             reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),

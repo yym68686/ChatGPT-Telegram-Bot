@@ -13,7 +13,6 @@ from telegram import InlineKeyboardButton
 NICK = os.environ.get('NICK', None)
 PORT = int(os.environ.get('PORT', '8080'))
 BOT_TOKEN = os.environ.get('BOT_TOKEN', None)
-LONG_TEXT = (os.environ.get('LONG_TEXT', "True") == "False") == False
 
 def replace_with_asterisk(string, start=10, end=45):
     return string[:start] + '*' * (end - start) + string[end:]
@@ -22,7 +21,6 @@ GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4o')
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 API = os.environ.get('API', None)
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
-FOLLOW_UP = (os.environ.get('FOLLOW_UP', "False") == "False") == False
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
@@ -31,32 +29,20 @@ current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
 
 LANGUAGE = os.environ.get('LANGUAGE', 'English')
+
+LANGUAGES = {
+    "English": False,
+    "Simplified Chinese": False,
+    # "France": False,
+}
+
+LANGUAGES_TO_CODE = {
+    "English": "en",
+    "Simplified Chinese": "zh",
+    # "France": "fr",
+}
 systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUAGE, Current_Date))
 claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt.format(LANGUAGE))
-
-def get_current_lang():
-    if LANGUAGE == "Simplified Chinese":
-        lang = "zh"
-    else:
-        lang = "en"
-    return lang
-
-def update_language():
-    global LANGUAGE, systemprompt, claude_systemprompt
-    try:
-        if LANGUAGE == "Simplified Chinese":
-            LANGUAGE = "English"
-            systemprompt = systemprompt.replace("Simplified Chinese", "English")
-            claude_systemprompt = claude_systemprompt.replace("Simplified Chinese", "English")
-        else:
-            LANGUAGE = "Simplified Chinese"
-            systemprompt = systemprompt.replace("English", "Simplified Chinese")
-            claude_systemprompt = claude_systemprompt.replace("English", "Simplified Chinese")
-    except:
-        pass
-
-temperature = float(os.environ.get('temperature', '0.5'))
-CLAUDE_API = os.environ.get('claude_api_key', None)
 
 class UserConfig:
     def __init__(self, user_id: str = None, language="English", engine="gpt-4o", mode="global"):
@@ -105,14 +91,8 @@ else:
 def get_ENGINE(user_id = None):
     return Users.get_config(user_id, "engine")
 
-def update_info_message(user_id = None):
-    return (
-        f"**Model:** `{get_ENGINE(user_id)}`\n\n"
-        f"**API_URL:** `{API_URL}`\n\n"
-        f"**API:** `{replace_with_asterisk(API)}`\n\n"
-        f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
-        f"**tokens usage:** `{get_robot(user_id)[0].tokens_usage[str(user_id)]}`\n\n"
-    )
+temperature = float(os.environ.get('temperature', '0.5'))
+CLAUDE_API = os.environ.get('claude_api_key', None)
 
 ChatGPTbot, SummaryBot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None, None
 def update_ENGINE(data = None, chat_id=None):
@@ -133,7 +113,37 @@ def update_ENGINE(data = None, chat_id=None):
     if GOOGLE_AI_API_KEY and "gemini" in engine:
         gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature)
 
-update_ENGINE()
+def update_language_status(language, chat_id=None):
+    global LANGUAGES, LANGUAGE, systemprompt, claude_systemprompt
+    LAST_LANGUAGE = LANGUAGE
+    LANGUAGE = language
+    # print("LANGUAGE", LANGUAGE)
+    for lang in LANGUAGES:
+        LANGUAGES[lang] = False
+
+    LANGUAGES[language] = True
+    try:
+        systemprompt = systemprompt.replace(LAST_LANGUAGE, "English")
+        claude_systemprompt = claude_systemprompt.replace(LAST_LANGUAGE, "English")
+    except Exception as e:
+        print("error:", e)
+        pass
+    update_ENGINE()
+    # Users.set_config(chat_id, "language", language)
+    # print("update_language_status", LANGUAGES)
+
+update_language_status(LANGUAGE)
+
+
+
+def update_info_message(user_id = None):
+    return (
+        f"**Model:** `{get_ENGINE(user_id)}`\n\n"
+        f"**API_URL:** `{API_URL}`\n\n"
+        f"**API:** `{replace_with_asterisk(API)}`\n\n"
+        f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
+        f"**tokens usage:** `{get_robot(user_id)[0].tokens_usage[str(user_id)]}`\n\n"
+    )
 
 def reset_ENGINE(chat_id, message=None):
     global ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot, systemprompt, claude_systemprompt
@@ -215,7 +225,11 @@ def delete_model_digit_tail(lst):
             else:
                 return "-".join(lst[:i + 1])
 
-def create_buttons(strings, plugins_status=False, lang="English", button_text=None):
+def get_status(setting, item):
+    print(setting)
+    return "✅ " if setting[item] else "☑️ "
+
+def create_buttons(strings, plugins_status=False, lang="English", button_text=None, Suffix="", setting=""):
     # 过滤出长度小于15的字符串
     filtered_strings1 = [s for s in strings if len(delete_model_digit_tail(s.split("-"))) <= 14]
     filtered_strings2 = [s for s in strings if len(delete_model_digit_tail(s.split("-"))) > 14]
@@ -225,9 +239,9 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
 
     for string in filtered_strings1:
         if plugins_status:
-            button = InlineKeyboardButton(f"{get_plugins_status(string)}{button_text[string][lang]}", callback_data=string)
+            button = InlineKeyboardButton(f"{get_status(setting, string)}{button_text[string][lang]}", callback_data=string + Suffix)
         else:
-            button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + "ENGINE")
+            button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + Suffix)
         temp.append(button)
 
         # 每两个按钮一组
@@ -241,9 +255,9 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
 
     for string in filtered_strings2:
         if plugins_status:
-            button = InlineKeyboardButton(f"{get_plugins_status(string)}{button_text[string][lang]}", callback_data=string)
+            button = InlineKeyboardButton(f"{get_status(setting, string)}{button_text[string][lang]}", callback_data=string + Suffix)
         else:
-            button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + "ENGINE")
+            button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + Suffix)
         buttons.append([button])
 
     return buttons
@@ -281,12 +295,17 @@ if CUSTOM_MODELS_LIST:
 
     initial_model.extend([model for model in CUSTOM_MODELS_LIST if model not in initial_model and model[0] != "-"])
 
-def update_model_buttons():
-    buttons = create_buttons(initial_model)
-    if LANGUAGE == "Simplified Chinese":
-        lang = "zh"
-    else:
-        lang = "en"
+def get_current_lang():
+    for lang, is_active in LANGUAGES.items():
+        # print(lang, is_active)
+        if is_active:
+            return LANGUAGES_TO_CODE[lang]
+
+def update_language_buttons():
+    lang = get_current_lang()
+    lang_list = list(LANGUAGES.keys())
+    update_language_status(LANGUAGE)
+    buttons = create_buttons(lang_list, plugins_status=True, lang=lang, button_text=strings, setting=LANGUAGES, Suffix="_LANGUAGES")
     buttons.append(
         [
             InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
@@ -294,27 +313,54 @@ def update_model_buttons():
     )
     return buttons
 
-def get_plugins_status(item):
-    return "✅ " if PLUGINS[item] else "☑️ "
-
-PASS_HISTORY = (os.environ.get('PASS_HISTORY', "True") == "False") == False
 def update_first_buttons_message():
-    history = "✅ " if PASS_HISTORY else "☑️ "
-
-    if LANGUAGE == "Simplified Chinese":
-        lang = "zh"
-    else:
-        lang = "en"
-
-
+    lang = get_current_lang()
     first_buttons = [
         [
-            InlineKeyboardButton(strings["button_change_model"][lang], callback_data="MODEL"),
-            InlineKeyboardButton(strings['button_language'][lang], callback_data="language"),
-            InlineKeyboardButton(f"{history}{strings['button_history'][lang]}", callback_data="PASS_HISTORY"),
+            InlineKeyboardButton(strings["button_change_model"][lang], callback_data="MODELS"),
+            InlineKeyboardButton(strings['button_preferences'][lang], callback_data="PREFERENCES"),
+        ],
+        [
+            InlineKeyboardButton(strings['button_language'][lang], callback_data="LANGUAGE"),
+            InlineKeyboardButton(strings['button_plugins'][lang], callback_data="PLUGINS"),
         ],
     ]
-    PLUGINS_LIST = list(PLUGINS.keys())
-    buttons = create_buttons(PLUGINS_LIST, plugins_status=True, lang=lang, button_text=strings)
-    first_buttons.extend(buttons)
     return first_buttons
+
+def update_models_buttons():
+    lang = get_current_lang()
+    buttons = create_buttons(initial_model, Suffix="_MODELS")
+    buttons.append(
+        [
+            InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
+        ],
+    )
+    return buttons
+
+def update_plugins_buttons():
+    lang = get_current_lang()
+    PLUGINS_LIST = list(PLUGINS.keys())
+    buttons = create_buttons(PLUGINS_LIST, plugins_status=True, lang=lang, button_text=strings, setting=PLUGINS, Suffix="_PLUGINS")
+    buttons.append(
+        [
+            InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
+        ],
+    )
+    return buttons
+
+PREFERENCES = {
+    "PASS_HISTORY": (os.environ.get('PASS_HISTORY', "True") == "False") == False,
+    "LONG_TEXT"   : (os.environ.get('LONG_TEXT', "True") == "False") == False,
+    "FOLLOW_UP"   : (os.environ.get('FOLLOW_UP', "False") == "False") == False,
+}
+
+def update_preferences_buttons():
+    lang = get_current_lang()
+    preferences_list = list(PREFERENCES.keys())
+    buttons = create_buttons(preferences_list, plugins_status=True, lang=lang, button_text=strings, setting=PREFERENCES, Suffix="_PREFERENCES")
+    buttons.append(
+        [
+            InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
+        ],
+    )
+    return buttons
