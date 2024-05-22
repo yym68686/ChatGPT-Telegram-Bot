@@ -7,7 +7,7 @@ from datetime import datetime
 from ModelMerge.utils import prompt
 from ModelMerge.utils.scripts import get_encode_image
 from ModelMerge.models import chatgpt, claude, groq, claude3, gemini
-from ModelMerge.models.config import PLUGINS
+from ModelMerge.plugins import PLUGINS
 from telegram import InlineKeyboardButton
 
 NICK = os.environ.get('NICK', None)
