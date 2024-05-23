@@ -117,7 +117,6 @@ def update_language_status(language, chat_id=None):
     global LANGUAGES, LANGUAGE, systemprompt, claude_systemprompt
     LAST_LANGUAGE = LANGUAGE
     LANGUAGE = language
-    # print("LANGUAGE", LANGUAGE)
     for lang in LANGUAGES:
         LANGUAGES[lang] = False
 
@@ -130,7 +129,6 @@ def update_language_status(language, chat_id=None):
         pass
     update_ENGINE()
     # Users.set_config(chat_id, "language", language)
-    # print("update_language_status", LANGUAGES)
 
 update_language_status(LANGUAGE)
 
@@ -226,7 +224,6 @@ def delete_model_digit_tail(lst):
                 return "-".join(lst[:i + 1])
 
 def get_status(setting, item):
-    print(setting)
     return "✅ " if setting[item] else "☑️ "
 
 def create_buttons(strings, plugins_status=False, lang="English", button_text=None, Suffix="", setting=""):
@@ -297,7 +294,6 @@ if CUSTOM_MODELS_LIST:
 
 def get_current_lang():
     for lang, is_active in LANGUAGES.items():
-        # print(lang, is_active)
         if is_active:
             return LANGUAGES_TO_CODE[lang]
 
