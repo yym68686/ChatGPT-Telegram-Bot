@@ -15,7 +15,7 @@ PORT = int(os.environ.get('PORT', '8080'))
 BOT_TOKEN = os.environ.get('BOT_TOKEN', None)
 
 def replace_with_asterisk(string, start=10, end=45):
-    return string[:start] + '*' * (end - start) + string[end:]
+    return string[:start] + '*' * (end - start - 8) + string[end:]
 
 GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4o')
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
@@ -33,13 +33,13 @@ LANGUAGE = os.environ.get('LANGUAGE', 'English')
 LANGUAGES = {
     "English": False,
     "Simplified Chinese": False,
-    # "France": False,
+    "Traditional Chinese": False,
 }
 
 LANGUAGES_TO_CODE = {
     "English": "en",
     "Simplified Chinese": "zh",
-    # "France": "fr",
+    "Traditional Chinese": "zh-hk",
 }
 systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUAGE, Current_Date))
 claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt.format(LANGUAGE))
@@ -123,8 +123,8 @@ def update_language_status(language, chat_id=None):
 
     LANGUAGES[language] = True
     try:
-        systemprompt = systemprompt.replace(LAST_LANGUAGE, "English")
-        claude_systemprompt = claude_systemprompt.replace(LAST_LANGUAGE, "English")
+        systemprompt = systemprompt.replace(LAST_LANGUAGE, LANGUAGE)
+        claude_systemprompt = claude_systemprompt.replace(LAST_LANGUAGE, LANGUAGE)
     except Exception as e:
         print("error:", e)
         pass
