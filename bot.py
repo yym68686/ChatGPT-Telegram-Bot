@@ -35,7 +35,7 @@ from config import (
 from utils.i18n import strings
 
 from telegram.constants import ChatAction
-from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton
+from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
 
 import asyncio
@@ -184,10 +184,13 @@ async def reset_chat(update, context):
         message = ' '.join(context.args)
     reset_ENGINE(update.message.chat_id, message)
 
+    remove_keyboard = ReplyKeyboardRemove()
     await context.bot.send_message(
         chat_id=update.message.chat_id,
         text="重置成功！",
+        reply_markup=remove_keyboard,
     )
+
 
 async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     result = ""
