@@ -7,7 +7,6 @@ from datetime import datetime
 from ModelMerge.utils import prompt
 from ModelMerge.utils.scripts import get_encode_image
 from ModelMerge.models import chatgpt, claude, groq, claude3, gemini
-from ModelMerge.plugins import PLUGINS
 from telegram import InlineKeyboardButton
 
 NICK = os.environ.get('NICK', None)
@@ -27,6 +26,12 @@ GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
 
 current_date = datetime.now()
 Current_Date = current_date.strftime("%Y-%m-%d")
+
+PREFERENCES = {
+    "PASS_HISTORY": (os.environ.get('PASS_HISTORY', "True") == "False") == False,
+    "LONG_TEXT"   : (os.environ.get('LONG_TEXT', "True") == "False") == False,
+    "FOLLOW_UP"   : (os.environ.get('FOLLOW_UP', "False") == "False") == False,
+}
 
 LANGUAGE = os.environ.get('LANGUAGE', 'English')
 
@@ -297,11 +302,9 @@ def get_current_lang():
         if is_active:
             return LANGUAGES_TO_CODE[lang]
 
-def update_language_buttons():
+def update_models_buttons():
     lang = get_current_lang()
-    lang_list = list(LANGUAGES.keys())
-    update_language_status(LANGUAGE)
-    buttons = create_buttons(lang_list, plugins_status=True, lang=lang, button_text=strings, setting=LANGUAGES, Suffix="_LANGUAGES")
+    buttons = create_buttons(initial_model, Suffix="_MODELS")
     buttons.append(
         [
             InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
@@ -323,37 +326,10 @@ def update_first_buttons_message():
     ]
     return first_buttons
 
-def update_models_buttons():
+def update_menu_buttons(setting, _strings):
     lang = get_current_lang()
-    buttons = create_buttons(initial_model, Suffix="_MODELS")
-    buttons.append(
-        [
-            InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
-        ],
-    )
-    return buttons
-
-def update_plugins_buttons():
-    lang = get_current_lang()
-    PLUGINS_LIST = list(PLUGINS.keys())
-    buttons = create_buttons(PLUGINS_LIST, plugins_status=True, lang=lang, button_text=strings, setting=PLUGINS, Suffix="_PLUGINS")
-    buttons.append(
-        [
-            InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
-        ],
-    )
-    return buttons
-
-PREFERENCES = {
-    "PASS_HISTORY": (os.environ.get('PASS_HISTORY', "True") == "False") == False,
-    "LONG_TEXT"   : (os.environ.get('LONG_TEXT', "True") == "False") == False,
-    "FOLLOW_UP"   : (os.environ.get('FOLLOW_UP', "False") == "False") == False,
-}
-
-def update_preferences_buttons():
-    lang = get_current_lang()
-    preferences_list = list(PREFERENCES.keys())
-    buttons = create_buttons(preferences_list, plugins_status=True, lang=lang, button_text=strings, setting=PREFERENCES, Suffix="_PREFERENCES")
+    setting_list = list(setting.keys())
+    buttons = create_buttons(setting_list, plugins_status=True, lang=lang, button_text=strings, setting=setting, Suffix=_strings)
     buttons.append(
         [
             InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),

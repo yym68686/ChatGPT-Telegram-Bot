@@ -17,6 +17,7 @@ from config import (
     BOT_TOKEN,
     Users,
     PREFERENCES,
+    LANGUAGES,
     update_first_buttons_message,
     get_current_lang,
     update_info_message,
@@ -27,9 +28,7 @@ from config import (
     get_ENGINE,
     update_language_status,
     update_models_buttons,
-    update_preferences_buttons,
-    update_language_buttons,
-    update_plugins_buttons,
+    update_menu_buttons,
 )
 
 from utils.i18n import strings
@@ -303,14 +302,13 @@ async def button_press(update, context):
         )
     elif data.endswith("_LANGUAGES"):
         data = data[:-10]
-        # print("LANGUAGES data", data)
         update_language_status(data)
         try:
             info_message = update_info_message(chatid)
             if  info_message != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message),
-                    reply_markup=InlineKeyboardMarkup(update_language_buttons()),
+                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES")),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -319,7 +317,7 @@ async def button_press(update, context):
     elif data.startswith("LANGUAGE"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_language_buttons()),
+            reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES")),
             parse_mode='MarkdownV2'
         )
     if data.endswith("_PREFERENCES"):
@@ -333,7 +331,7 @@ async def button_press(update, context):
             if  info_message != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message),
-                    reply_markup=InlineKeyboardMarkup(update_preferences_buttons()),
+                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES")),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -342,7 +340,7 @@ async def button_press(update, context):
     elif data.startswith("PREFERENCES"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_preferences_buttons()),
+            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES")),
             parse_mode='MarkdownV2'
         )
     if data.endswith("_PLUGINS"):
@@ -356,7 +354,7 @@ async def button_press(update, context):
             if  info_message != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message),
-                    reply_markup=InlineKeyboardMarkup(update_plugins_buttons()),
+                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS")),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -365,7 +363,7 @@ async def button_press(update, context):
     elif data.startswith("PLUGINS"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_plugins_buttons()),
+            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS")),
             parse_mode='MarkdownV2'
         )
 
