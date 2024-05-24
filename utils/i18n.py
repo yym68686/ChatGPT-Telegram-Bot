@@ -104,4 +104,9 @@ strings = {
         "en": "Code execution",
         "zh-hk": "代碼執行",
     },
+    "ARXIV": {
+        "zh": "ArXiv 论文",
+        "en": "ArXiv paper",
+        "zh-hk": "ArXiv 論文",
+    },
 }
