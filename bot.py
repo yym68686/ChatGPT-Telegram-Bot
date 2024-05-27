@@ -175,6 +175,15 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             reply_to_message_id=messageid,
         )
 
+async def delete_message(update, context, messageid, delay=60):
+    await asyncio.sleep(delay)
+    try:
+        await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=messageid)
+    except Exception as e:
+        print('\033[31m')
+        print("error", e)
+        print('\033[0m')
+
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def reset_chat(update, context):
@@ -184,12 +193,12 @@ async def reset_chat(update, context):
     reset_ENGINE(update.message.chat_id, message)
 
     remove_keyboard = ReplyKeyboardRemove()
-    await context.bot.send_message(
+    message = await context.bot.send_message(
         chat_id=update.message.chat_id,
         text="重置成功！",
         reply_markup=remove_keyboard,
     )
-
+    await delete_message(update, context, message.message_id)
 
 async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     result = ""
@@ -381,6 +390,7 @@ async def info(update, context):
     chatid = update.message.chat_id
     info_message = update_info_message(chatid)
     message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message()), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    await delete_message(update, context, message.message_id)
 
 @decorators.GroupAuthorization
 @decorators.Authorization
@@ -401,7 +411,9 @@ async def handle_pdf(update, context):
     message = (
         f"文档上传成功！\n\n"
     )
-    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    await delete_message(update, context, message.message_id)
+
 
 @decorators.GroupAuthorization
 @decorators.Authorization
@@ -428,7 +440,8 @@ async def handle_photo(update, context):
     message = (
         f"图片上传成功！\n\n"
     )
-    await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    await delete_message(update, context, message.message_id)
 
 # DEBOUNCE_TIME = 4
 @decorators.GroupAuthorization
@@ -497,7 +510,7 @@ async def post_init(application: Application) -> None:
         BotCommand('reset', 'Reset the bot'),
         BotCommand('en2zh', 'translate to Chinese'),
         BotCommand('zh2en', 'translate to English'),
-        BotCommand('search', 'search Google or duckduckgo'),
+        # BotCommand('search', 'search Google or duckduckgo'),
         BotCommand('start', 'Start the bot'),
     ])
 
@@ -537,7 +550,7 @@ if __name__ == '__main__':
     )
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("search", lambda update, context: command_bot(update, context, prompt="search: ", has_command="search")))
+    # application.add_handler(CommandHandler("search", lambda update, context: command_bot(update, context, prompt="search: ", has_command="search")))
     application.add_handler(CallbackQueryHandler(button_press))
     # application.add_handler(ChosenInlineResultHandler(chosen_inline_result))
     # application.add_handler(MessageHandler(filters.TEXT & filters.VIA_BOT, handle_message))
