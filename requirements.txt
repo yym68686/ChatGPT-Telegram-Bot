@@ -1,7 +1,7 @@
 --index-url https://pypi.python.org/simple/
 pytz
 python-dotenv
-md2tgmd==0.2.0
+md2tgmd==0.2.1
 ModelMerge==0.6.0
 fake_useragent
 oauth2client==3.0.0
