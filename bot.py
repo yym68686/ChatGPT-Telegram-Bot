@@ -227,7 +227,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             if "🌐" in data:
                 tmpresult = data
             history = robot.conversation[str(chatid)]
-            if history[-1]['role'] == "function" and history[-1]['name'] == "generate_image" and not image_has_send:
+            if history[-1].get('name') == "generate_image" and not image_has_send:
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=answer_messageid)
                 image_has_send = 1
             modifytime = modifytime + 1
