@@ -149,7 +149,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 
             if PREFERENCES["LONG_TEXT"]:
                 async with lock:
-                    event.set()
+                    if len(message_cache[chatid]) == 0:
+                        event.set()
                     message_cache[chatid].append(message)
                     time_stamps[chatid].append(time.time())
                     if len(message_cache[chatid]) > 1:
@@ -158,7 +159,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 while True:
                     event.clear()
                     try:
-                        await asyncio.wait_for(event.wait(), timeout=0.5)
+                        await asyncio.wait_for(event.wait(), timeout=0.78)
                     except asyncio.TimeoutError:
                         break
 
@@ -170,6 +171,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 
                 message = "\n".join(message_cache[chatid])
                 message_cache[chatid] = []
+                time_stamps[chatid] = []
 
             if "gpt" in engine or (config.CLAUDE_API and "claude-3" in engine):
                 message = [{"type": "text", "text": message}]
