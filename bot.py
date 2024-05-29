@@ -165,7 +165,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 message = [{"type": "text", "text": message}]
             message = get_image_message(image_url, message, chatid)
             await context.bot.send_chat_action(chat_id=chatid, action=ChatAction.TYPING)
-            title = f"`🤖️ {engine}`\n\n"
+            if PREFERENCES["TITLE"]:
+                title = f"`🤖️ {engine}`\n\n"
             await getChatGPT(update, context, title, robot, message, chatid, messageid)
     else:
         message = await context.bot.send_message(
@@ -205,8 +206,9 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     text = message
     modifytime = 0
     time_out = 600
+    model_name = Users.get_config(chatid, "engine")
     Frequency_Modification = 20
-    if "gemini" in title:
+    if "gemini" in model_name:
         Frequency_Modification = 2
     lastresult = title
     tmpresult = ""
@@ -222,7 +224,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
     image_has_send = 0
 
     try:
-        for data in robot.ask_stream(text, convo_id=str(chatid), pass_history=pass_history, model=Users.get_config(chatid, "engine")):
+        for data in robot.ask_stream(text, convo_id=str(chatid), pass_history=pass_history, model=model_name):
             if "🌐" not in data:
                 result = result + data
             tmpresult = result
@@ -231,7 +233,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             if sum([line.strip().startswith("```") for line in result.split('\n')]) % 2 != 0:
                 tmpresult = tmpresult + "\n```"
             tmpresult = title + tmpresult
-            if "claude" in title:
+            if "claude" in model_name:
                 tmpresult = claude_replace(tmpresult)
             if "🌐" in data:
                 tmpresult = data

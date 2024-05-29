@@ -59,6 +59,11 @@ strings = {
         "en": "Long text merge",
         "zh-hk": "長文本合併",
     },
+    "TITLE": {
+        "zh": "标题",
+        "en": "Title",
+        "zh-hk": "標題",
+    },
     "message_think": {
         "zh": "`思考中💭`",
         "en": "`thinking💭`",
