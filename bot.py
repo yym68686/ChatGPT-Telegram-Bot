@@ -157,6 +157,10 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                         return
 
                 while True:
+                    if len(message_cache[chatid]) == 1:
+                        print("first message len:", len(message_cache[chatid][0]))
+                        if len(message_cache[chatid][0]) < 2000:
+                            break
                     event.clear()
                     try:
                         await asyncio.wait_for(event.wait(), timeout=0.78)
