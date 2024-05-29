@@ -38,6 +38,9 @@ from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle,
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
 
 import asyncio
+lock = asyncio.Lock()
+event = asyncio.Event()
+
 from collections import defaultdict
 import time
 
@@ -107,11 +110,8 @@ async def GetMesage(update_message, context):
     return message, rawtext, image_url, chatid, messageid, reply_to_message_text
 
 # 定义一个缓存来存储消息
-message_cache = defaultdict(lambda: {"messages": [], "last_update": 0})
-
-# 合并消息的时间间隔（秒）
-MERGE_INTERVAL = 0.5
-WAIT_INTERVAL = 0.5
+message_cache = defaultdict(lambda: [])
+time_stamps = defaultdict(lambda: [])
 
 @decorators.GroupAuthorization
 @decorators.Authorization
@@ -148,18 +148,28 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             engine = get_ENGINE(chatid)
 
             if PREFERENCES["LONG_TEXT"]:
-                current_time = time.time()
-                if message_cache[chatid]["last_update"] == 0:
-                    message_cache[chatid]["last_update"] = current_time
-                print("cache interval:", current_time - message_cache[chatid]["last_update"])
-                if current_time - message_cache[chatid]["last_update"] < MERGE_INTERVAL:
-                    message_cache[chatid]["messages"].append(message)
-                    message_cache[chatid]["last_update"] = current_time
-                    if len(message_cache[chatid]["messages"]) > 1:
+                async with lock:
+                    event.set()
+                    message_cache[chatid].append(message)
+                    time_stamps[chatid].append(time.time())
+                    if len(message_cache[chatid]) > 1:
                         return
-                await asyncio.sleep(WAIT_INTERVAL)
-                message = "\n".join(message_cache[chatid]["messages"])
-                message_cache[chatid] = {"messages": [], "last_update": 0}
+
+                while True:
+                    event.clear()
+                    try:
+                        await asyncio.wait_for(event.wait(), timeout=0.5)
+                    except asyncio.TimeoutError:
+                        break
+
+                intervals = [
+                    time_stamps[chatid][i] - time_stamps[chatid][i - 1]
+                    for i in range(1, len(time_stamps[chatid]))
+                ]
+                print(f"Chat ID {chatid} 时间间隔: {intervals}")
+
+                message = "\n".join(message_cache[chatid])
+                message_cache[chatid] = []
 
             if "gpt" in engine or (config.CLAUDE_API and "claude-3" in engine):
                 message = [{"type": "text", "text": message}]
