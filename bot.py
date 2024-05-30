@@ -162,7 +162,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     else:
                         return
                 try:
-                    await asyncio.wait_for(event.wait(), timeout=1)
+                    await asyncio.wait_for(event.wait(), timeout=1.5)
                 except asyncio.TimeoutError:
                     print("asyncio.wait timeout!")
 
@@ -170,7 +170,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     time_stamps[chatid][i] - time_stamps[chatid][i - 1]
                     for i in range(1, len(time_stamps[chatid]))
                 ]
-                print(f"Chat ID {chatid} 时间间隔: {intervals}")
+                print(f"Chat ID {chatid} 时间间隔: {intervals}，总时间：{sum(intervals)}")
 
                 message = "\n".join(message_cache[chatid])
                 message_cache[chatid] = []
