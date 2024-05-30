@@ -14,7 +14,10 @@ PORT = int(os.environ.get('PORT', '8080'))
 BOT_TOKEN = os.environ.get('BOT_TOKEN', None)
 
 def replace_with_asterisk(string, start=10, end=45):
-    return string[:start] + '*' * (end - start - 8) + string[end:]
+    if string:
+        return string[:start] + '*' * (end - start - 8) + string[end:]
+    else:
+        return None
 
 GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4o')
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
@@ -281,7 +284,8 @@ if GROQ_API_KEY:
     ])
 if GOOGLE_AI_API_KEY:
     initial_model.extend([
-        "gemini-1.5-pro-latest",
+        "gemini-1.5-pro",
+        "gemini-1.5-flash",
     ])
 
 CUSTOM_MODELS = os.environ.get('CUSTOM_MODELS', None)
