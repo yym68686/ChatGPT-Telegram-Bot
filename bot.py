@@ -162,7 +162,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     else:
                         return
                 try:
-                    await asyncio.wait_for(event.wait(), timeout=1.5)
+                    await asyncio.wait_for(event.wait(), timeout=2)
                 except asyncio.TimeoutError:
                     print("asyncio.wait timeout!")
 
