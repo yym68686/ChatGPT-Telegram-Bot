@@ -149,24 +149,20 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 
             if PREFERENCES["LONG_TEXT"]:
                 async with lock:
-                    if len(message_cache[chatid]) == 0:
-                        event.set()
                     message_cache[chatid].append(message)
                     time_stamps[chatid].append(time.time())
-                    if len(message_cache[chatid]) > 1:
+                    if len(message_cache[chatid]) == 1:
+                        print("first message len:", len(message_cache[chatid][0]))
+                        if len(message_cache[chatid][0]) < 2000:
+                            event.set()
+                        else:
+                            event.clear()
+                    else:
                         return
-
-                while True:
-                    async with lock:
-                        if len(message_cache[chatid]) == 1:
-                            print("first message len:", len(message_cache[chatid][0]))
-                            if len(message_cache[chatid][0]) < 2000:
-                                break
-                    event.clear()
-                    try:
-                        await asyncio.wait_for(event.wait(), timeout=0.78)
-                    except asyncio.TimeoutError:
-                        break
+                try:
+                    await asyncio.wait_for(event.wait(), timeout=0.78)
+                except asyncio.TimeoutError:
+                    pass
 
                 intervals = [
                     time_stamps[chatid][i] - time_stamps[chatid][i - 1]
