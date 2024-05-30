@@ -99,6 +99,11 @@ strings = {
         "en": "Travel info",
         "zh-hk": "旅行信息",
     },
+    "FLIGHT": {
+        "zh": "航班价格",
+        "en": "Flight price",
+        "zh-hk": "航班價格",
+    },
     "IMAGE": {
         "zh": "DALL·E 3",
         "en": "DALL·E 3",
