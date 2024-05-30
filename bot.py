@@ -40,6 +40,7 @@ from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, fil
 import asyncio
 lock = asyncio.Lock()
 event = asyncio.Event()
+stop_event = asyncio.Event()
 
 from collections import defaultdict
 import time
@@ -116,6 +117,7 @@ time_stamps = defaultdict(lambda: [])
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
+    stop_event.clear()
     print("update", update)
     image_url = None
     if update.edited_message:
@@ -201,6 +203,7 @@ async def delete_message(update, context, messageid, delay=60):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def reset_chat(update, context):
+    stop_event.set()
     message = None
     if (len(context.args) > 0):
         message = ' '.join(context.args)
@@ -238,6 +241,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
 
     try:
         for data in robot.ask_stream(text, convo_id=str(chatid), pass_history=pass_history, model=model_name):
+            if stop_event.is_set():
+                return
             if "🌐" not in data:
                 result = result + data
             tmpresult = result
