@@ -198,9 +198,14 @@ async def delete_message(update, context, messageid, delay=60):
         print("error", e)
         print('\033[0m')
 
+# 定义一个全局变量来存储 chatid
+target_chatid = None
+
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def reset_chat(update, context):
+    global target_chatid
+    target_chatid = update.message.chat_id
     stop_event.set()
     message = None
     if (len(context.args) > 0):
@@ -239,7 +244,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
 
     try:
         for data in robot.ask_stream(text, convo_id=str(chatid), pass_history=pass_history, model=model_name):
-            if stop_event.is_set():
+            if stop_event.is_set() and chatid == target_chatid:
                 return
             if "🌐" not in data:
                 result = result + data
