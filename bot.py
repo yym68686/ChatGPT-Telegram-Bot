@@ -6,7 +6,6 @@ import traceback
 import utils.decorators as decorators
 from md2tgmd import escape
 
-from ModelMerge.plugins import PLUGINS
 from ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
 from ModelMerge.utils.scripts import Document_extract, claude_replace
 
@@ -18,6 +17,7 @@ from config import (
     Users,
     PREFERENCES,
     LANGUAGES,
+    PLUGINS,
     update_first_buttons_message,
     get_current_lang,
     update_info_message,
@@ -149,15 +149,13 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 robot, role = get_robot(chatid)
             engine = get_ENGINE(chatid)
 
-            if PREFERENCES["LONG_TEXT"]:
+            if Users.get_config(chatid, "LONG_TEXT"):
                 async with lock:
                     message_cache[chatid].append(message)
                     time_stamps[chatid].append(time.time())
                     if len(message_cache[chatid]) == 1:
                         print("first message len:", len(message_cache[chatid][0]))
-                        if len(message_cache[chatid][0]) < 2000:
-                            event.set()
-                        else:
+                        if len(message_cache[chatid][0]) > 2000:
                             event.clear()
                     else:
                         return
@@ -180,7 +178,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 message = [{"type": "text", "text": message}]
             message = get_image_message(image_url, message, chatid)
             await context.bot.send_chat_action(chat_id=chatid, action=ChatAction.TYPING)
-            if PREFERENCES["TITLE"]:
+            if Users.get_config(chatid, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
             await getChatGPT(update, context, title, robot, message, chatid, messageid)
     else:
@@ -236,7 +234,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
         reply_to_message_id=messageid,
     )
     answer_messageid = message.message_id
-    pass_history = PREFERENCES["PASS_HISTORY"]
+    pass_history = Users.get_config(chatid, "PASS_HISTORY")
     image_has_send = 0
 
     try:
@@ -279,7 +277,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             print(escape(tmpresult))
         else:
             sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
-    if PREFERENCES["FOLLOW_UP"]:
+    if Users.get_config(chatid, "FOLLOW_UP"):
         prompt = (
             f"You are a professional Q&A expert. You will now be given reference information. Based on the reference information, please help me ask three most relevant questions that you most want to know from my perspective. Be concise and to the point. Do not have numbers in front of questions. Separate each question with a line break. Only output three questions in {config.LANGUAGE}, no need for any explanation. reference infomation is provided inside <infomation></infomation> XML tags."
             "Here is the reference infomation, inside <infomation></infomation> XML tags:"
@@ -307,7 +305,6 @@ async def button_press(update, context):
     info_message = update_info_message(chatid)
     await callback_query.answer()
     data = callback_query.data
-    # print("data", data)
     banner = strings['message_banner'][get_current_lang()]
     if data.endswith("_MODELS"):
         data = data[:-7]
@@ -317,7 +314,7 @@ async def button_press(update, context):
             if  info_message + banner != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message + banner),
-                    reply_markup=InlineKeyboardMarkup(update_models_buttons()),
+                    reply_markup=InlineKeyboardMarkup(update_models_buttons(chatid)),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -326,18 +323,18 @@ async def button_press(update, context):
     elif data.startswith("MODELS"):
         message = await callback_query.edit_message_text(
             text=escape(info_message + banner),
-            reply_markup=InlineKeyboardMarkup(update_models_buttons()),
+            reply_markup=InlineKeyboardMarkup(update_models_buttons(chatid)),
             parse_mode='MarkdownV2'
         )
     elif data.endswith("_LANGUAGES"):
         data = data[:-10]
-        update_language_status(data)
+        update_language_status(data, chat_id=chatid)
         try:
             info_message = update_info_message(chatid)
             if  info_message != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message),
-                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES")),
+                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", chatid)),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -346,13 +343,14 @@ async def button_press(update, context):
     elif data.startswith("LANGUAGE"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES")),
+            reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", chatid)),
             parse_mode='MarkdownV2'
         )
     if data.endswith("_PREFERENCES"):
         data = data[:-12]
         try:
-            PREFERENCES[data] = not PREFERENCES[data]
+            current_data = Users.get_config(chatid, data)
+            Users.set_config(chatid, data, not current_data)
         except Exception as e:
             logger.info(e)
         try:
@@ -360,7 +358,7 @@ async def button_press(update, context):
             if  info_message != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message),
-                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES")),
+                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", chatid)),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -369,13 +367,14 @@ async def button_press(update, context):
     elif data.startswith("PREFERENCES"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES")),
+            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", chatid)),
             parse_mode='MarkdownV2'
         )
     if data.endswith("_PLUGINS"):
         data = data[:-8]
         try:
-            PLUGINS[data] = not PLUGINS[data]
+            current_data = Users.get_config(chatid, data)
+            Users.set_config(chatid, data, not current_data)
         except Exception as e:
             logger.info(e)
         try:
@@ -383,7 +382,7 @@ async def button_press(update, context):
             if  info_message != callback_query.message.text:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message),
-                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS")),
+                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", chatid)),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -392,14 +391,14 @@ async def button_press(update, context):
     elif data.startswith("PLUGINS"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS")),
+            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", chatid)),
             parse_mode='MarkdownV2'
         )
 
     elif data.startswith("BACK"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_first_buttons_message()),
+            reply_markup=InlineKeyboardMarkup(update_first_buttons_message(chatid)),
             parse_mode='MarkdownV2'
         )
 
@@ -409,7 +408,7 @@ async def button_press(update, context):
 async def info(update, context):
     chatid = update.message.chat_id
     info_message = update_info_message(chatid)
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message()), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message(chatid)), parse_mode='MarkdownV2', disable_web_page_preview=True)
     await delete_message(update, context, message.message_id)
 
 @decorators.GroupAuthorization

@@ -6,7 +6,7 @@ from utils.i18n import strings
 from datetime import datetime
 from ModelMerge.utils import prompt
 from ModelMerge.utils.scripts import get_encode_image
-from ModelMerge.models import chatgpt, claude, groq, claude3, gemini
+from ModelMerge.models import chatgpt, claude, groq, claude3, gemini, PLUGINS
 from telegram import InlineKeyboardButton
 
 NICK = os.environ.get('NICK', None)
@@ -54,24 +54,34 @@ systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUA
 claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt.format(LANGUAGE))
 
 class UserConfig:
-    def __init__(self, user_id: str = None, language="English", engine="gpt-4o", mode="global"):
+    def __init__(self, user_id: str = None, language="English", engine="gpt-4o", mode="global", preferences=None, plugins=None, languages=None):
         self.user_id = user_id
         self.language = language
+        self.languages = languages
+        self.languages[self.language] = True
         self.engine = engine
+        self.preferences = preferences
+        self.plugins = plugins
         self.users = {
             "global": {
                 "language": self.language,
                 "engine": self.engine,
             }
         }
+        self.users["global"].update(self.preferences)
+        self.users["global"].update(self.plugins)
+        self.users["global"].update(self.languages)
         self.mode = mode
         self.parameter_name_list = list(self.users["global"].keys())
     def user_init(self, user_id = None):
-        if user_id == None:
+        if user_id == None or self.mode == "global":
             user_id = "global"
         self.user_id = user_id
         if self.user_id not in self.users.keys():
-            self.users[self.user_id] = {"language": LANGUAGE, "engine": self.engine}
+            self.users[self.user_id] = {"language": self.language, "engine": self.engine}
+            self.users[self.user_id].update(self.preferences)
+            self.users[self.user_id].update(self.plugins)
+            self.users[self.user_id].update(self.languages)
 
     def get_config(self, user_id = None, parameter_name = None):
         if parameter_name not in self.parameter_name_list:
@@ -92,10 +102,7 @@ class UserConfig:
             self.users[self.user_id][parameter_name] = value
 
 CHAT_MODE = os.environ.get('CHAT_MODE', "global")
-if GPT_ENGINE != "gpt-4o":
-    Users = UserConfig(mode=CHAT_MODE, engine=GPT_ENGINE)
-else:
-    Users = UserConfig(mode=CHAT_MODE)
+Users = UserConfig(mode=CHAT_MODE, engine=GPT_ENGINE, preferences=PREFERENCES, plugins=PLUGINS, language=LANGUAGE, languages=LANGUAGES)
 
 def get_ENGINE(user_id = None):
     return Users.get_config(user_id, "engine")
@@ -123,34 +130,31 @@ def update_ENGINE(data = None, chat_id=None):
         gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature)
 
 def update_language_status(language, chat_id=None):
-    global LANGUAGES, LANGUAGE, systemprompt, claude_systemprompt
-    LAST_LANGUAGE = LANGUAGE
-    LANGUAGE = language
+    global systemprompt, claude_systemprompt, Users
+    LAST_LANGUAGE = Users.get_config(chat_id, "language")
+    Users.set_config(chat_id, "language", language)
     for lang in LANGUAGES:
-        LANGUAGES[lang] = False
+        Users.set_config(chat_id, lang, False)
 
-    LANGUAGES[language] = True
+    Users.set_config(chat_id, language, True)
     try:
-        systemprompt = systemprompt.replace(LAST_LANGUAGE, LANGUAGE)
-        claude_systemprompt = claude_systemprompt.replace(LAST_LANGUAGE, LANGUAGE)
+        systemprompt = systemprompt.replace(LAST_LANGUAGE, Users.get_config(chat_id, "language"))
+        claude_systemprompt = claude_systemprompt.replace(LAST_LANGUAGE, Users.get_config(chat_id, "language"))
     except Exception as e:
         print("error:", e)
         pass
-    update_ENGINE()
-    # Users.set_config(chat_id, "language", language)
+    update_ENGINE(chat_id=chat_id)
 
 update_language_status(LANGUAGE)
 
-
-
 def update_info_message(user_id = None):
-    return (
-        f"**Model:** `{get_ENGINE(user_id)}`\n\n"
-        f"**API_URL:** `{API_URL}`\n\n"
-        f"**API:** `{replace_with_asterisk(API)}`\n\n"
-        f"**WEB_HOOK:** `{WEB_HOOK}`\n\n"
-        f"**tokens usage:** `{get_robot(user_id)[0].tokens_usage[str(user_id)]}`\n\n"
-    )
+    return "".join([
+        f"**🤖 Model:** `{get_ENGINE(user_id)}`\n\n",
+        f"**🔑 API:** `{replace_with_asterisk(API)}`\n\n" if API else "",
+        f"**🔗 API URL:** `{API_URL}`\n\n" if API_URL else "",
+        f"**🛜 WEB HOOK:** `{WEB_HOOK}`\n\n" if WEB_HOOK else "",
+        f"**🚰 tokens usage:** `{get_robot(user_id)[0].tokens_usage[str(user_id)]}`\n\n",
+    ])
 
 def reset_ENGINE(chat_id, message=None):
     global ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot, systemprompt, claude_systemprompt
@@ -232,10 +236,10 @@ def delete_model_digit_tail(lst):
             else:
                 return "-".join(lst[:i + 1])
 
-def get_status(setting, item):
-    return "✅ " if setting[item] else "☑️ "
+def get_status(chatid = None, item = None):
+    return "✅ " if Users.get_config(chatid, item) else "☑️ "
 
-def create_buttons(strings, plugins_status=False, lang="English", button_text=None, Suffix="", setting=""):
+def create_buttons(strings, plugins_status=False, lang="English", button_text=None, Suffix="", chatid=None):
     # 过滤出长度小于15的字符串
     filtered_strings1 = [s for s in strings if len(delete_model_digit_tail(s.split("-"))) <= 14]
     filtered_strings2 = [s for s in strings if len(delete_model_digit_tail(s.split("-"))) > 14]
@@ -245,7 +249,7 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
 
     for string in filtered_strings1:
         if plugins_status:
-            button = InlineKeyboardButton(f"{get_status(setting, string)}{button_text[string][lang]}", callback_data=string + Suffix)
+            button = InlineKeyboardButton(f"{get_status(chatid, string)}{button_text[string][lang]}", callback_data=string + Suffix)
         else:
             button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + Suffix)
         temp.append(button)
@@ -261,7 +265,7 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
 
     for string in filtered_strings2:
         if plugins_status:
-            button = InlineKeyboardButton(f"{get_status(setting, string)}{button_text[string][lang]}", callback_data=string + Suffix)
+            button = InlineKeyboardButton(f"{get_status(chatid, string)}{button_text[string][lang]}", callback_data=string + Suffix)
         else:
             button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + Suffix)
         buttons.append([button])
@@ -302,13 +306,12 @@ if CUSTOM_MODELS_LIST:
 
     initial_model.extend([model for model in CUSTOM_MODELS_LIST if model not in initial_model and model[0] != "-"])
 
-def get_current_lang():
-    for lang, is_active in LANGUAGES.items():
-        if is_active:
-            return LANGUAGES_TO_CODE[lang]
+def get_current_lang(chatid=None):
+    current_lang = Users.get_config(chatid, "language")
+    return LANGUAGES_TO_CODE[current_lang]
 
-def update_models_buttons():
-    lang = get_current_lang()
+def update_models_buttons(chatid=None):
+    lang = get_current_lang(chatid)
     buttons = create_buttons(initial_model, Suffix="_MODELS")
     buttons.append(
         [
@@ -317,8 +320,8 @@ def update_models_buttons():
     )
     return buttons
 
-def update_first_buttons_message():
-    lang = get_current_lang()
+def update_first_buttons_message(chatid=None):
+    lang = get_current_lang(chatid)
     first_buttons = [
         [
             InlineKeyboardButton(strings["button_change_model"][lang], callback_data="MODELS"),
@@ -331,10 +334,10 @@ def update_first_buttons_message():
     ]
     return first_buttons
 
-def update_menu_buttons(setting, _strings):
-    lang = get_current_lang()
+def update_menu_buttons(setting, _strings, chatid):
+    lang = get_current_lang(chatid)
     setting_list = list(setting.keys())
-    buttons = create_buttons(setting_list, plugins_status=True, lang=lang, button_text=strings, setting=setting, Suffix=_strings)
+    buttons = create_buttons(setting_list, plugins_status=True, lang=lang, button_text=strings, chatid=chatid, Suffix=_strings)
     buttons.append(
         [
             InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
