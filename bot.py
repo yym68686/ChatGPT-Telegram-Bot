@@ -155,8 +155,10 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     time_stamps[chatid].append(time.time())
                     if len(message_cache[chatid]) == 1:
                         print("first message len:", len(message_cache[chatid][0]))
-                        if len(message_cache[chatid][0]) > 2000:
+                        if len(message_cache[chatid][0]) > 800:
                             event.clear()
+                        else:
+                            event.set()
                     else:
                         return
                 try:
