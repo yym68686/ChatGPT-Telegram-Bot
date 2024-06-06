@@ -93,6 +93,11 @@ async def GetMesage(update_message, context):
     image_url = None
     reply_to_message_text = None
     chatid = update_message.chat_id
+    message_thread_id = update_message.message_thread_id
+    if message_thread_id:
+        convo_id = str(chatid) + "_" + str(message_thread_id)
+    else:
+        convo_id = chatid
     messageid = update_message.message_id
     if update_message.text:
         message = CutNICK(update_message.text, update_message)
@@ -108,7 +113,19 @@ async def GetMesage(update_message, context):
         image_url = photo_file.file_path
 
         message = rawtext = CutNICK(update_message.caption, update_message)
-    return message, rawtext, image_url, chatid, messageid, reply_to_message_text
+    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id
+
+async def GetMesageInfo(update, context):
+    if update.edited_message:
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id = await GetMesage(update.edited_message, context)
+        update_message = update.edited_message
+    elif update.callback_query:
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id = await GetMesage(update.callback_query.message, context)
+        update_message = update.callback_query.message
+    else:
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id = await GetMesage(update.message, context)
+        update_message = update.message
+    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id
 
 # 定义一个缓存来存储消息
 message_cache = defaultdict(lambda: [])
@@ -119,14 +136,7 @@ time_stamps = defaultdict(lambda: [])
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
     stop_event.clear()
     print("update", update)
-    image_url = None
-    if update.edited_message:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text = await GetMesage(update.edited_message, context)
-        update_message = update.edited_message
-    else:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text = await GetMesage(update.message, context)
-        update_message = update.message
-
+    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id = await GetMesageInfo(update, context)
     print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
 
     if has_command == False or len(context.args) > 0:
@@ -146,16 +156,16 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 message = reply_to_message_text + "\n" + message
 
             if robot is None:
-                robot, role = get_robot(chatid)
-            engine = get_ENGINE(chatid)
+                robot, role = get_robot(convo_id)
+            engine = get_ENGINE(convo_id)
 
-            if Users.get_config(chatid, "LONG_TEXT"):
+            if Users.get_config(convo_id, "LONG_TEXT"):
                 async with lock:
-                    message_cache[chatid].append(message)
-                    time_stamps[chatid].append(time.time())
-                    if len(message_cache[chatid]) == 1:
-                        print("first message len:", len(message_cache[chatid][0]))
-                        if len(message_cache[chatid][0]) > 800:
+                    message_cache[convo_id].append(message)
+                    time_stamps[convo_id].append(time.time())
+                    if len(message_cache[convo_id]) == 1:
+                        print("first message len:", len(message_cache[convo_id][0]))
+                        if len(message_cache[convo_id][0]) > 800:
                             event.clear()
                         else:
                             event.set()
@@ -167,25 +177,26 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     print("asyncio.wait timeout!")
 
                 intervals = [
-                    time_stamps[chatid][i] - time_stamps[chatid][i - 1]
-                    for i in range(1, len(time_stamps[chatid]))
+                    time_stamps[convo_id][i] - time_stamps[convo_id][i - 1]
+                    for i in range(1, len(time_stamps[convo_id]))
                 ]
-                print(f"Chat ID {chatid} 时间间隔: {intervals}，总时间：{sum(intervals)}")
+                print(f"Chat ID {convo_id} 时间间隔: {intervals}，总时间：{sum(intervals)}")
 
-                message = "\n".join(message_cache[chatid])
-                message_cache[chatid] = []
-                time_stamps[chatid] = []
+                message = "\n".join(message_cache[convo_id])
+                message_cache[convo_id] = []
+                time_stamps[convo_id] = []
 
             if "gpt" in engine or (config.CLAUDE_API and "claude-3" in engine):
                 message = [{"type": "text", "text": message}]
-            message = get_image_message(image_url, message, chatid)
-            await context.bot.send_chat_action(chat_id=chatid, action=ChatAction.TYPING)
-            if Users.get_config(chatid, "TITLE"):
+            message = get_image_message(image_url, message, convo_id)
+            await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
+            if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
-            await getChatGPT(update, context, title, robot, message, chatid, messageid)
+            await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id)
     else:
         message = await context.bot.send_message(
             chat_id=chatid,
+            message_thread_id=message_thread_id,
             text="请在命令后面放入文本。",
             parse_mode='MarkdownV2',
             reply_to_message_id=messageid,
@@ -193,6 +204,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 
 async def delete_message(update, context, messageid, delay=60):
     await asyncio.sleep(delay)
+
     try:
         await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=messageid)
     except Exception as e:
@@ -201,33 +213,36 @@ async def delete_message(update, context, messageid, delay=60):
         print('\033[0m')
 
 # 定义一个全局变量来存储 chatid
-target_chatid = None
+target_convo_id = None
 
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def reset_chat(update, context):
-    global target_chatid
-    target_chatid = update.message.chat_id
+    global target_convo_id
+    _, _, _, chatid, _, _, _, message_thread_id, convo_id = await GetMesageInfo(update, context)
+    target_convo_id = convo_id
+    print("target_chatid", convo_id)
     stop_event.set()
     message = None
     if (len(context.args) > 0):
         message = ' '.join(context.args)
-    reset_ENGINE(update.message.chat_id, message)
+    reset_ENGINE(target_convo_id, message)
 
     remove_keyboard = ReplyKeyboardRemove()
     message = await context.bot.send_message(
-        chat_id=update.message.chat_id,
+        chat_id=chatid,
+        message_thread_id=message_thread_id,
         text="重置成功！",
         reply_markup=remove_keyboard,
     )
     await delete_message(update, context, message.message_id)
 
-async def getChatGPT(update, context, title, robot, message, chatid, messageid):
+async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id):
     result = ""
     text = message
     modifytime = 0
     time_out = 600
-    model_name = Users.get_config(chatid, "engine")
+    model_name = Users.get_config(convo_id, "engine")
     Frequency_Modification = 20
     if "gemini" in model_name:
         Frequency_Modification = 2
@@ -241,12 +256,12 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
         reply_to_message_id=messageid,
     )
     answer_messageid = message.message_id
-    pass_history = Users.get_config(chatid, "PASS_HISTORY")
+    pass_history = Users.get_config(convo_id, "PASS_HISTORY")
     image_has_send = 0
 
     try:
-        for data in robot.ask_stream(text, convo_id=str(chatid), pass_history=pass_history, model=model_name):
-            if stop_event.is_set() and chatid == target_chatid:
+        for data in robot.ask_stream(text, convo_id=str(convo_id), pass_history=pass_history, model=model_name):
+            if stop_event.is_set() and convo_id == target_convo_id:
                 return
             if "🌐" not in data:
                 result = result + data
@@ -260,7 +275,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
                 tmpresult = claude_replace(tmpresult)
             if "🌐" in data:
                 tmpresult = data
-            history = robot.conversation[str(chatid)]
+            history = robot.conversation[str(convo_id)]
             if history[-1].get('name') == "generate_image" and not image_has_send:
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=answer_messageid)
                 image_has_send = 1
@@ -274,7 +289,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
         print(tmpresult)
         print('\033[0m')
         if config.API:
-            robot.reset(convo_id=str(chatid), system_prompt=config.systemprompt)
+            robot.reset(convo_id=str(convo_id), system_prompt=config.systemprompt)
         tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
     if lastresult != tmpresult and answer_messageid:
@@ -284,7 +299,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             print(escape(tmpresult))
         else:
             sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
-    if Users.get_config(chatid, "FOLLOW_UP"):
+    if Users.get_config(convo_id, "FOLLOW_UP"):
         prompt = (
             f"You are a professional Q&A expert. You will now be given reference information. Based on the reference information, please help me ask three most relevant questions that you most want to know from my perspective. Be concise and to the point. Do not have numbers in front of questions. Separate each question with a line break. Only output three questions in {config.LANGUAGE}, no need for any explanation. reference infomation is provided inside <infomation></infomation> XML tags."
             "Here is the reference infomation, inside <infomation></infomation> XML tags:"
@@ -292,7 +307,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
             "{}"
             "</infomation>"
         ).format("\n\n".join(tmpresult.split("\n\n")[1:]))
-        result = config.SummaryBot.ask(prompt, convo_id=str(chatid), pass_history=False).split('\n')
+        result = config.SummaryBot.ask(prompt, convo_id=str(convo_id), pass_history=False).split('\n')
         keyboard = []
         result = [i for i in result if i.strip() and len(i) > 5]
         print(result)
@@ -307,21 +322,22 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid):
 @decorators.Authorization
 async def button_press(update, context):
     """Function to handle the button press"""
+    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id = await GetMesageInfo(update, context)
     callback_query = update.callback_query
-    chatid = callback_query.message.chat_id
-    info_message = update_info_message(chatid)
+    print("callback_query chatid", chatid)
+    info_message = update_info_message(convo_id)
     await callback_query.answer()
     data = callback_query.data
     banner = strings['message_banner'][get_current_lang()]
     if data.endswith("_MODELS"):
         data = data[:-7]
-        update_ENGINE(data, chatid)
+        update_ENGINE(data, convo_id)
         try:
-            info_message = update_info_message(chatid)
-            if  info_message + banner != callback_query.message.text:
+            info_message = update_info_message(convo_id)
+            if  info_message + banner != rawtext:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message + banner),
-                    reply_markup=InlineKeyboardMarkup(update_models_buttons(chatid)),
+                    reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id)),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -330,18 +346,18 @@ async def button_press(update, context):
     elif data.startswith("MODELS"):
         message = await callback_query.edit_message_text(
             text=escape(info_message + banner),
-            reply_markup=InlineKeyboardMarkup(update_models_buttons(chatid)),
+            reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id)),
             parse_mode='MarkdownV2'
         )
     elif data.endswith("_LANGUAGES"):
         data = data[:-10]
-        update_language_status(data, chat_id=chatid)
+        update_language_status(data, chat_id=convo_id)
         try:
-            info_message = update_info_message(chatid)
-            if  info_message != callback_query.message.text:
+            info_message = update_info_message(convo_id)
+            if  info_message != rawtext:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message),
-                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", chatid)),
+                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", convo_id)),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -350,22 +366,22 @@ async def button_press(update, context):
     elif data.startswith("LANGUAGE"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", chatid)),
+            reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", convo_id)),
             parse_mode='MarkdownV2'
         )
     if data.endswith("_PREFERENCES"):
         data = data[:-12]
         try:
-            current_data = Users.get_config(chatid, data)
-            Users.set_config(chatid, data, not current_data)
+            current_data = Users.get_config(convo_id, data)
+            Users.set_config(convo_id, data, not current_data)
         except Exception as e:
             logger.info(e)
         try:
-            info_message = update_info_message(chatid)
-            if  info_message != callback_query.message.text:
+            info_message = update_info_message(convo_id)
+            if  info_message != rawtext:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message),
-                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", chatid)),
+                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", convo_id)),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -374,22 +390,22 @@ async def button_press(update, context):
     elif data.startswith("PREFERENCES"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", chatid)),
+            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", convo_id)),
             parse_mode='MarkdownV2'
         )
     if data.endswith("_PLUGINS"):
         data = data[:-8]
         try:
-            current_data = Users.get_config(chatid, data)
-            Users.set_config(chatid, data, not current_data)
+            current_data = Users.get_config(convo_id, data)
+            Users.set_config(convo_id, data, not current_data)
         except Exception as e:
             logger.info(e)
         try:
-            info_message = update_info_message(chatid)
-            if  info_message != callback_query.message.text:
+            info_message = update_info_message(convo_id)
+            if  info_message != rawtext:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message),
-                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", chatid)),
+                    reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", convo_id)),
                     parse_mode='MarkdownV2'
                 )
         except Exception as e:
@@ -398,14 +414,14 @@ async def button_press(update, context):
     elif data.startswith("PLUGINS"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", chatid)),
+            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", convo_id)),
             parse_mode='MarkdownV2'
         )
 
     elif data.startswith("BACK"):
         message = await callback_query.edit_message_text(
             text=escape(info_message),
-            reply_markup=InlineKeyboardMarkup(update_first_buttons_message(chatid)),
+            reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)),
             parse_mode='MarkdownV2'
         )
 
@@ -413,9 +429,9 @@ async def button_press(update, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def info(update, context):
-    chatid = update.message.chat_id
-    info_message = update_info_message(chatid)
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message(chatid)), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    _, _, _, chatid, _, _, _, message_thread_id, convo_id = await GetMesageInfo(update, context)
+    info_message = update_info_message(convo_id)
+    message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)), parse_mode='MarkdownV2', disable_web_page_preview=True)
     await delete_message(update, context, message.message_id)
 
 @decorators.GroupAuthorization
@@ -429,28 +445,23 @@ async def handle_pdf(update, context):
     file_url = new_file.file_path
     extracted_text_with_prompt = Document_extract(file_url)
     robot, role = get_robot()
-    robot.add_to_conversation(extracted_text_with_prompt, role, str(update.effective_chat.id))
-    chatid = update.message.chat_id
-    engine = get_ENGINE(chatid)
+
+    _, _, _, chatid, _, _, _, message_thread_id, convo_id = await GetMesageInfo(update, context)
+    robot.add_to_conversation(extracted_text_with_prompt, role, str(convo_id))
+    engine = get_ENGINE(convo_id)
     if config.CLAUDE_API and "claude-3" in engine:
-        robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(update.effective_chat.id))
+        robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(convo_id))
     message = (
         f"文档上传成功！\n\n"
     )
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
     await delete_message(update, context, message.message_id)
 
 
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def handle_photo(update, context):
-    if update.edited_message:
-        update_message = update.edited_message
-    else:
-        update_message = update.message
-
-    chatid = update_message.chat_id
-    messageid = update_message.message_id
+    _, _, _, chatid, _, messageid, update_message, message_thread_id, convo_id = await GetMesageInfo(update, context)
 
     photo = update_message.photo[-1]
     file_id = photo.file_id
@@ -458,15 +469,15 @@ async def handle_photo(update, context):
     image_url = photo_file.file_path
 
     robot, role = get_robot()
-    message = get_image_message(image_url, [], chatid)
+    message = get_image_message(image_url, [], convo_id)
 
-    robot.add_to_conversation(message, role, str(chatid))
+    robot.add_to_conversation(message, role, str(convo_id))
     # if config.CLAUDE_API and "claude-3" in config.GPT_ENGINE:
     #     robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(update.effective_chat.id))
     message = (
         f"图片上传成功！\n\n"
     )
-    message = await context.bot.send_message(chat_id=update.message.chat_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    message = await context.bot.send_message(chat_id=chatid, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
     await delete_message(update, context, message.message_id)
 
 # DEBOUNCE_TIME = 4
