@@ -120,6 +120,12 @@ class UserConfig:
             self.user_init(user_id)
             self.users[self.user_id][parameter_name] = value
 
+    def extract_plugins_config(self, user_id = None):
+        self.user_init(user_id)
+        user_data = self.users[self.user_id]
+        plugins_config = {key: value for key, value in user_data.items() if key in self.plugins}
+        return plugins_config
+
 CHAT_MODE = os.environ.get('CHAT_MODE', "global")
 Users = UserConfig(mode=CHAT_MODE, engine=GPT_ENGINE, preferences=PREFERENCES, plugins=PLUGINS, language=LANGUAGE, languages=LANGUAGES, systemprompt=systemprompt, claude_systemprompt=claude_systemprompt)
 

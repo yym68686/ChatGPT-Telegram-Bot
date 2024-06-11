@@ -99,12 +99,12 @@ async def GetMesage(update_message, context):
     file_url = None
     reply_to_message_text = None
 
-    chatid = update_message.chat_id
+    chatid = str(update_message.chat_id)
     message_thread_id = update_message.message_thread_id
     if message_thread_id:
         convo_id = str(chatid) + "_" + str(message_thread_id)
     else:
-        convo_id = chatid
+        convo_id = str(chatid)
 
     messageid = update_message.message_id
 
@@ -237,7 +237,6 @@ async def reset_chat(update, context):
     global target_convo_id
     _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
     target_convo_id = convo_id
-    print("target_chatid", convo_id)
     stop_event.set()
     message = None
     if (len(context.args) > 0):
@@ -276,7 +275,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     image_has_send = 0
 
     try:
-        for data in robot.ask_stream(text, convo_id=str(convo_id), pass_history=pass_history, model=model_name):
+        for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
             if stop_event.is_set() and convo_id == target_convo_id:
                 return
             if "🌐" not in data:
@@ -291,7 +290,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 tmpresult = claude_replace(tmpresult)
             if "🌐" in data:
                 tmpresult = data
-            history = robot.conversation[str(convo_id)]
+            history = robot.conversation[convo_id]
             if history[-1].get('name') == "generate_image" and not image_has_send:
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=answer_messageid)
                 image_has_send = 1
@@ -305,7 +304,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         print(tmpresult)
         print('\033[0m')
         if config.API:
-            robot.reset(convo_id=str(convo_id), system_prompt=config.systemprompt)
+            robot.reset(convo_id=convo_id, system_prompt=config.systemprompt)
         tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
     if lastresult != tmpresult and answer_messageid:
@@ -323,7 +322,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             "{}"
             "</infomation>"
         ).format("\n\n".join(tmpresult.split("\n\n")[1:]))
-        result = config.SummaryBot.ask(prompt, convo_id=str(convo_id), pass_history=False).split('\n')
+        result = config.SummaryBot.ask(prompt, convo_id=convo_id, pass_history=False).split('\n')
         keyboard = []
         result = [i for i in result if i.strip() and len(i) > 5]
         print(result)
@@ -340,11 +339,11 @@ async def button_press(update, context):
     """Function to handle the button press"""
     message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
     callback_query = update.callback_query
-    print("callback_query chatid", chatid)
     info_message = update_info_message(convo_id)
     await callback_query.answer()
     data = callback_query.data
     banner = strings['message_banner'][get_current_lang()]
+
     if data.endswith("_MODELS"):
         data = data[:-7]
         update_ENGINE(data, convo_id)
@@ -365,6 +364,7 @@ async def button_press(update, context):
             reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id)),
             parse_mode='MarkdownV2'
         )
+
     elif data.endswith("_LANGUAGES"):
         data = data[:-10]
         update_language_status(data, chat_id=convo_id)
@@ -385,6 +385,7 @@ async def button_press(update, context):
             reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", convo_id)),
             parse_mode='MarkdownV2'
         )
+
     if data.endswith("_PREFERENCES"):
         data = data[:-12]
         try:
@@ -409,11 +410,15 @@ async def button_press(update, context):
             reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", convo_id)),
             parse_mode='MarkdownV2'
         )
+
     if data.endswith("_PLUGINS"):
         data = data[:-8]
         try:
             current_data = Users.get_config(convo_id, data)
             Users.set_config(convo_id, data, not current_data)
+            plugins_config = Users.extract_plugins_config(convo_id)
+            robot, role = get_robot(convo_id)
+            robot.plugins[convo_id] = plugins_config
         except Exception as e:
             logger.info(e)
         try:
@@ -453,13 +458,13 @@ async def info(update, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def handle_file(update, context):
-    robot, role = get_robot()
     _, _, image_url, chatid, _, messageid, update_message, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
+    robot, role = get_robot(convo_id)
     engine = get_ENGINE(chatid)
 
     message = Document_extract(file_url, None, engine)
 
-    robot.add_to_conversation(message, role, str(convo_id))
+    robot.add_to_conversation(message, role, convo_id)
     message = (
         f"上传成功！\n\n"
     )
@@ -490,11 +495,11 @@ async def inlinequery(update: Update, context) -> None:
     # 调用 getChatGPT 函数获取结果
     if (query.endswith(';') or query.endswith('；')) and query.strip():
         prompt = "Answer the following questions as concisely as possible:\n\n"
-        result = config.ChatGPTbot.ask(prompt + query, convo_id=str(chatid), pass_history=False)
+        result = config.ChatGPTbot.ask(prompt + query, convo_id=chatid, pass_history=False)
 
         results = [
             InlineQueryResultArticle(
-                id=str(chatid),
+                id=chatid,
                 title=f"{engine}",
                 thumbnail_url="https://pb.yym68686.top/TTGk",
                 description=f"{result}",
