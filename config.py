@@ -221,32 +221,6 @@ def get_robot(chat_id = None):
 
     return robot, role
 
-def get_image_message(image_url, message, chatid = None):
-    engine = get_ENGINE(chatid)
-    if image_url:
-        base64_image = get_encode_image(image_url)
-        if "gpt-4" in engine or (CLAUDE_API is None and "claude-3" in engine):
-            message.append(
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": base64_image
-                    }
-                }
-            )
-        if CLAUDE_API and "claude-3" in engine:
-            message.append(
-                {
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": "image/jpeg",
-                        "data": base64_image.split(",")[1],
-                    }
-                }
-            )
-    return message
-
 whitelist = os.environ.get('whitelist', None)
 if whitelist:
     whitelist = [int(id) for id in whitelist.split(",")]

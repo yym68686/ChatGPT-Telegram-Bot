@@ -7,7 +7,7 @@ import utils.decorators as decorators
 from md2tgmd import escape
 
 from ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
-from ModelMerge.utils.scripts import Document_extract, claude_replace
+from ModelMerge.utils.scripts import Document_extract, claude_replace, get_image_message
 
 import config
 from config import (
@@ -24,7 +24,6 @@ from config import (
     update_ENGINE,
     reset_ENGINE,
     get_robot,
-    get_image_message,
     get_ENGINE,
     update_language_status,
     update_models_buttons,
@@ -89,16 +88,26 @@ def CutNICK(update_text, update_message):
             else:
                 return None
 
+async def get_file_url(file, context):
+    file_id = file.file_id
+    new_file = await context.bot.get_file(file_id)
+    file_url = new_file.file_path
+    return file_url
+
 async def GetMesage(update_message, context):
     image_url = None
+    file_url = None
     reply_to_message_text = None
+
     chatid = update_message.chat_id
     message_thread_id = update_message.message_thread_id
     if message_thread_id:
         convo_id = str(chatid) + "_" + str(message_thread_id)
     else:
         convo_id = chatid
+
     messageid = update_message.message_id
+
     if update_message.text:
         message = CutNICK(update_message.text, update_message)
         rawtext = update_message.text
@@ -108,24 +117,31 @@ async def GetMesage(update_message, context):
 
     if update_message.photo:
         photo = update_message.photo[-1]
-        file_id = photo.file_id
-        photo_file = await context.bot.getFile(file_id)
-        image_url = photo_file.file_path
+
+        image_url = await get_file_url(photo, context)
 
         message = rawtext = CutNICK(update_message.caption, update_message)
-    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id
+
+    if update_message.document:
+        file = update_message.document
+
+        file_url = await get_file_url(file, context)
+
+        message = rawtext = CutNICK(update_message.caption, update_message)
+
+    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url
 
 async def GetMesageInfo(update, context):
     if update.edited_message:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id = await GetMesage(update.edited_message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url = await GetMesage(update.edited_message, context)
         update_message = update.edited_message
     elif update.callback_query:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id = await GetMesage(update.callback_query.message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url = await GetMesage(update.callback_query.message, context)
         update_message = update.callback_query.message
     else:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id = await GetMesage(update.message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url = await GetMesage(update.message, context)
         update_message = update.message
-    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id
+    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url
 
 # 定义一个缓存来存储消息
 message_cache = defaultdict(lambda: [])
@@ -136,7 +152,7 @@ time_stamps = defaultdict(lambda: [])
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
     stop_event.clear()
     print("update", update)
-    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id = await GetMesageInfo(update, context)
+    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
     print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
 
     if has_command == False or len(context.args) > 0:
@@ -188,7 +204,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 
             if "gpt" in engine or (config.CLAUDE_API and "claude-3" in engine):
                 message = [{"type": "text", "text": message}]
-            message = get_image_message(image_url, message, convo_id)
+            message = get_image_message(image_url, message, engine)
             await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
             if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
@@ -219,7 +235,7 @@ target_convo_id = None
 @decorators.Authorization
 async def reset_chat(update, context):
     global target_convo_id
-    _, _, _, chatid, _, _, _, message_thread_id, convo_id = await GetMesageInfo(update, context)
+    _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
     target_convo_id = convo_id
     print("target_chatid", convo_id)
     stop_event.set()
@@ -322,7 +338,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
 @decorators.Authorization
 async def button_press(update, context):
     """Function to handle the button press"""
-    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id = await GetMesageInfo(update, context)
+    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
     callback_query = update.callback_query
     print("callback_query chatid", chatid)
     info_message = update_info_message(convo_id)
@@ -429,55 +445,25 @@ async def button_press(update, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def info(update, context):
-    _, _, _, chatid, _, _, _, message_thread_id, convo_id = await GetMesageInfo(update, context)
+    _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
     info_message = update_info_message(convo_id)
     message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)), parse_mode='MarkdownV2', disable_web_page_preview=True)
     await delete_message(update, context, message.message_id)
 
 @decorators.GroupAuthorization
 @decorators.Authorization
-async def handle_pdf(update, context):
-    # 获取接收到的文件
-    pdf_file = update.message.document
-    # 得到文件的url
-    file_id = pdf_file.file_id
-    new_file = await context.bot.get_file(file_id)
-    file_url = new_file.file_path
-    extracted_text_with_prompt = Document_extract(file_url)
+async def handle_file(update, context):
     robot, role = get_robot()
+    _, _, image_url, chatid, _, messageid, update_message, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
+    engine = get_ENGINE(chatid)
 
-    _, _, _, chatid, _, _, _, message_thread_id, convo_id = await GetMesageInfo(update, context)
-    robot.add_to_conversation(extracted_text_with_prompt, role, str(convo_id))
-    engine = get_ENGINE(convo_id)
-    if config.CLAUDE_API and "claude-3" in engine:
-        robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(convo_id))
-    message = (
-        f"文档上传成功！\n\n"
-    )
-    message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
-    await delete_message(update, context, message.message_id)
-
-
-@decorators.GroupAuthorization
-@decorators.Authorization
-async def handle_photo(update, context):
-    _, _, _, chatid, _, messageid, update_message, message_thread_id, convo_id = await GetMesageInfo(update, context)
-
-    photo = update_message.photo[-1]
-    file_id = photo.file_id
-    photo_file = await context.bot.getFile(file_id)
-    image_url = photo_file.file_path
-
-    robot, role = get_robot()
-    message = get_image_message(image_url, [], convo_id)
+    message = Document_extract(file_url, None, engine)
 
     robot.add_to_conversation(message, role, str(convo_id))
-    # if config.CLAUDE_API and "claude-3" in config.GPT_ENGINE:
-    #     robot.add_to_conversation(claude3_doc_assistant_prompt, "assistant", str(update.effective_chat.id))
     message = (
-        f"图片上传成功！\n\n"
+        f"上传成功！\n\n"
     )
-    message = await context.bot.send_message(chat_id=chatid, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
     await delete_message(update, context, message.message_id)
 
 # DEBOUNCE_TIME = 4
@@ -596,10 +582,10 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.translate_bot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(InlineQueryHandler(inlinequery))
-    application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC, handle_pdf))
+    application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC | filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg"), handle_file))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False), block = False))
     application.add_handler(MessageHandler(filters.CAPTION & filters.PHOTO & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
-    application.add_handler(MessageHandler(~filters.CAPTION & filters.PHOTO & ~filters.COMMAND, handle_photo))
+    application.add_handler(MessageHandler(~filters.CAPTION & filters.PHOTO & ~filters.COMMAND, handle_file))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
 
