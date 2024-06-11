@@ -54,7 +54,17 @@ systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUA
 claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt.format(LANGUAGE))
 
 class UserConfig:
-    def __init__(self, user_id: str = None, language="English", engine="gpt-4o", mode="global", preferences=None, plugins=None, languages=None):
+    def __init__(self,
+        user_id: str = None,
+        language="English",
+        engine="gpt-4o",
+        mode="global",
+        preferences=None,
+        plugins=None,
+        languages=None,
+        systemprompt=None,
+        claude_systemprompt=None
+    ):
         self.user_id = user_id
         self.language = language
         self.languages = languages
@@ -62,10 +72,14 @@ class UserConfig:
         self.engine = engine
         self.preferences = preferences
         self.plugins = plugins
+        self.systemprompt = systemprompt
+        self.claude_systemprompt = claude_systemprompt
         self.users = {
             "global": {
                 "language": self.language,
                 "engine": self.engine,
+                "systemprompt": self.systemprompt,
+                "claude_systemprompt": self.claude_systemprompt,
             }
         }
         self.users["global"].update(self.preferences)
@@ -78,7 +92,12 @@ class UserConfig:
             user_id = "global"
         self.user_id = user_id
         if self.user_id not in self.users.keys():
-            self.users[self.user_id] = {"language": self.language, "engine": self.engine}
+            self.users[self.user_id] = {
+                "language": self.language,
+                "engine": self.engine,
+                "systemprompt": self.systemprompt,
+                "claude_systemprompt": self.claude_systemprompt,
+            }
             self.users[self.user_id].update(self.preferences)
             self.users[self.user_id].update(self.plugins)
             self.users[self.user_id].update(self.languages)
@@ -102,7 +121,7 @@ class UserConfig:
             self.users[self.user_id][parameter_name] = value
 
 CHAT_MODE = os.environ.get('CHAT_MODE', "global")
-Users = UserConfig(mode=CHAT_MODE, engine=GPT_ENGINE, preferences=PREFERENCES, plugins=PLUGINS, language=LANGUAGE, languages=LANGUAGES)
+Users = UserConfig(mode=CHAT_MODE, engine=GPT_ENGINE, preferences=PREFERENCES, plugins=PLUGINS, language=LANGUAGE, languages=LANGUAGES, systemprompt=systemprompt, claude_systemprompt=claude_systemprompt)
 
 def get_ENGINE(user_id = None):
     return Users.get_config(user_id, "engine")
@@ -116,6 +135,8 @@ def update_ENGINE(data = None, chat_id=None):
     if data:
         Users.set_config(chat_id, "engine", data)
     engine = Users.get_config(chat_id, "engine")
+    systemprompt = Users.get_config(chat_id, "systemprompt")
+    claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
     if API:
         ChatGPTbot = chatgpt(api_key=f"{API}", engine=engine, system_prompt=systemprompt, temperature=temperature)
         SummaryBot = chatgpt(api_key=f"{API}", engine="gpt-3.5-turbo", system_prompt=systemprompt, temperature=temperature)
@@ -130,7 +151,9 @@ def update_ENGINE(data = None, chat_id=None):
         gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature)
 
 def update_language_status(language, chat_id=None):
-    global systemprompt, claude_systemprompt, Users
+    global Users
+    systemprompt = Users.get_config(chat_id, "systemprompt")
+    claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
     LAST_LANGUAGE = Users.get_config(chat_id, "language")
     Users.set_config(chat_id, "language", language)
     for lang in LANGUAGES:
@@ -140,6 +163,8 @@ def update_language_status(language, chat_id=None):
     try:
         systemprompt = systemprompt.replace(LAST_LANGUAGE, Users.get_config(chat_id, "language"))
         claude_systemprompt = claude_systemprompt.replace(LAST_LANGUAGE, Users.get_config(chat_id, "language"))
+        Users.set_config(chat_id, "systemprompt", systemprompt)
+        Users.set_config(chat_id, "claude_systemprompt", claude_systemprompt)
     except Exception as e:
         print("error:", e)
         pass
@@ -157,8 +182,12 @@ def update_info_message(user_id = None):
     ])
 
 def reset_ENGINE(chat_id, message=None):
-    global ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot, systemprompt, claude_systemprompt
+    global ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot
+    systemprompt = Users.get_config(chat_id, "systemprompt")
+    claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
     if message:
+        Users.set_config(chat_id, "systemprompt", message)
+        Users.set_config(chat_id, "claude_systemprompt", message)
         systemprompt = message
         claude_systemprompt = message
     if API and ChatGPTbot:
