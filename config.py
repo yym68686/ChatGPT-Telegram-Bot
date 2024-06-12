@@ -1,4 +1,5 @@
 import os
+import subprocess
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -179,13 +180,20 @@ def update_language_status(language, chat_id=None):
 
 update_language_status(LANGUAGE)
 
+def get_version_info():
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    result = subprocess.run(['git', '-C', current_directory, 'log', '-1'], stdout=subprocess.PIPE)
+    output = result.stdout.decode()
+    return " ".join(output.split('\n')[2].split(' ')[3:-1])
+
 def update_info_message(user_id = None):
     return "".join([
         f"**🤖 Model:** `{get_ENGINE(user_id)}`\n\n",
         f"**🔑 API:** `{replace_with_asterisk(API)}`\n\n" if API else "",
         f"**🔗 API URL:** `{API_URL}`\n\n" if API_URL else "",
         f"**🛜 WEB HOOK:** `{WEB_HOOK}`\n\n" if WEB_HOOK else "",
-        f"**🚰 tokens usage:** `{get_robot(user_id)[0].tokens_usage[str(user_id)]}`\n\n",
+        f"**🚰 Tokens usage:** `{get_robot(user_id)[0].tokens_usage[str(user_id)]}`\n\n",
+        f"**📖 Version:** `{get_version_info()}`\n\n",
     ])
 
 def reset_ENGINE(chat_id, message=None):
