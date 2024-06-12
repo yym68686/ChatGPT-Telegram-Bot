@@ -64,6 +64,11 @@ strings = {
         "en": "Title",
         "zh-hk": "標題",
     },
+    "TYPING": {
+        "zh": "输入状态",
+        "en": "Typing state",
+        "zh-hk": "輸入狀態",
+    },
     "message_think": {
         "zh": "`思考中💭`",
         "en": "`thinking💭`",

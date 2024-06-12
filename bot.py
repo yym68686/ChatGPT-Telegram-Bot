@@ -205,7 +205,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if "gpt" in engine or (config.CLAUDE_API and "claude-3" in engine):
                 message = [{"type": "text", "text": message}]
             message = get_image_message(image_url, message, engine)
-            await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
+            if Users.get_config(convo_id, "TYPING"):
+                await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
             if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
             await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id)
