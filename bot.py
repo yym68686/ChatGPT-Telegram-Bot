@@ -472,7 +472,7 @@ async def handle_file(update, context):
 
     if file_url == None and image_url:
         file_url = image_url
-    message = Document_extract(file_url, None, engine)
+    message = Document_extract(file_url, image_url, engine)
 
     robot.add_to_conversation(message, role, convo_id)
     message = (
