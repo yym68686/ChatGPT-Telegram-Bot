@@ -274,6 +274,8 @@ We are grateful for the support from the following sponsors:
 
 - @ZETA: $200
 
+- @yuerbujin: ¥600
+
 - [@Zeabur](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss): $25
 
 <!-- [![Deployed on Zeabur](https://zeabur.com/deployed-on-zeabur-dark.svg)](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss) -->

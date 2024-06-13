@@ -1,0 +1,23 @@
+FROM python:3.10.13 AS builder
+
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+	PATH=/home/user/.local/bin:$PATH
+WORKDIR $HOME/app
+
+COPY ./requirements.txt $HOME/app
+RUN pip install --user -r $HOME/app/requirements.txt
+
+FROM python:3.10.13-slim-bullseye
+EXPOSE 8080
+
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+	PATH=/home/user/.local/bin:$PATH
+WORKDIR $HOME/app
+
+COPY --from=builder /home/user/.local/lib/python3.10/site-packages /home/user/.local/lib/python3.10/site-packages
+COPY . $HOME/app
+ENTRYPOINT ["python", "-u", "/home/user/app/bot.py"]
