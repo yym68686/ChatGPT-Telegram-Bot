@@ -468,6 +468,8 @@ async def handle_file(update, context):
     robot, role = get_robot(convo_id)
     engine = get_ENGINE(chatid)
 
+    if file_url == None and image_url:
+        file_url = image_url
     message = Document_extract(file_url, None, engine)
 
     robot.add_to_conversation(message, role, convo_id)

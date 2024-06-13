@@ -6,7 +6,6 @@ load_dotenv()
 from utils.i18n import strings
 from datetime import datetime
 from ModelMerge.utils import prompt
-from ModelMerge.utils.scripts import get_encode_image
 from ModelMerge.models import chatgpt, claude, groq, claude3, gemini, PLUGINS
 from telegram import InlineKeyboardButton
 
@@ -14,22 +13,14 @@ NICK = os.environ.get('NICK', None)
 PORT = int(os.environ.get('PORT', '8080'))
 BOT_TOKEN = os.environ.get('BOT_TOKEN', None)
 
-def replace_with_asterisk(string, start=10, end=45):
-    if string:
-        return string[:start] + '*' * (end - start - 8) + string[end:]
-    else:
-        return None
-
 GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4o')
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 API = os.environ.get('API', None)
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
+CHAT_MODE = os.environ.get('CHAT_MODE', "global")
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
-
-current_date = datetime.now()
-Current_Date = current_date.strftime("%Y-%m-%d")
 
 PREFERENCES = {
     "PASS_HISTORY": (os.environ.get('PASS_HISTORY', "True") == "False") == False,
@@ -53,6 +44,9 @@ LANGUAGES_TO_CODE = {
     "Simplified Chinese": "zh",
     "Traditional Chinese": "zh-hk",
 }
+
+current_date = datetime.now()
+Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUAGE, Current_Date))
 claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt.format(LANGUAGE))
 
@@ -129,7 +123,6 @@ class UserConfig:
         plugins_config = {key: value for key, value in user_data.items() if key in self.plugins}
         return plugins_config
 
-CHAT_MODE = os.environ.get('CHAT_MODE', "global")
 Users = UserConfig(mode=CHAT_MODE, engine=GPT_ENGINE, preferences=PREFERENCES, plugins=PLUGINS, language=LANGUAGE, languages=LANGUAGES, systemprompt=systemprompt, claude_systemprompt=claude_systemprompt)
 
 def get_ENGINE(user_id = None):
@@ -186,6 +179,12 @@ def get_version_info():
     result = subprocess.run(['git', '-C', current_directory, 'log', '-1'], stdout=subprocess.PIPE)
     output = result.stdout.decode()
     return " ".join(output.split('\n')[2].split(' ')[3:-1])
+
+def replace_with_asterisk(string, start=10, end=45):
+    if string:
+        return string[:start] + '*' * (end - start - 8) + string[end:]
+    else:
+        return None
 
 def update_info_message(user_id = None):
     return "".join([
