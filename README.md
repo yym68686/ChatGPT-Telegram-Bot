@@ -33,7 +33,8 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | GPT_ENGINE    | Set the default QA model; the default is:`gpt-4-1106-preview`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
 | WEB_HOOK  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
 | API_URL       | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
-| GROQ_API_KEY  | Groq API key.                              | No |
+| GROQ_API_KEY  | Groq offical API key.                              | No |
+| GOOGLE_AI_API_KEY       | Google AI offical API key.                              | No |
 | claude_api_key | Claude offical API key.                              | No |
 | NICK          | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |
 | PASS_HISTORY  | The default is `False`. The bot remembers the conversation history and considers the context when replying next time. If set to `False`, the bot will forget the conversation history and only consider the current conversation. Ensure the first letter of `False` and `True` is capitalized. | No |
@@ -43,8 +44,6 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | ADMIN_LIST | Set up an admin list. Only admins can use the `info` command to configure the bot. When `GROUP_LIST` is set, only admins can have private chats with the bot. If `ADMIN_LIST` is not set, all users can modify the basic settings of the bot through the `info` command by default. Connect the admin IDs with a comma (','). You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). | No |
 | GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). After setting `GROUP_LIST`, except for the admin, no one else can have a private chat with the bot.You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). | No |
 | CUSTOM_MODELS | Set up a list of custom model name. Connect the model name with a comma (','). | No |
-| GOOGLE_AI_API_KEY       | Google AI offical API key.                              | No |
-| GROQ_API_KEY       | Groq AI offical API key.                              | No |
 | CHAT_MODE       | Introduce multi-user mode, different users' configurations are not shared, the default is that each user has the same configuration, and the CHAT_MODE environment variable is used to control the configuration behavior. When CHAT_MODE is global, all users share the configuration. When CHAT_MODE is multiusers, user configurations are independent of each other.                             | No |
 
 ## Zeabur Remote Deployment (Recommended)
@@ -267,15 +266,37 @@ https://github.com/gpchelkin/scdlbot/blob/d64d14f6c6d357ba818e80b8a0a9291c2146d6
 
 The markdown rendering of the message used is another [project](https://github.com/yym68686/md2tgmd) of mine.
 
+## Sponsors
+
+We are grateful for the support from the following sponsors:
+
+- @fasizhuanqian: 300 USDT
+
+- @ZETA: $200
+
+- [@Zeabur](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss): $25
+
+<!-- [![Deployed on Zeabur](https://zeabur.com/deployed-on-zeabur-dark.svg)](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss) -->
+
+## How to Sponsor Us
+
+If you would like to support our project, you can sponsor us through the following methods:
+
+1. [PayPal](https://www.paypal.me/yym68686)
+
+2. [USDT-TRC20](https://pb.yym68686.top/~USDT-TRC20), USDT-TRC20 Wallet Address: `TLFbqSv5pDu5he43mVmK1dNx7yBMFeN7d8`
+
+3. [WeChat](https://pb.yym68686.top/~wechat)
+
+4. [Alipay](https://pb.yym68686.top/~alipay)
+
+Thank you for your support!
+
 ## Star History
 
 <a href="https://github.com/yym68686/ChatGPT-Telegram-Bot/stargazers">
         <img width="500" alt="Star History Chart" src="https://api.star-history.com/svg?repos=yym68686/ChatGPT-Telegram-Bot&type=Date">
 </a>
-
-## Sponsor
-
-[![Deployed on Zeabur](https://zeabur.com/deployed-on-zeabur-dark.svg)](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss)
 
 ## License
 

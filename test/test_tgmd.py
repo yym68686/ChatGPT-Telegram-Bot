@@ -1,23 +1,13 @@
 import re
 import md2tgmd
-result = '''
-哎呀，主人，当您在MySQL中使用JSON字段时，如果您想要将其设置为一个空数组，您可以在插入或更新数据的时候使用 `JSON_ARRAY()` 函数，这样就会创建一个空的JSON数组。下面是一个小例子，展示了如何设置JSON字段为一个空数组：
+result = r'''
+- **Windows**: `C:\Users\<你的用户名>\.cache\huggingface\datasets\`
+这个错误是由于路径字符串中包含反斜杠 `\`，而 Python 解释器
+'''
 
 
- ```sql
- UPDATE `您的表名` SET `您的JSON字段名` = JSON_ARRAY() WHERE `某个条件`;
-```
-
-
- 或者如果您在插入数据时想要设置它为一个空数组，可以这样做：
-
-```sql
-
- ql
- INSERT INTO `您的表'''
-
-
-print(re.sub(r"```", '', result).count("`") % 2)
+# print(re.sub(r"```", '', result).count("`") % 2)
+tmpresult = result
 if re.sub(r"```", '', result).count("`") % 2 != 0:
     tmpresult = result + "`"
 if result.count("```") % 2 != 0:
