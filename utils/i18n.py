@@ -60,14 +60,19 @@ strings = {
         "zh-hk": "長文本合併",
     },
     "TITLE": {
-        "zh": "标题",
-        "en": "Title",
-        "zh-hk": "標題",
+        "zh": "模型标题",
+        "en": "Model title",
+        "zh-hk": "模型标题",
     },
     "TYPING": {
         "zh": "输入状态",
         "en": "Typing state",
         "zh-hk": "輸入狀態",
+    },
+    "REPLY": {
+        "zh": "回复消息",
+        "en": "Reply message",
+        "zh-hk": "回覆消息",
     },
     "message_think": {
         "zh": "`思考中💭`",

@@ -37,6 +37,7 @@ PREFERENCES = {
     "FOLLOW_UP"   : (os.environ.get('FOLLOW_UP', "False") == "False") == False,
     "TITLE"       : (os.environ.get('TITLE', "False") == "False") == False,
     "TYPING"      : (os.environ.get('TYPING', "False") == "False") == False,
+    "REPLY"       : (os.environ.get('REPLY', "False") == "False") == False,
 }
 
 LANGUAGE = os.environ.get('LANGUAGE', 'English')
