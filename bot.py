@@ -320,6 +320,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             print(escape(tmpresult))
         else:
             sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+    # print("tmpresult", tmpresult)
+
     if Users.get_config(convo_id, "FOLLOW_UP"):
         prompt = (
             f"You are a professional Q&A expert. You will now be given reference information. Based on the reference information, please help me ask three most relevant questions that you most want to know from my perspective. Be concise and to the point. Do not have numbers in front of questions. Separate each question with a line break. Only output three questions in {config.LANGUAGE}, no need for any explanation. reference infomation is provided inside <infomation></infomation> XML tags."
