@@ -14,6 +14,7 @@ from config import (
     WEB_HOOK,
     PORT,
     BOT_TOKEN,
+    GOOGLE_AI_API_KEY,
     Users,
     PREFERENCES,
     LANGUAGES,
@@ -209,7 +210,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
             if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
-            await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id)
+            await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id)
     else:
         message = await context.bot.send_message(
             chat_id=chatid,
@@ -253,15 +254,17 @@ async def reset_chat(update, context):
     )
     await delete_message(update, context, message.message_id)
 
-async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id):
+async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id):
     result = ""
     text = message
     modifytime = 0
     time_out = 600
     model_name = Users.get_config(convo_id, "engine")
     Frequency_Modification = 20
-    if "gemini" in model_name:
-        Frequency_Modification = 2
+    if message_thread_id:
+        Frequency_Modification = 30
+    if "gemini" in model_name and GOOGLE_AI_API_KEY:
+        Frequency_Modification = 1
     lastresult = title
     tmpresult = ""
 
@@ -269,6 +272,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         messageid = None
     message = await context.bot.send_message(
         chat_id=chatid,
+        message_thread_id=message_thread_id,
         text=strings['message_think'][get_current_lang()],
         parse_mode='MarkdownV2',
         reply_to_message_id=messageid,
