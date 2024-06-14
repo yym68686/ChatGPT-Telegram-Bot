@@ -99,6 +99,8 @@ async def GetMesage(update_message, context):
     image_url = None
     file_url = None
     reply_to_message_text = None
+    message = None
+    rawtext = None
 
     chatid = str(update_message.chat_id)
     message_thread_id = update_message.message_thread_id
@@ -121,7 +123,8 @@ async def GetMesage(update_message, context):
 
         image_url = await get_file_url(photo, context)
 
-        message = rawtext = CutNICK(update_message.caption, update_message)
+        if update_message.caption:
+            message = rawtext = CutNICK(update_message.caption, update_message)
 
     if update_message.document:
         file = update_message.document

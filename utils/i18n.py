@@ -74,16 +74,16 @@ strings = {
         "en": "Reply message",
         "zh-hk": "回覆消息",
     },
-    "message_think": {
-        "zh": "`...`",
-        "en": "`...`",
-        "zh-hk": "`...`",
-    },
     # "message_think": {
-    #     "zh": "`思考中💭`",
-    #     "en": "`thinking💭`",
-    #     "zh-hk": "`思考中💭`",
+    #     "zh": "`...`",
+    #     "en": "`...`",
+    #     "zh-hk": "`...`",
     # },
+    "message_think": {
+        "zh": "`思考中💭`",
+        "en": "`thinking💭`",
+        "zh-hk": "`思考中💭`",
+    },
     "message_banner": {
         "zh": "👇 下面可以随时更改默认模型：",
         "en": "👇 Change model below:",
