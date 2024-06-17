@@ -208,6 +208,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
 
             if "gpt" in engine or (config.CLAUDE_API and "claude-3" in engine):
                 message = [{"type": "text", "text": message}]
+            if image_url == None and file_url and (file_url[-3:] == "jpg" or file_url[-3:] == "png" or file_url[-4:] == "jpeg"):
+                image_url = file_url
             message = get_image_message(image_url, message, engine)
             if Users.get_config(convo_id, "TYPING"):
                 await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
@@ -475,6 +477,8 @@ async def handle_file(update, context):
 
     if file_url == None and image_url:
         file_url = image_url
+    if image_url == None and file_url:
+        image_url = file_url
     message = Document_extract(file_url, image_url, engine)
 
     robot.add_to_conversation(message, role, convo_id)
@@ -601,10 +605,10 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.translate_bot)))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(InlineQueryHandler(inlinequery))
-    application.add_handler(MessageHandler(filters.Document.PDF | filters.Document.TXT | filters.Document.DOC | filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg"), handle_file))
+    # application.add_handler(MessageHandler(~filters.CAPTION & , handle_file))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False), block = False))
-    application.add_handler(MessageHandler(filters.CAPTION & filters.PHOTO & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
-    application.add_handler(MessageHandler(~filters.CAPTION & filters.PHOTO & ~filters.COMMAND, handle_file))
+    application.add_handler(MessageHandler(filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg") | filters.Document.FileExtension("png"))), lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
+    application.add_handler(MessageHandler(~filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.PDF | filters.Document.TXT | filters.Document.DOC | filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg"))), handle_file))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
 

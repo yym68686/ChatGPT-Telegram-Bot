@@ -1,5 +1,5 @@
 --index-url https://pypi.python.org/simple/
 python-dotenv
 md2tgmd==0.2.2
-ModelMerge==0.6.10
+ModelMerge==0.6.11
 python-telegram-bot[webhooks,rate-limiter]==21.0.1
