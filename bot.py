@@ -153,7 +153,7 @@ time_stamps = defaultdict(lambda: [])
 
 @decorators.GroupAuthorization
 @decorators.Authorization
-async def command_bot(update, context, language=None, prompt=translator_prompt, title="", robot=None, has_command=True):
+async def command_bot(update, context, language=None, prompt=translator_prompt, title="", has_command=True):
     stop_event.clear()
     print("update", update)
     message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
@@ -162,12 +162,14 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
     if has_command == False or len(context.args) > 0:
         if has_command:
             message = ' '.join(context.args)
+        pass_history = Users.get_config(convo_id, "PASS_HISTORY")
         if prompt and has_command:
             if translator_prompt == prompt:
                 if language == "english":
                     prompt = prompt.format(language)
                 else:
                     prompt = translator_en2zh_prompt
+                pass_history = False
             message = prompt + message
         if message:
             if reply_to_message_text and update_message.reply_to_message.from_user.is_bot:
@@ -175,8 +177,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             elif reply_to_message_text and not update_message.reply_to_message.from_user.is_bot:
                 message = reply_to_message_text + "\n" + message
 
-            if robot is None:
-                robot, role = get_robot(convo_id)
+            robot, role = get_robot(convo_id)
             engine = get_ENGINE(convo_id)
 
             if Users.get_config(convo_id, "LONG_TEXT"):
@@ -215,7 +216,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
             if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
-            await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id)
+
+            await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history)
     else:
         message = await context.bot.send_message(
             chat_id=chatid,
@@ -235,31 +237,7 @@ async def delete_message(update, context, messageid, delay=60):
         print("error", e)
         print('\033[0m')
 
-# 定义一个全局变量来存储 chatid
-target_convo_id = None
-
-@decorators.GroupAuthorization
-@decorators.Authorization
-async def reset_chat(update, context):
-    global target_convo_id
-    _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
-    target_convo_id = convo_id
-    stop_event.set()
-    message = None
-    if (len(context.args) > 0):
-        message = ' '.join(context.args)
-    reset_ENGINE(target_convo_id, message)
-
-    remove_keyboard = ReplyKeyboardRemove()
-    message = await context.bot.send_message(
-        chat_id=chatid,
-        message_thread_id=message_thread_id,
-        text="重置成功！",
-        reply_markup=remove_keyboard,
-    )
-    await delete_message(update, context, message.message_id)
-
-async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id):
+async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=False):
     result = ""
     text = message
     modifytime = 0
@@ -283,7 +261,6 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         reply_to_message_id=messageid,
     )
     answer_messageid = message.message_id
-    pass_history = Users.get_config(convo_id, "PASS_HISTORY")
     image_has_send = 0
 
     try:
@@ -525,6 +502,30 @@ async def inlinequery(update: Update, context) -> None:
 
         await update.inline_query.answer(results)
 
+# 定义一个全局变量来存储 chatid
+target_convo_id = None
+
+@decorators.GroupAuthorization
+@decorators.Authorization
+async def reset_chat(update, context):
+    global target_convo_id
+    _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
+    target_convo_id = convo_id
+    stop_event.set()
+    message = None
+    if (len(context.args) > 0):
+        message = ' '.join(context.args)
+    reset_ENGINE(target_convo_id, message)
+
+    remove_keyboard = ReplyKeyboardRemove()
+    message = await context.bot.send_message(
+        chat_id=chatid,
+        message_thread_id=message_thread_id,
+        text="重置成功！",
+        reply_markup=remove_keyboard,
+    )
+    await delete_message(update, context, message.message_id)
+
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
     message = (
@@ -601,8 +602,8 @@ if __name__ == '__main__':
     # application.add_handler(ChosenInlineResultHandler(chosen_inline_result))
     # application.add_handler(MessageHandler(filters.TEXT & filters.VIA_BOT, handle_message))
     application.add_handler(CommandHandler("reset", reset_chat))
-    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese", robot=config.translate_bot)))
-    application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english", robot=config.translate_bot)))
+    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese")))
+    application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english")))
     application.add_handler(CommandHandler("info", info))
     application.add_handler(InlineQueryHandler(inlinequery))
     # application.add_handler(MessageHandler(~filters.CAPTION & , handle_file))

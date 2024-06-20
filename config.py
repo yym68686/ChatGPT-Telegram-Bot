@@ -131,9 +131,9 @@ def get_ENGINE(user_id = None):
 temperature = float(os.environ.get('temperature', '0.5'))
 CLAUDE_API = os.environ.get('claude_api_key', None)
 
-ChatGPTbot, SummaryBot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None, None
+ChatGPTbot, SummaryBot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None
 def update_ENGINE(data = None, chat_id=None):
-    global Users, ChatGPTbot, SummaryBot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot
+    global Users, ChatGPTbot, SummaryBot, claudeBot, claude3Bot, groqBot, gemini_Bot
     if data:
         Users.set_config(chat_id, "engine", data)
     engine = Users.get_config(chat_id, "engine")
@@ -142,7 +142,6 @@ def update_ENGINE(data = None, chat_id=None):
     if API:
         ChatGPTbot = chatgpt(api_key=f"{API}", engine=engine, system_prompt=systemprompt, temperature=temperature)
         SummaryBot = chatgpt(api_key=f"{API}", engine="gpt-3.5-turbo", system_prompt=systemprompt, temperature=temperature)
-        translate_bot = chatgpt(api_key=f"{API}", engine=engine, system_prompt=systemprompt, temperature=temperature)
     if CLAUDE_API and "claude-2.1" in engine:
         claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
     if CLAUDE_API and "claude-3" in engine:
@@ -197,7 +196,7 @@ def update_info_message(user_id = None):
     ])
 
 def reset_ENGINE(chat_id, message=None):
-    global ChatGPTbot, translate_bot, claudeBot, claude3Bot, groqBot, gemini_Bot
+    global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot
     systemprompt = Users.get_config(chat_id, "systemprompt")
     claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
     if message:
