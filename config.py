@@ -54,6 +54,8 @@ class UserConfig:
     def __init__(self,
         user_id: str = None,
         language="English",
+        api_url="https://api.openai.com/v1/chat/completions",
+        api_key=None,
         engine="gpt-4o",
         mode="global",
         preferences=None,
@@ -66,35 +68,38 @@ class UserConfig:
         self.language = language
         self.languages = languages
         self.languages[self.language] = True
+        self.api_url = api_url
+        self.api_key = api_key
         self.engine = engine
         self.preferences = preferences
         self.plugins = plugins
         self.systemprompt = systemprompt
         self.claude_systemprompt = claude_systemprompt
         self.users = {
-            "global": {
-                "language": self.language,
-                "engine": self.engine,
-                "systemprompt": self.systemprompt,
-                "claude_systemprompt": self.claude_systemprompt,
-            }
+            "global": self.get_init_preferences()
         }
         self.users["global"].update(self.preferences)
         self.users["global"].update(self.plugins)
         self.users["global"].update(self.languages)
         self.mode = mode
         self.parameter_name_list = list(self.users["global"].keys())
+
+    def get_init_preferences(self):
+        return {
+            "language": self.language,
+            "engine": self.engine,
+            "systemprompt": self.systemprompt,
+            "claude_systemprompt": self.claude_systemprompt,
+            "api_key": self.api_key,
+            "api_url": self.api_url,
+        }
+
     def user_init(self, user_id = None):
         if user_id == None or self.mode == "global":
             user_id = "global"
         self.user_id = user_id
         if self.user_id not in self.users.keys():
-            self.users[self.user_id] = {
-                "language": self.language,
-                "engine": self.engine,
-                "systemprompt": self.systemprompt,
-                "claude_systemprompt": self.claude_systemprompt,
-            }
+            self.users[self.user_id] = self.get_init_preferences()
             self.users[self.user_id].update(self.preferences)
             self.users[self.user_id].update(self.plugins)
             self.users[self.user_id].update(self.languages)
@@ -123,7 +128,7 @@ class UserConfig:
         plugins_config = {key: value for key, value in user_data.items() if key in self.plugins}
         return plugins_config
 
-Users = UserConfig(mode=CHAT_MODE, engine=GPT_ENGINE, preferences=PREFERENCES, plugins=PLUGINS, language=LANGUAGE, languages=LANGUAGES, systemprompt=systemprompt, claude_systemprompt=claude_systemprompt)
+Users = UserConfig(mode=CHAT_MODE, api_key=API, api_url=API_URL, engine=GPT_ENGINE, preferences=PREFERENCES, plugins=PLUGINS, language=LANGUAGE, languages=LANGUAGES, systemprompt=systemprompt, claude_systemprompt=claude_systemprompt)
 
 def get_ENGINE(user_id = None):
     return Users.get_config(user_id, "engine")
@@ -139,9 +144,11 @@ def update_ENGINE(data = None, chat_id=None):
     engine = Users.get_config(chat_id, "engine")
     systemprompt = Users.get_config(chat_id, "systemprompt")
     claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
-    if API:
-        ChatGPTbot = chatgpt(api_key=f"{API}", engine=engine, system_prompt=systemprompt, temperature=temperature)
-        SummaryBot = chatgpt(api_key=f"{API}", engine="gpt-3.5-turbo", system_prompt=systemprompt, temperature=temperature)
+    api_key = Users.get_config(chat_id, "api_key")
+    api_url = Users.get_config(chat_id, "api_url")
+    if api_key:
+        ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=systemprompt, temperature=temperature)
+        SummaryBot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine="gpt-3.5-turbo", system_prompt=systemprompt, temperature=temperature)
     if CLAUDE_API and "claude-2.1" in engine:
         claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
     if CLAUDE_API and "claude-3" in engine:
@@ -186,10 +193,12 @@ def replace_with_asterisk(string, start=10, end=45):
         return None
 
 def update_info_message(user_id = None):
+    api_key = Users.get_config(user_id, "api_key")
+    api_url = Users.get_config(user_id, "api_url")
     return "".join([
         f"**🤖 Model:** `{get_ENGINE(user_id)}`\n\n",
-        f"**🔑 API:** `{replace_with_asterisk(API)}`\n\n" if API else "",
-        f"**🔗 API URL:** `{API_URL}`\n\n" if API_URL else "",
+        f"**🔑 API:** `{replace_with_asterisk(api_key)}`\n\n" if api_key else "",
+        f"**🔗 API URL:** `{api_url}`\n\n" if api_url else "",
         f"**🛜 WEB HOOK:** `{WEB_HOOK}`\n\n" if WEB_HOOK else "",
         f"**🚰 Tokens usage:** `{get_robot(user_id)[0].tokens_usage[str(user_id)]}`\n\n",
         f"**📖 Version:** `{get_version_info()}`\n\n",
@@ -199,12 +208,14 @@ def reset_ENGINE(chat_id, message=None):
     global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot
     systemprompt = Users.get_config(chat_id, "systemprompt")
     claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
+    api_key = Users.get_config(chat_id, "api_key")
+    api_url = Users.get_config(chat_id, "api_url")
     if message:
         Users.set_config(chat_id, "systemprompt", message)
         Users.set_config(chat_id, "claude_systemprompt", message)
         systemprompt = message
         claude_systemprompt = message
-    if API and ChatGPTbot:
+    if api_key and ChatGPTbot:
         ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
     if CLAUDE_API and claudeBot:
         claudeBot.reset(convo_id=str(chat_id), system_prompt=claude_systemprompt)

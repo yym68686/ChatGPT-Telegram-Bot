@@ -180,6 +180,15 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 message = reply_to_message_text + "\n" + message
 
             robot, role = get_robot(convo_id)
+            if robot is None:
+                message = await context.bot.send_message(
+                    chat_id=chatid,
+                    message_thread_id=message_thread_id,
+                    text=strings['message_api_none'][get_current_lang()],
+                    parse_mode='MarkdownV2',
+                    reply_to_message_id=messageid,
+                )
+                return
             engine = get_ENGINE(convo_id)
 
             if Users.get_config(convo_id, "LONG_TEXT"):
@@ -219,7 +228,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         message = await context.bot.send_message(
             chat_id=chatid,
             message_thread_id=message_thread_id,
-            text="请在命令后面放入文本。",
+            text=strings['message_command_text_none'][get_current_lang()],
             parse_mode='MarkdownV2',
             reply_to_message_id=messageid,
         )
@@ -289,7 +298,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         traceback.print_exc()
         print(tmpresult)
         print('\033[0m')
-        if config.API:
+        api_key = Users.get_config(convo_id, "api_key")
+        if api_key:
             robot.reset(convo_id=convo_id, system_prompt=config.systemprompt)
         tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
@@ -456,10 +466,7 @@ async def handle_file(update, context):
     message = Document_extract(file_url, image_url, engine)
 
     robot.add_to_conversation(message, role, convo_id)
-    message = (
-        f"上传成功！\n\n"
-    )
-    message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_doc'][get_current_lang()]), parse_mode='MarkdownV2', disable_web_page_preview=True)
     await delete_message(update, context, message.message_id)
 
 # DEBOUNCE_TIME = 4
@@ -518,19 +525,32 @@ async def reset_chat(update, context):
     message = await context.bot.send_message(
         chat_id=chatid,
         message_thread_id=message_thread_id,
-        text="重置成功！",
+        text=strings['message_reset'][get_current_lang()],
         reply_markup=remove_keyboard,
     )
     await delete_message(update, context, message.message_id)
 
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
+    _, _, _, _, _, _, _, _, convo_id, _ = await GetMesageInfo(update, context)
     message = (
         f"Hi `{user.username}` ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.\n\n"
         # "我是人见人爱的 ChatGPT~\n\n"
         # "欢迎访问 https://github.com/yym68686/ChatGPT-Telegram-Bot 查看源码\n\n"
         # "有 bug 可以联系 @yym68686"
     )
+    if (len(context.args) == 2):
+        api_url = context.args[0]
+        api_key = context.args[1]
+        Users.set_config(convo_id, "api_key", api_key)
+        Users.set_config(convo_id, "api_url", api_url)
+        update_ENGINE(chat_id=convo_id)
+
+    if (len(context.args) == 1):
+        api_key = context.args[1]
+        Users.set_config(convo_id, "api_key", api_key)
+        Users.set_config(convo_id, "api_url", "https://api.openai.com/v1/chat/completions")
+        update_ENGINE(chat_id=convo_id)
 
     await update.message.reply_text(escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
