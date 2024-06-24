@@ -118,20 +118,22 @@ async def GetMesage(update_message, context):
     if update_message.reply_to_message:
         reply_to_message_text = update_message.reply_to_message.text
 
-    if update_message.photo:
-        photo = update_message.photo[-1]
-
-        image_url = await get_file_url(photo, context)
-
-        if update_message.caption:
-            message = rawtext = CutNICK(update_message.caption, update_message)
-
     if update_message.document:
         file = update_message.document
 
         file_url = await get_file_url(file, context)
 
         message = rawtext = CutNICK(update_message.caption, update_message)
+
+    if update_message.photo:
+        photo = update_message.photo[-1]
+
+        image_url = await get_file_url(photo, context)
+        if image_url == None and file_url and (file_url[-3:] == "jpg" or file_url[-3:] == "png" or file_url[-4:] == "jpeg"):
+            image_url = file_url
+
+        if update_message.caption:
+            message = rawtext = CutNICK(update_message.caption, update_message)
 
     return message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url
 
@@ -206,17 +208,12 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 message = "\n".join(message_cache[convo_id])
                 message_cache[convo_id] = []
                 time_stamps[convo_id] = []
-
-            if "gpt" in engine or (config.CLAUDE_API and "claude-3" in engine):
-                message = [{"type": "text", "text": message}]
-            if image_url == None and file_url and (file_url[-3:] == "jpg" or file_url[-3:] == "png" or file_url[-4:] == "jpeg"):
-                image_url = file_url
-            message = get_image_message(image_url, message, engine)
             if Users.get_config(convo_id, "TYPING"):
                 await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
             if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
 
+            message = get_image_message(image_url, message, engine)
             await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history)
     else:
         message = await context.bot.send_message(
