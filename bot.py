@@ -184,7 +184,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 message = await context.bot.send_message(
                     chat_id=chatid,
                     message_thread_id=message_thread_id,
-                    text=strings['message_api_none'][get_current_lang()],
+                    text=escape(strings['message_api_none'][get_current_lang()]),
                     parse_mode='MarkdownV2',
                     reply_to_message_id=messageid,
                 )
@@ -228,7 +228,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         message = await context.bot.send_message(
             chat_id=chatid,
             message_thread_id=message_thread_id,
-            text=strings['message_command_text_none'][get_current_lang()],
+            text=escape(strings['message_command_text_none'][get_current_lang()]),
             parse_mode='MarkdownV2',
             reply_to_message_id=messageid,
         )
@@ -262,7 +262,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     message = await context.bot.send_message(
         chat_id=chatid,
         message_thread_id=message_thread_id,
-        text=strings['message_think'][get_current_lang()],
+        text=escape(strings['message_think'][get_current_lang()]),
         parse_mode='MarkdownV2',
         reply_to_message_id=messageid,
     )
@@ -525,7 +525,7 @@ async def reset_chat(update, context):
     message = await context.bot.send_message(
         chat_id=chatid,
         message_thread_id=message_thread_id,
-        text=strings['message_reset'][get_current_lang()],
+        text=escape(strings['message_reset'][get_current_lang()]),
         reply_markup=remove_keyboard,
     )
     await delete_message(update, context, message.message_id)
