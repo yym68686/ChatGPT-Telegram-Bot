@@ -101,6 +101,7 @@ async def GetMesage(update_message, context):
     reply_to_message_text = None
     message = None
     rawtext = None
+    reply_to_message_file_content = None
 
     chatid = str(update_message.chat_id)
     message_thread_id = update_message.message_thread_id
@@ -117,6 +118,10 @@ async def GetMesage(update_message, context):
 
     if update_message.reply_to_message:
         reply_to_message_text = update_message.reply_to_message.text
+        reply_to_message_file = update_message.reply_to_message.document
+        if reply_to_message_file:
+            reply_to_message_file_url = await get_file_url(reply_to_message_file, context)
+            reply_to_message_file_content = Document_extract(reply_to_message_file_url, reply_to_message_file_url, None)
 
     if update_message.document:
         file = update_message.document
@@ -135,19 +140,19 @@ async def GetMesage(update_message, context):
         if update_message.caption:
             message = rawtext = CutNICK(update_message.caption, update_message)
 
-    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url
+    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content
 
 async def GetMesageInfo(update, context):
     if update.edited_message:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url = await GetMesage(update.edited_message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesage(update.edited_message, context)
         update_message = update.edited_message
     elif update.callback_query:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url = await GetMesage(update.callback_query.message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesage(update.callback_query.message, context)
         update_message = update.callback_query.message
     else:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url = await GetMesage(update.message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesage(update.message, context)
         update_message = update.message
-    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url
+    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content
 
 # 定义一个缓存来存储消息
 message_cache = defaultdict(lambda: [])
@@ -158,7 +163,7 @@ time_stamps = defaultdict(lambda: [])
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", has_command=True):
     stop_event.clear()
     print("update", update)
-    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
+    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
     print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
 
     if has_command == False or len(context.args) > 0:
@@ -174,10 +179,13 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 pass_history = False
             message = prompt + message
         if message:
-            if reply_to_message_text and update_message.reply_to_message.from_user.is_bot:
+            if reply_to_message_text and update_message.reply_to_message.from_user.is_bot and Users.get_config(convo_id, "TITLE") == True:
                 message = '\n'.join(reply_to_message_text.split('\n')[1:]) + "\n" + message
-            elif reply_to_message_text and not update_message.reply_to_message.from_user.is_bot:
-                message = reply_to_message_text + "\n" + message
+            elif not update_message.reply_to_message.from_user.is_bot:
+                if reply_to_message_text:
+                    message = reply_to_message_text + "\n" + message
+                if reply_to_message_file_content:
+                    message = reply_to_message_file_content + "\n" + message
 
             robot, role = get_robot(convo_id)
             if robot is None:
@@ -334,7 +342,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
 @decorators.Authorization
 async def button_press(update, context):
     """Function to handle the button press"""
-    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
+    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
     callback_query = update.callback_query
     info_message = update_info_message(convo_id)
     await callback_query.answer()
@@ -447,7 +455,7 @@ async def button_press(update, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def info(update, context):
-    _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
+    _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
     info_message = update_info_message(convo_id)
     message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)), parse_mode='MarkdownV2', disable_web_page_preview=True)
     await delete_message(update, context, message.message_id)
@@ -455,7 +463,7 @@ async def info(update, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def handle_file(update, context):
-    _, _, image_url, chatid, _, messageid, update_message, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
+    _, _, image_url, chatid, _, messageid, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
     robot, role = get_robot(convo_id)
     engine = get_ENGINE(chatid)
 
@@ -513,7 +521,7 @@ target_convo_id = None
 @decorators.Authorization
 async def reset_chat(update, context):
     global target_convo_id
-    _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url = await GetMesageInfo(update, context)
+    _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
     target_convo_id = convo_id
     stop_event.set()
     message = None
@@ -532,7 +540,7 @@ async def reset_chat(update, context):
 
 async def start(update, context): # 当用户输入/start时，返回文本
     user = update.effective_user
-    _, _, _, _, _, _, _, _, convo_id, _ = await GetMesageInfo(update, context)
+    _, _, _, _, _, _, _, _, convo_id, _, reply_to_message_file_content = await GetMesageInfo(update, context)
     message = (
         f"Hi `{user.username}` ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.\n\n"
         # "我是人见人爱的 ChatGPT~\n\n"
