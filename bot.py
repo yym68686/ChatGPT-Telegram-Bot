@@ -181,7 +181,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if message:
             if reply_to_message_text and update_message.reply_to_message.from_user.is_bot and Users.get_config(convo_id, "TITLE") == True:
                 message = '\n'.join(reply_to_message_text.split('\n')[1:]) + "\n" + message
-            elif not update_message.reply_to_message.from_user.is_bot:
+            elif update_message.reply_to_message and not update_message.reply_to_message.from_user.is_bot:
                 if reply_to_message_text:
                     message = reply_to_message_text + "\n" + message
                 if reply_to_message_file_content:
