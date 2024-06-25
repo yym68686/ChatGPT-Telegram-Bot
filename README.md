@@ -5,31 +5,42 @@
 # 🤖️ ChatGPT Telegram Bot
 
 <p align="center">
-    <a href="https://hub.docker.com/repository/docker/yym68686/chatgpt">
-    <img src="https://img.shields.io/docker/pulls/yym68686/chatgpt?color=blue" alt="docker pull"></a>
   <a href="https://t.me/+_01cz9tAkUc1YzZl">
     <img src="https://img.shields.io/badge/Join Telegram Group-blue?&logo=telegram">
   </a>
+  <a href="https://t.me/chatgpt68_bot">
+    <img src="https://img.shields.io/badge/Telegram Bot-grey?&logo=Probot">
+  </a>
+   <a href="https://hub.docker.com/repository/docker/yym68686/chatgpt">
+    <img src="https://img.shields.io/docker/pulls/yym68686/chatgpt?color=blue" alt="docker pull">
+  </a>
 </p>
 
-The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT models, including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALL·E 3, Groq Mixtral-8x7b/LLaMA2-70b and the official Claude2.1/Claude3 opus/sonnet API. It enables users to engage in efficient conversations and information searches on Telegram.
+The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT models, including GPT-3.5/4/4 Turbo/4o, DALL·E 3, Groq Mixtral-8x7b/LLaMA2-70b and the official Claude2.1/3/3.5 API. It enables users to engage in efficient conversations and information searches on Telegram.
 
 ## ✨ Features
 
-- **Multiple AI Models**: Integrates a variety of AI models including GPT3.5, GPT4, GPT4 Turbo, GPT4 Vision, DALL·E 3 and Claude2.1 API.
-- **Powerful Online Search**: Supports online search with DuckDuckGo and Google, providing users with a robust information retrieval tool.
+- **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o, DALL·E 3, Groq Mixtral-8x7b/LLaMA2-70b and the official Claude2.1/3/3.5 API. Also supports one-api/new-api. Utilizes a self-developed API request backend [SDK](https://github.com/yym68686/ModelMerge), independent of the OpenAI SDK.
+- **Group Chat Topic Mode**: Supports enabling topic mode in group chats, isolating APIs, dialogue history, plugin configurations, and preferences between topics.
+- **Rich Plugin System**: Supports web search(DuckDuckGo and Google), URL summarization, arXiv paper summarization, and code interpreter.
 - **User-friendly Interface**: Allows flexible model switching within the chat window and supports streaming output for a typewriter-like effect.
 - **Efficient Message Processing**: Asynchronously processes messages, answers questions in a multi-threaded manner, supports isolated dialogues, and provides unique dialogues for different users.
-- **Document Interaction**: Supports Q&A for PDF and TXT documents. Users can upload files directly in the chat box for use.
-- **Accurate Markdown Rendering**: Supports precise Markdown rendering of messages, utilizing another [project](https://github.com/yym68686/md2tgmd) of mine.
-- **Convenient Deployment**: Supports one-click Zeabur, Replit deployment with true zero cost and idiot-proof deployment process. It also supports kuma anti-sleep, as well as Docker and fly.io deployment.
+- **Multi-modal Q&A**: Supports Q&A for images, PDF/TXT/MD documents.Users can upload files directly in the chat box for use.
+- **Long Text Message Merging**: Automatically merges long text messages, breaking through Telegram's single message length limit.
+- **Multi-user Dialogue Isolation**: Supports dialogue isolation and configuration isolation, allowing selection between multi-user and single-user modes.
+- **Question Prediction**: Automatically generates follow-up questions, anticipating what users might ask next.
+- **Multi-language Interface**: Supports Simplified Chinese, Traditional Chinese, and English interfaces.
+- **Whitelist, Blacklist, and Admin Settings**: Supports setting up whitelists, blacklists, and administrators.
+- **Inline Mode**: Allows users to @ the bot in any chat window to generate answers without needing to ask questions in the bot's chat window.
+- **User-friendly Interface**: Allows flexible model switching within the chat window and supports streaming output for a typewriter-like effect.Supports precise Markdown rendering of messages, utilizing another [project](https://github.com/yym68686/md2tgmd) of mine.
+- **Convenient Deployment**: Supports one-click koyeb, Zeabur, Replit deployment with true zero cost and idiot-proof deployment process. It also supports kuma anti-sleep, as well as Docker and fly.io deployment.
 
 ## 🍃 Environment variables
 
 | Variable Name           | Comment                                                      | required? |
 | ---------------------- | ------------------------------------------------------------ | ---------------------- |
 | **BOT_TOKEN** | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. | **Yes** |
-| **API**       | OpenAI or third-party API key.                              | **Yes** |
+| API       | OpenAI or third-party API key.                              | No |
 | GPT_ENGINE    | Set the default QA model; the default is:`gpt-4-1106-preview`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
 | WEB_HOOK  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
 | API_URL       | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
@@ -46,7 +57,13 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | CUSTOM_MODELS | Set up a list of custom model name. Connect the model name with a comma (','). | No |
 | CHAT_MODE       | Introduce multi-user mode, different users' configurations are not shared, the default is that each user has the same configuration, and the CHAT_MODE environment variable is used to control the configuration behavior. When CHAT_MODE is global, all users share the configuration. When CHAT_MODE is multiusers, user configurations are independent of each other.                             | No |
 
-## Zeabur Remote Deployment (Recommended)
+## Koyeb Remote Deployment
+
+One-click deployment:
+
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=docker&image=docker.io/yym68686/chatgpt:1.0&name=chatbot)
+
+## Zeabur Remote Deployment
 
 One-click deployment:
 
@@ -188,21 +205,6 @@ docker logs -f chatbot
 This script is for restarting the Docker image with a single command. It first removes the existing Docker container named "chatbot" if it exists. Then, it runs a new Docker container with the name "chatbot", exposing port 8080 and setting various environment variables. The Docker image used is "yym68686/chatgpt:1.0". Finally, it follows the logs of the "chatbot" container.
 
 ## 📄 Q & A
-
-- How to get **free** API Key for testing?
-
-Well, If you're facing high cost of openAI API, you can try this method for testing,
-
-1. Join [Galaxy AI](https://discord.com/invite/zJAk5akk3d) Discord server.
-2. Visit the ``Commands`` channel.
-3. Use ``/generate`` command to generate your private API Key.
-4. Then, You have to replace the ``API_URL`` variable in config.py with value ``https://galaxyapi.onrender.com``, also put your **generated** API Key in the ``API`` variable.
-
-```python
-API_URL = "https://galaxyapi.onrender.com"
-API = "<your-generated-key-here>"
-```
-Alternatively, You can set these variables in **Environment**.
 
 - Why can't I use Google search?
 
