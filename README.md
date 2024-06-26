@@ -16,11 +16,11 @@
   </a>
 </p>
 
-The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT models, including GPT-3.5/4/4 Turbo/4o, DALL·E 3, Groq Mixtral-8x7b/LLaMA2-70b and the official Claude2.1/3/3.5 API. It enables users to engage in efficient conversations and information searches on Telegram.
+The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT models, including GPT-3.5/4/4 Turbo/4o, DALL·E 3, Groq Mixtral-8x7b/LLaMA2-70b, Gemini 1.5 Pro/Flash and the official Claude2.1/3/3.5 API. It enables users to engage in efficient conversations and information searches on Telegram.
 
 ## ✨ Features
 
-- **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o, DALL·E 3, Groq Mixtral-8x7b/LLaMA2-70b and the official Claude2.1/3/3.5 API. Also supports one-api/new-api. Utilizes a self-developed API request backend [SDK](https://github.com/yym68686/ModelMerge), independent of the OpenAI SDK.
+- **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o, DALL·E 3, Groq Mixtral-8x7b/LLaMA2-70b, Gemini 1.5 Pro/Flash and the official Claude2.1/3/3.5 API. Also supports one-api/new-api. Utilizes a self-developed API request backend [SDK](https://github.com/yym68686/ModelMerge), independent of the OpenAI SDK.
 - **Group Chat Topic Mode**: Supports enabling topic mode in group chats, isolating APIs, dialogue history, plugin configurations, and preferences between topics.
 - **Rich Plugin System**: Supports web search(DuckDuckGo and Google), URL summarization, arXiv paper summarization, and code interpreter.
 - **User-friendly Interface**: Allows flexible model switching within the chat window and supports streaming output for a typewriter-like effect.
