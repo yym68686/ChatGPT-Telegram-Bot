@@ -37,4 +37,4 @@ jobs:
         file: Dockerfile.build
         platforms: linux/amd64,linux/arm64
         push: true
-        tags: yym68686/chatgpt:1.0
+        tags: yym68686/chatgpt:lastest

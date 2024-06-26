@@ -123,22 +123,23 @@ async def GetMesage(update_message, context):
             reply_to_message_file_url = await get_file_url(reply_to_message_file, context)
             reply_to_message_file_content = Document_extract(reply_to_message_file_url, reply_to_message_file_url, None)
 
+    if update_message.photo:
+        photo = update_message.photo[-1]
+
+        image_url = await get_file_url(photo, context)
+
+        if update_message.caption:
+            message = rawtext = CutNICK(update_message.caption, update_message)
+
     if update_message.document:
         file = update_message.document
 
         file_url = await get_file_url(file, context)
 
-        message = rawtext = CutNICK(update_message.caption, update_message)
-
-    if update_message.photo:
-        photo = update_message.photo[-1]
-
-        image_url = await get_file_url(photo, context)
         if image_url == None and file_url and (file_url[-3:] == "jpg" or file_url[-3:] == "png" or file_url[-4:] == "jpeg"):
             image_url = file_url
 
-        if update_message.caption:
-            message = rawtext = CutNICK(update_message.caption, update_message)
+        message = rawtext = CutNICK(update_message.caption, update_message)
 
     return message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content
 
