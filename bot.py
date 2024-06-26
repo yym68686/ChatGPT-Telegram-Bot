@@ -4,10 +4,10 @@ sys.dont_write_bytecode = True
 import logging
 import traceback
 import utils.decorators as decorators
-from md2tgmd import escape
 
-from ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
-from ModelMerge.utils.scripts import Document_extract, claude_replace, get_image_message
+from md2tgmd.src.md2tgmd import escape
+from ModelMerge.src.ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt, claude3_doc_assistant_prompt
+from ModelMerge.src.ModelMerge.utils.scripts import Document_extract, claude_replace, get_image_message
 
 import config
 from config import (

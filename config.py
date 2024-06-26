@@ -5,8 +5,8 @@ load_dotenv()
 
 from utils.i18n import strings
 from datetime import datetime
-from ModelMerge.utils import prompt
-from ModelMerge.models import chatgpt, claude, groq, claude3, gemini, PLUGINS
+from ModelMerge.src.ModelMerge.utils import prompt
+from ModelMerge.src.ModelMerge.models import chatgpt, claude, groq, claude3, gemini, PLUGINS
 from telegram import InlineKeyboardButton
 
 NICK = os.environ.get('NICK', None)
