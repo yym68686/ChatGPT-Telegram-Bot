@@ -180,11 +180,26 @@ def update_language_status(language, chat_id=None):
 
 update_language_status(LANGUAGE)
 
-def get_version_info():
+def get_local_version_info():
     current_directory = os.path.dirname(os.path.abspath(__file__))
     result = subprocess.run(['git', '-C', current_directory, 'log', '-1'], stdout=subprocess.PIPE)
     output = result.stdout.decode()
-    return " ".join(output.split('\n')[2].split(' ')[3:-1])
+    return output.split('\n')[0].split(' ')[1]  # 获取本地最新提交的哈希值
+
+def get_remote_version_info():
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    result = subprocess.run(['git', '-C', current_directory, 'ls-remote', 'origin', 'HEAD'], stdout=subprocess.PIPE)
+    output = result.stdout.decode()
+    return output.split('\t')[0]  # 获取远程最新提交的哈希值
+
+def check_for_updates():
+    local_version = get_local_version_info()
+    remote_version = get_remote_version_info()
+
+    if local_version == remote_version:
+        return "Up to date."
+    else:
+        return "A new version is available! Please redeploy."
 
 def replace_with_asterisk(string, start=10, end=45):
     if string:
@@ -201,7 +216,8 @@ def update_info_message(user_id = None):
         f"**🔗 API URL:** `{api_url}`\n\n" if api_url else "",
         f"**🛜 WEB HOOK:** `{WEB_HOOK}`\n\n" if WEB_HOOK else "",
         f"**🚰 Tokens usage:** `{get_robot(user_id)[0].tokens_usage[str(user_id)]}`\n\n" if get_robot(user_id)[0] else "",
-        f"**📖 Version:** `{get_version_info()}`\n\n",
+        f"**🃏 NICK:** `{NICK}`\n\n" if NICK else "",
+        f"**📖 Version:** `{check_for_updates()}`\n\n",
     ])
 
 def reset_ENGINE(chat_id, message=None):

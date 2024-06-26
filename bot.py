@@ -73,7 +73,6 @@ update_logger.addFilter(my_filter)
 
 botNick = config.NICK.lower() if config.NICK else None
 botNicKLength = len(botNick) if botNick else 0
-print("nick:", botNick)
 
 def CutNICK(update_text, update_message):
     update_chat = update_message.chat
