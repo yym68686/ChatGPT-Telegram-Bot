@@ -2,7 +2,7 @@ version: "3.5"
 services:
   chatgptbot:
     container_name: chatgptbot
-    image: yym68686/chatgpt:1.0
+    image: yym68686/chatgpt:latest
     environment:
       - BOT_TOKEN=
       - API=

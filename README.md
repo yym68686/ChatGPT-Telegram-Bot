@@ -61,7 +61,7 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 
 One-click deployment:
 
-[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=docker&image=docker.io/yym68686/chatgpt:1.0&name=chatbot)
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=docker&image=docker.io/yym68686/chatgpt:latest&name=chatbot)
 
 ## Zeabur Remote Deployment
 
@@ -100,7 +100,7 @@ Official documentation: https://fly.io/docs/
 Use Docker image to deploy fly.io application
 
 ```bash
-flyctl launch --image yym68686/chatgpt:1.0
+flyctl launch --image yym68686/chatgpt:latest
 ```
 
 Enter the name of the application when prompted, and select No for initializing Postgresql or Redis.
@@ -152,7 +152,7 @@ docker run -p 80:8080 --name chatbot -dit \
     -e BOT_TOKEN="telegram bot token" \
     -e API="" \
     -e API_URL= \
-    yym68686/chatgpt:1.0
+    yym68686/chatgpt:latest
 ```
 
 Or if you want to use Docker Compose, here is a docker-compose.yml example:
@@ -162,7 +162,7 @@ version: "3.5"
 services:
   chatgptbot:
     container_name: chatgptbot
-    image: yym68686/chatgpt:1.0
+    image: yym68686/chatgpt:latest
     environment:
       - BOT_TOKEN=
       - API=
@@ -180,9 +180,9 @@ docker-compose up -d
 Package the Docker image in the repository and upload it to Docker Hub
 
 ```bash
-docker build --no-cache -t chatgpt:1.0 -f Dockerfile.build --platform linux/amd64 .
-docker tag chatgpt:1.0 yym68686/chatgpt:1.0
-docker push yym68686/chatgpt:1.0
+docker build --no-cache -t chatgpt:latest -f Dockerfile.build --platform linux/amd64 .
+docker tag chatgpt:latest yym68686/chatgpt:latest
+docker push yym68686/chatgpt:latest
 ```
 
 One-Click Restart Docker Image
@@ -190,7 +190,7 @@ One-Click Restart Docker Image
 ```bash
 set -eu
 docker rm -f chatbot
-docker pull yym68686/chatgpt:1.0
+docker pull yym68686/chatgpt:latest
 docker run -p 8080:8080 -dit --name chatbot \
 -e BOT_TOKEN= \
 -e API= \
@@ -198,11 +198,11 @@ docker run -p 8080:8080 -dit --name chatbot \
 -e GOOGLE_API_KEY= \
 -e GOOGLE_CSE_ID= \
 -e claude_api_key= \
-yym68686/chatgpt:1.0
+yym68686/chatgpt:latest
 docker logs -f chatbot
 ```
 
-This script is for restarting the Docker image with a single command. It first removes the existing Docker container named "chatbot" if it exists. Then, it runs a new Docker container with the name "chatbot", exposing port 8080 and setting various environment variables. The Docker image used is "yym68686/chatgpt:1.0". Finally, it follows the logs of the "chatbot" container.
+This script is for restarting the Docker image with a single command. It first removes the existing Docker container named "chatbot" if it exists. Then, it runs a new Docker container with the name "chatbot", exposing port 8080 and setting various environment variables. The Docker image used is "yym68686/chatgpt:latest". Finally, it follows the logs of the "chatbot" container.
 
 ## 📄 Q & A
 
