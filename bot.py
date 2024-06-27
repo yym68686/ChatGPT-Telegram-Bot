@@ -230,7 +230,6 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
 
-            print("engine", engine)
             message = get_image_message(image_url, [{"type": "text", "text": message}], engine)
             if "gemini" in engine:
                 message = message[0]["text"]
@@ -468,7 +467,7 @@ async def info(update, context):
 async def handle_file(update, context):
     _, _, image_url, chatid, _, messageid, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
     robot, role = get_robot(convo_id)
-    engine = get_ENGINE(chatid)
+    engine = get_ENGINE(convo_id)
 
     if file_url == None and image_url:
         file_url = image_url
