@@ -230,6 +230,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
 
+            print("engine", engine)
             message = get_image_message(image_url, [{"type": "text", "text": message}], engine)
             if "gemini" in engine:
                 message = message[0]["text"]
