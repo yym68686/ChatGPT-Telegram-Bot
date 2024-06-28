@@ -230,9 +230,10 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
 
-            message = get_image_message(image_url, [{"type": "text", "text": message}], engine)
             if "gemini" in engine:
-                message = message[0]["text"]
+                message = get_image_message(image_url, [{"text": message}], engine)
+            else:
+                message = get_image_message(image_url, [{"type": "text", "text": message}], engine)
             await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history)
     else:
         message = await context.bot.send_message(
