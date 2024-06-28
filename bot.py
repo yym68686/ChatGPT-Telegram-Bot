@@ -301,9 +301,10 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=answer_messageid)
                 image_has_send = 1
             modifytime = modifytime + 1
-            if (modifytime % Frequency_Modification == 0 and lastresult != tmpresult) or "🌐" in data:
-                await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
-                lastresult = tmpresult
+            now_result = escape(tmpresult)
+            if (modifytime % Frequency_Modification == 0 and lastresult != now_result) or "🌐" in data:
+                lastresult = now_result
+                await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
     except Exception as e:
         print('\033[31m')
         traceback.print_exc()
@@ -314,13 +315,13 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             robot.reset(convo_id=convo_id, system_prompt=config.systemprompt)
         tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
-    if lastresult != tmpresult and answer_messageid:
+    now_result = escape(tmpresult)
+    if lastresult != now_result and answer_messageid:
         if "Can't parse entities: can't find end of code entity at byte offset" in tmpresult:
             await update.message.reply_text(tmpresult)
-            print(escape(tmpresult))
+            print(now_result)
         else:
-            sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=escape(tmpresult), parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
-    # print("tmpresult", tmpresult)
+            sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
 
     if Users.get_config(convo_id, "FOLLOW_UP"):
         prompt = (
