@@ -557,7 +557,7 @@ async def start(update, context): # 当用户输入/start时，返回文本
         update_ENGINE(chat_id=convo_id)
 
     if (len(context.args) == 1):
-        api_key = context.args[1]
+        api_key = context.args[0]
         Users.set_config(convo_id, "api_key", api_key)
         Users.set_config(convo_id, "api_url", "https://api.openai.com/v1/chat/completions")
         update_ENGINE(chat_id=convo_id)
