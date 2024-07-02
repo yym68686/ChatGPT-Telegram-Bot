@@ -335,7 +335,8 @@ async def button_press(update, context):
             Users.set_config(convo_id, data, not current_data)
             plugins_config = Users.extract_plugins_config(convo_id)
             robot, role = get_robot(convo_id)
-            robot.plugins[convo_id] = plugins_config
+            if robot:
+                robot.plugins[convo_id] = plugins_config
         except Exception as e:
             logger.info(e)
         try:
