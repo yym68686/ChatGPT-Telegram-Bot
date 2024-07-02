@@ -136,25 +136,48 @@ strings = {
     },
     "message_api_none": {
         "zh": (
-            "请使用/start命令设置API key，你可以直接复制以下例子：\n\n"
+            "请使用 /start 命令设置API key，你可以直接复制以下例子：\n\n"
             "如果您拥有OpenAI官方API密钥，请使用以下命令：\n\n"
             "`/start your_api_key`\n\n"
             "如果您使用的是第三方API密钥，请使用以下命令：\n\n"
-            "`/start your_api_url your_api_key`"
+            "`/start https://your_api_url your_api_key`"
         ),
         "en": (
             "Please set the API key using the /start command, you can directly copy the following example:\n\n"
             "If you have an official OpenAI API key, please use the following command:\n\n"
             "`/start your_api_key`\n\n"
             "If you are using a third-party API key, please use the following command:\n\n"
-            "`/start your_api_url your_api_key`"
+            "`/start https://your_api_url your_api_key`"
         ),
         "zh-hk": (
-            "請使用/start命令設置API key，你可以直接復制以下例子：\n\n"
+            "請使用 /start 命令設置API key，你可以直接復制以下例子：\n\n"
             "如果您擁有OpenAI官方API密鑰，請使用以下命令：\n\n"
             "`/start your_api_key`\n\n"
             "如果您使用的是第三方API密鑰，請使用以下命令：\n\n"
-            "`/start your_api_url your_api_key`"
+            "`/start https://your_api_url your_api_key`"
+        ),
+    },
+    "message_api_error": {
+        "zh": (
+            "您输入的 API key 或者 API URL 无效，请重新使用 /start 命令设置API key，你可以直接复制以下例子：\n\n"
+            "如果您拥有OpenAI官方API密钥，请使用以下命令：\n\n"
+            "`/start your_api_key`\n\n"
+            "如果您使用的是第三方API密钥，请使用以下命令：\n\n"
+            "`/start https://your_api_url your_api_key`"
+        ),
+        "en": (
+            "The API key or API URL you entered is invalid, please reset the API key using the /start command, you can directly copy the following example:\n\n"
+            "If you have an official OpenAI API key, please use the following command:\n\n"
+            "`/start your_api_key`\n\n"
+            "If you are using a third-party API key, please use the following command:\n\n"
+            "`/start https://your_api_url your_api_key`"
+        ),
+        "zh-hk": (
+            "您輸入的 API key 或者 API URL 無效，請重新使用 /start 命令設置API key，你可以直接復制以下例子：\n\n"
+            "如果您擁有OpenAI官方API密鑰，請使用以下命令：\n\n"
+            "`/start your_api_key`\n\n"
+            "如果您使用的是第三方API密鑰，請使用以下命令：\n\n"
+            "`/start https://your_api_url your_api_key`"
         ),
     },
     "message_command_text_none": {

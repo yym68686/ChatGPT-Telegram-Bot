@@ -32,6 +32,7 @@ from config import (
 )
 
 from utils.i18n import strings
+from utils.scripts import GetMesageInfo
 
 from telegram.constants import ChatAction
 from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
@@ -70,96 +71,13 @@ update_logger.addFilter(my_filter)
 update_logger = logging.getLogger("root")
 update_logger.addFilter(my_filter)
 
-
-botNick = config.NICK.lower() if config.NICK else None
-botNicKLength = len(botNick) if botNick else 0
-
-def CutNICK(update_text, update_message):
-    update_chat = update_message.chat
-    update_reply_to_message = update_message.reply_to_message
-    if botNick is None:
-        return update_text
-    else:
-        if update_text[:botNicKLength].lower() == botNick:
-            return update_text[botNicKLength:].strip()
-        else:
-            if update_chat.type == 'private' or (botNick and update_reply_to_message and update_reply_to_message.text and update_reply_to_message.from_user.is_bot and update_reply_to_message.sender_chat == None):
-                return update_text
-            else:
-                return None
-
-async def get_file_url(file, context):
-    file_id = file.file_id
-    new_file = await context.bot.get_file(file_id)
-    file_url = new_file.file_path
-    return file_url
-
-async def GetMesage(update_message, context):
-    image_url = None
-    file_url = None
-    reply_to_message_text = None
-    message = None
-    rawtext = None
-    reply_to_message_file_content = None
-
-    chatid = str(update_message.chat_id)
-    message_thread_id = update_message.message_thread_id
-    if message_thread_id:
-        convo_id = str(chatid) + "_" + str(message_thread_id)
-    else:
-        convo_id = str(chatid)
-
-    messageid = update_message.message_id
-
-    if update_message.text:
-        message = CutNICK(update_message.text, update_message)
-        rawtext = update_message.text
-
-    if update_message.reply_to_message:
-        reply_to_message_text = update_message.reply_to_message.text
-        reply_to_message_file = update_message.reply_to_message.document
-        if reply_to_message_file:
-            reply_to_message_file_url = await get_file_url(reply_to_message_file, context)
-            reply_to_message_file_content = Document_extract(reply_to_message_file_url, reply_to_message_file_url, None)
-
-    if update_message.photo:
-        photo = update_message.photo[-1]
-
-        image_url = await get_file_url(photo, context)
-
-        if update_message.caption:
-            message = rawtext = CutNICK(update_message.caption, update_message)
-
-    if update_message.document:
-        file = update_message.document
-
-        file_url = await get_file_url(file, context)
-
-        if image_url == None and file_url and (file_url[-3:] == "jpg" or file_url[-3:] == "png" or file_url[-4:] == "jpeg"):
-            image_url = file_url
-
-        message = rawtext = CutNICK(update_message.caption, update_message)
-
-    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content
-
-async def GetMesageInfo(update, context):
-    if update.edited_message:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesage(update.edited_message, context)
-        update_message = update.edited_message
-    elif update.callback_query:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesage(update.callback_query.message, context)
-        update_message = update.callback_query.message
-    else:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesage(update.message, context)
-        update_message = update.message
-    return message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content
-
 # 定义一个缓存来存储消息
 message_cache = defaultdict(lambda: [])
 time_stamps = defaultdict(lambda: [])
 
 @decorators.GroupAuthorization
 @decorators.Authorization
+@decorators.APICheck
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", has_command=True):
     stop_event.clear()
     print("update", update)
@@ -188,15 +106,6 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     message = reply_to_message_file_content + "\n" + message
 
             robot, role = get_robot(convo_id)
-            if robot is None:
-                message = await context.bot.send_message(
-                    chat_id=chatid,
-                    message_thread_id=message_thread_id,
-                    text=escape(strings['message_api_none'][get_current_lang()]),
-                    parse_mode='MarkdownV2',
-                    reply_to_message_id=messageid,
-                )
-                return
             engine = get_ENGINE(convo_id)
 
             if Users.get_config(convo_id, "LONG_TEXT"):
@@ -466,6 +375,7 @@ async def info(update, context):
 
 @decorators.GroupAuthorization
 @decorators.Authorization
+@decorators.APICheck
 async def handle_file(update, context):
     _, _, image_url, chatid, _, messageid, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
     robot, role = get_robot(convo_id)
@@ -484,6 +394,7 @@ async def handle_file(update, context):
 # DEBOUNCE_TIME = 4
 @decorators.GroupAuthorization
 @decorators.Authorization
+@decorators.APICheck
 async def inlinequery(update: Update, context) -> None:
     """Handle the inline query."""
     # current_time = time.time()
@@ -547,9 +458,8 @@ async def start(update, context): # 当用户输入/start时，返回文本
     _, _, _, _, _, _, _, _, convo_id, _, reply_to_message_file_content = await GetMesageInfo(update, context)
     message = (
         f"Hi `{user.username}` ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.\n\n"
-        # "我是人见人爱的 ChatGPT~\n\n"
-        # "欢迎访问 https://github.com/yym68686/ChatGPT-Telegram-Bot 查看源码\n\n"
-        # "有 bug 可以联系 @yym68686"
+        # "Welcome to visit https://github.com/yym68686/ChatGPT-Telegram-Bot to view the source code.\n\n"
+        # "If you find any bugs, you can contact @yym68686."
     )
     if (len(context.args) == 2):
         api_url = context.args[0]
