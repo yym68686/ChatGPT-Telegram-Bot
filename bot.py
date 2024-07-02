@@ -75,14 +75,13 @@ update_logger.addFilter(my_filter)
 message_cache = defaultdict(lambda: [])
 time_stamps = defaultdict(lambda: [])
 
+@decorators.PrintMessage
 @decorators.GroupAuthorization
 @decorators.Authorization
 @decorators.APICheck
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", has_command=True):
     stop_event.clear()
-    print("update", update)
     message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
-    print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
 
     if has_command == False or len(context.args) > 0:
         if has_command:

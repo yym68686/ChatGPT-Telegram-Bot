@@ -50,10 +50,9 @@ def AdminAuthorization(func):
         return await func(*args, **kwargs)
     return wrapper
 
-# 判断是否是管理员
 def APICheck(func):
     async def wrapper(*args, **kwargs):
-        update, context = args
+        update, context = args[:2]
         from utils.scripts import GetMesageInfo
         _, _, _, chatid, _, _, _, message_thread_id, convo_id, _, _ = await GetMesageInfo(update, context)
         from config import (
@@ -77,5 +76,15 @@ def APICheck(func):
         if api_key.endswith("your_api_key") or api_url.endswith("your_api_url"):
             await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_api_error'][get_current_lang()]), parse_mode='MarkdownV2')
             return
+        return await func(*args, **kwargs)
+    return wrapper
+
+def PrintMessage(func):
+    async def wrapper(*args, **kwargs):
+        update, context = args[:2]
+        from utils.scripts import GetMesageInfo
+        _, rawtext, _, _, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
+        print("update", update)
+        print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
         return await func(*args, **kwargs)
     return wrapper
