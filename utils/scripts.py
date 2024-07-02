@@ -23,6 +23,7 @@ async def get_file_url(file, context):
     return file_url
 
 async def GetMesage(update_message, context):
+    from ModelMerge.src.ModelMerge.utils.scripts import Document_extract
     image_url = None
     file_url = None
     reply_to_message_text = None
