@@ -137,8 +137,10 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
             if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
+            if Users.get_config(convo_id, "REPLY") == False:
+                messageid = None
 
-            if "gemini" in engine:
+            if "gemini" in engine and GOOGLE_AI_API_KEY:
                 message = get_image_message(image_url, [{"text": message}], engine)
             else:
                 message = get_image_message(image_url, [{"type": "text", "text": message}], engine)
@@ -152,41 +154,40 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             reply_to_message_id=messageid,
         )
 
-async def delete_message(update, context, messageid, delay=60):
+async def delete_message(update, context, messageid = [], delay=60):
     await asyncio.sleep(delay)
-
-    try:
-        await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=messageid)
-    except Exception as e:
-        print('\033[31m')
-        print("error", e)
-        print('\033[0m')
+    if isinstance(messageid, list):
+        for mid in messageid:
+            try:
+                await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=mid)
+            except Exception as e:
+                print('\033[31m')
+                print("delete_message error", e)
+                print('\033[0m')
 
 async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=False):
-    result = ""
+    lastresult = title
     text = message
+    result = ""
+    tmpresult = ""
     modifytime = 0
     time_out = 600
+    image_has_send = 0
     model_name = Users.get_config(convo_id, "engine")
+
     Frequency_Modification = 20
     if message_thread_id:
-        Frequency_Modification = 30
+        Frequency_Modification = 35
     if "gemini" in model_name and GOOGLE_AI_API_KEY:
         Frequency_Modification = 1
-    lastresult = title
-    tmpresult = ""
 
-    if Users.get_config(convo_id, "REPLY") == False:
-        messageid = None
-    message = await context.bot.send_message(
+    answer_messageid = (await context.bot.send_message(
         chat_id=chatid,
         message_thread_id=message_thread_id,
         text=escape(strings['message_think'][get_current_lang()]),
         parse_mode='MarkdownV2',
         reply_to_message_id=messageid,
-    )
-    answer_messageid = message.message_id
-    image_has_send = 0
+    )).message_id
 
     try:
         for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
@@ -206,7 +207,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 tmpresult = data
             history = robot.conversation[convo_id]
             if history[-1].get('name') == "generate_image" and not image_has_send:
-                await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=answer_messageid)
+                await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)
                 image_has_send = 1
             modifytime = modifytime + 1
             now_result = escape(tmpresult)
@@ -254,7 +255,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
 @decorators.Authorization
 async def button_press(update, context):
     """Function to handle the button press"""
-    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
+    _, rawtext, _, _, _, _, _, _, convo_id, _, _ = await GetMesageInfo(update, context)
     callback_query = update.callback_query
     info_message = update_info_message(convo_id)
     await callback_query.answer()
@@ -364,20 +365,11 @@ async def button_press(update, context):
             parse_mode='MarkdownV2'
         )
 
-@decorators.AdminAuthorization
-@decorators.GroupAuthorization
-@decorators.Authorization
-async def info(update, context):
-    _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
-    info_message = update_info_message(convo_id)
-    message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)), parse_mode='MarkdownV2', disable_web_page_preview=True)
-    await delete_message(update, context, message.message_id)
-
 @decorators.GroupAuthorization
 @decorators.Authorization
 @decorators.APICheck
 async def handle_file(update, context):
-    _, _, image_url, chatid, _, messageid, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
+    _, _, image_url, chatid, _, _, _, message_thread_id, convo_id, file_url, _ = await GetMesageInfo(update, context)
     robot, role = get_robot(convo_id)
     engine = get_ENGINE(convo_id)
 
@@ -389,32 +381,18 @@ async def handle_file(update, context):
 
     robot.add_to_conversation(message, role, convo_id)
     message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_doc'][get_current_lang()]), parse_mode='MarkdownV2', disable_web_page_preview=True)
-    await delete_message(update, context, message.message_id)
+    await delete_message(update, context, [message.message_id])
 
-# DEBOUNCE_TIME = 4
 @decorators.GroupAuthorization
 @decorators.Authorization
 @decorators.APICheck
 async def inlinequery(update: Update, context) -> None:
     """Handle the inline query."""
-    # current_time = time.time()
-
-    # # 获取上次查询时间
-    # if context.user_data == {}:
-    #     context.user_data['last_query_time'] = current_time
-    # last_query_time = context.user_data.get('last_query_time', 0)
-    # context.user_data['last_query_time'] = current_time
-
-    # # 如果距离上次查询时间不足去抖动时间，则跳过处理
-    # print("current_time - last_query_time", current_time - last_query_time)
-    # if current_time - last_query_time < DEBOUNCE_TIME:
-    #     return
 
     chatid = update.effective_user.id
     engine = get_ENGINE(chatid)
     query = update.inline_query.query
-    # 调用 getChatGPT 函数获取结果
-    if (query.endswith(';') or query.endswith('；')) and query.strip():
+    if (query.endswith('.') or query.endswith('。')) and query.strip():
         prompt = "Answer the following questions as concisely as possible:\n\n"
         result = config.ChatGPTbot.ask(prompt + query, convo_id=chatid, pass_history=False)
 
@@ -436,7 +414,7 @@ target_convo_id = None
 @decorators.Authorization
 async def reset_chat(update, context):
     global target_convo_id
-    _, _, _, chatid, _, _, _, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
+    _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _ = await GetMesageInfo(update, context)
     target_convo_id = convo_id
     stop_event.set()
     message = None
@@ -450,12 +428,29 @@ async def reset_chat(update, context):
         message_thread_id=message_thread_id,
         text=escape(strings['message_reset'][get_current_lang()]),
         reply_markup=remove_keyboard,
+        parse_mode='MarkdownV2',
     )
-    await delete_message(update, context, message.message_id)
+    await delete_message(update, context, [message.message_id, user_message_id])
 
+@decorators.AdminAuthorization
+@decorators.GroupAuthorization
+@decorators.Authorization
+async def info(update, context):
+    _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _ = await GetMesageInfo(update, context)
+    info_message = update_info_message(convo_id)
+    message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    await delete_message(update, context, [message.message_id, user_message_id])
+
+@decorators.PrintMessage
 async def start(update, context): # 当用户输入/start时，返回文本
+    _, _, _, _, _, _, _, _, convo_id, _, _ = await GetMesageInfo(update, context)
     user = update.effective_user
-    _, _, _, _, _, _, _, _, convo_id, _, reply_to_message_file_content = await GetMesageInfo(update, context)
+    if user.language_code == "zh-hans":
+        update_language_status("Simplified Chinese", chat_id=convo_id)
+    elif user.language_code == "zh-hant":
+        update_language_status("Traditional Chinese", chat_id=convo_id)
+    else:
+        update_language_status("English", chat_id=convo_id)
     message = (
         f"Hi `{user.username}` ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.\n\n"
         # "Welcome to visit https://github.com/yym68686/ChatGPT-Telegram-Bot to view the source code.\n\n"
@@ -491,30 +486,16 @@ async def unknown(update, context): # 当用户输入未知命令时，返回文
 
 async def post_init(application: Application) -> None:
     await application.bot.set_my_commands([
-        BotCommand('info', 'basic information'),
+        BotCommand('info', 'Basic information'),
         BotCommand('reset', 'Reset the bot'),
-        BotCommand('en2zh', 'translate to Chinese'),
-        BotCommand('zh2en', 'translate to English'),
-        # BotCommand('search', 'search Google or duckduckgo'),
         BotCommand('start', 'Start the bot'),
+        BotCommand('en2zh', 'Translate to Chinese'),
+        BotCommand('zh2en', 'Translate to English'),
     ])
-
-from http.server import BaseHTTPRequestHandler
-import json
-class handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length).decode('utf-8')
-        update = Update.de_json(json.loads(post_data), application.bot)
-
-        async def process_update(update):
-            await application.process_update(update)
-
-        application.run_async(process_update(update))
-
-        self.send_response(200)
-        self.end_headers()
-        return
+    description = (
+        "I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions."
+    )
+    await application.bot.set_my_description(description)
 
 if __name__ == '__main__':
     time_out = 600
@@ -535,17 +516,13 @@ if __name__ == '__main__':
         .build()
     )
 
+    application.add_handler(CommandHandler("info", info))
     application.add_handler(CommandHandler("start", start))
-    # application.add_handler(CommandHandler("search", lambda update, context: command_bot(update, context, prompt="search: ", has_command="search")))
-    application.add_handler(CallbackQueryHandler(button_press))
-    # application.add_handler(ChosenInlineResultHandler(chosen_inline_result))
-    # application.add_handler(MessageHandler(filters.TEXT & filters.VIA_BOT, handle_message))
     application.add_handler(CommandHandler("reset", reset_chat))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese")))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english")))
-    application.add_handler(CommandHandler("info", info))
     application.add_handler(InlineQueryHandler(inlinequery))
-    # application.add_handler(MessageHandler(~filters.CAPTION & , handle_file))
+    application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False), block = False))
     application.add_handler(MessageHandler(filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg") | filters.Document.FileExtension("png"))), lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
     application.add_handler(MessageHandler(~filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.PDF | filters.Document.TXT | filters.Document.DOC | filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg") | filters.Document.FileExtension("md"))), handle_file))
