@@ -180,6 +180,9 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         Frequency_Modification = 35
     if "gemini" in model_name and GOOGLE_AI_API_KEY:
         Frequency_Modification = 1
+    if "gpt-4o" in model_name:
+        Frequency_Modification = 25
+
 
     answer_messageid = (await context.bot.send_message(
         chat_id=chatid,
