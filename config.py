@@ -23,12 +23,13 @@ GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
 
 PREFERENCES = {
-    "PASS_HISTORY": (os.environ.get('PASS_HISTORY', "True") == "False") == False,
-    "LONG_TEXT"   : (os.environ.get('LONG_TEXT', "True") == "False") == False,
-    "FOLLOW_UP"   : (os.environ.get('FOLLOW_UP', "False") == "False") == False,
-    "TITLE"       : (os.environ.get('TITLE', "False") == "False") == False,
-    "TYPING"      : (os.environ.get('TYPING', "False") == "False") == False,
-    "REPLY"       : (os.environ.get('REPLY', "False") == "False") == False,
+    "PASS_HISTORY"      : (os.environ.get('PASS_HISTORY', "True") == "False") == False,
+    "LONG_TEXT"         : (os.environ.get('LONG_TEXT', "True") == "False") == False,
+    "LONG_TEXT_SPLIT"   : (os.environ.get('LONG_TEXT_SPLIT', "True") == "False") == False,
+    "FOLLOW_UP"         : (os.environ.get('FOLLOW_UP', "False") == "False") == False,
+    "TITLE"             : (os.environ.get('TITLE', "False") == "False") == False,
+    "TYPING"            : (os.environ.get('TYPING', "False") == "False") == False,
+    "REPLY"             : (os.environ.get('REPLY', "False") == "False") == False,
 }
 
 LANGUAGE = os.environ.get('LANGUAGE', 'English')

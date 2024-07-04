@@ -5,7 +5,7 @@ import logging
 import traceback
 import utils.decorators as decorators
 
-from md2tgmd.src.md2tgmd import escape
+from md2tgmd.src.md2tgmd import escape, split_code, replace_all
 from ModelMerge.src.ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt
 from ModelMerge.src.ModelMerge.utils.scripts import Document_extract, claude_replace, get_image_message
 
@@ -213,6 +213,34 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)
                 image_has_send = 1
             modifytime = modifytime + 1
+
+            if len(tmpresult) > 3500 and Users.get_config(convo_id, "LONG_TEXT_SPLIT"):
+                replace_text = replace_all(tmpresult, r"(```[\D\d\s]+?```)", split_code)
+                if "@|@|@|@" in replace_text:
+                    print(replace_text)
+                    split_messages = replace_text.split("@|@|@|@")
+                    send_split_message = split_messages[0]
+                    result = split_messages[1][:-4]
+
+                    await context.bot.edit_message_text(
+                        chat_id=chatid,
+                        message_id=answer_messageid,
+                        text=escape(send_split_message),
+                        parse_mode='MarkdownV2',
+                        disable_web_page_preview=True,
+                        read_timeout=time_out,
+                        write_timeout=time_out,
+                        pool_timeout=time_out,
+                        connect_timeout=time_out
+                    )
+                    answer_messageid = (await context.bot.send_message(
+                        chat_id=chatid,
+                        message_thread_id=message_thread_id,
+                        text=escape(strings['message_think'][get_current_lang()]),
+                        parse_mode='MarkdownV2',
+                        reply_to_message_id=messageid,
+                    )).message_id
+
             now_result = escape(tmpresult)
             if (modifytime % Frequency_Modification == 0 and lastresult != now_result) or "🌐" in data:
                 lastresult = now_result

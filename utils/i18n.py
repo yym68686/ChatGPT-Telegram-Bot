@@ -59,6 +59,11 @@ strings = {
         "en": "Long text merge",
         "zh-hk": "長文本合併",
     },
+    "LONG_TEXT_SPLIT": {
+        "zh": "长文本分割",
+        "en": "Long text split",
+        "zh-hk": "長文本分割",
+    },
     "TITLE": {
         "zh": "模型标题",
         "en": "Model title",
