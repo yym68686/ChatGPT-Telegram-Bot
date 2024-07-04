@@ -149,8 +149,8 @@ Start the container
 
 ```bash
 docker run -p 80:8080 --name chatbot -dit \
-    -e BOT_TOKEN="telegram bot token" \
-    -e API="" \
+    -e BOT_TOKEN=your_telegram_bot_token \
+    -e API= \
     -e API_URL= \
     yym68686/chatgpt:latest
 ```
@@ -189,8 +189,8 @@ One-Click Restart Docker Image
 
 ```bash
 set -eu
-docker rm -f chatbot
 docker pull yym68686/chatgpt:latest
+docker rm -f chatbot
 docker run -p 8080:8080 -dit --name chatbot \
 -e BOT_TOKEN= \
 -e API= \

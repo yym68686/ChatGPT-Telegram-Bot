@@ -32,7 +32,10 @@ async def GetMesage(update_message, context):
     reply_to_message_file_content = None
 
     chatid = str(update_message.chat_id)
-    message_thread_id = update_message.message_thread_id
+    if update_message.is_topic_message:
+        message_thread_id = update_message.message_thread_id
+    else:
+        message_thread_id = None
     if message_thread_id:
         convo_id = str(chatid) + "_" + str(message_thread_id)
     else:
