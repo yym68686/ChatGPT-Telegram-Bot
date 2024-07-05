@@ -256,6 +256,10 @@ In a group chat scenario, if the environment variable `NICK` is not set, the bot
 
 Apart from the latest `gpt-4-turbo-preview` model, the official context supports 128k tokens, but this project limits it to 16k tokens. All other models use the official context length settings, for example, the `gpt-3.5-turbo-16k` context is 16k, the `gpt-4-32k` context is 32k, and the `Claude2` context is 200k. This limitation is implemented to save user costs, as most scenarios do not require a high context.
 
+- How to delete the default model name from the model list?
+
+You can use the CUSTOM_MODELS environment variable to complete it. For example, if you want to add gpt-4o and remove the gpt-3.5 model from the model list, please set CUSTOM_MODELS to `gpt-4o,-gpt-3.5`.
+
 ## References
 
 https://core.telegram.org/bots/api
