@@ -41,7 +41,7 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | ---------------------- | ------------------------------------------------------------ | ---------------------- |
 | **BOT_TOKEN** | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. | **Yes** |
 | API       | OpenAI or third-party API key.                              | No |
-| GPT_ENGINE    | Set the default QA model; the default is:`gpt-4-1106-preview`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
+| GPT_ENGINE    | Set the default QA model; the default is:`gpt-4o`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
 | WEB_HOOK  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
 | API_URL       | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
 | GROQ_API_KEY  | Groq offical API key.                              | No |
@@ -254,7 +254,7 @@ In a group chat scenario, if the environment variable `NICK` is not set, the bot
 
 - How many messages will the history keep?
 
-Apart from the latest `gpt-4-turbo-preview` model, the official context supports 128k tokens, but this project limits it to 16k tokens. All other models use the official context length settings, for example, the `gpt-3.5-turbo-16k` context is 16k, the `gpt-4-32k` context is 32k, and the `Claude2` context is 200k. This limitation is implemented to save user costs, as most scenarios do not require a high context.
+All other models use the official context length settings, for example, the `gpt-3.5-turbo-16k` context is 16k, the `gpt-4o` context is 128k, and the `Claude3/3.5` context is 200k. This limitation is implemented to save user costs, as most scenarios do not require a high context.
 
 - How to delete the default model name from the model list?
 

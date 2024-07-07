@@ -176,12 +176,12 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     model_name = Users.get_config(convo_id, "engine")
 
     Frequency_Modification = 20
-    if message_thread_id:
+    if "gpt-4o" in model_name:
+        Frequency_Modification = 25
+    if message_thread_id or convo_id.startswith("-"):
         Frequency_Modification = 35
     if "gemini" in model_name and GOOGLE_AI_API_KEY:
         Frequency_Modification = 1
-    if "gpt-4o" in model_name:
-        Frequency_Modification = 25
 
 
     answer_messageid = (await context.bot.send_message(
