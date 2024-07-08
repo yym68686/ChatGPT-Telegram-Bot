@@ -223,8 +223,6 @@ def update_info_message(user_id = None):
 
 def reset_ENGINE(chat_id, message=None):
     global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot
-    systemprompt = Users.get_config(chat_id, "systemprompt")
-    claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
     if message:
@@ -232,8 +230,8 @@ def reset_ENGINE(chat_id, message=None):
             Users.set_config(chat_id, "systemprompt", message)
         if "claude" in Users.get_config(chat_id, "engine") and CLAUDE_API:
             Users.set_config(chat_id, "claude_systemprompt", message)
-        systemprompt = message
-        claude_systemprompt = message
+    systemprompt = Users.get_config(chat_id, "systemprompt")
+    claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
     if api_key and ChatGPTbot:
         ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
     if CLAUDE_API and claudeBot:
