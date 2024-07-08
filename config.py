@@ -228,8 +228,10 @@ def reset_ENGINE(chat_id, message=None):
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
     if message:
-        Users.set_config(chat_id, "systemprompt", message)
-        Users.set_config(chat_id, "claude_systemprompt", message)
+        if "claude" not in Users.get_config(chat_id, "engine") or CLAUDE_API is None:
+            Users.set_config(chat_id, "systemprompt", message)
+        if "claude" in Users.get_config(chat_id, "engine") and CLAUDE_API:
+            Users.set_config(chat_id, "claude_systemprompt", message)
         systemprompt = message
         claude_systemprompt = message
     if api_key and ChatGPTbot:
