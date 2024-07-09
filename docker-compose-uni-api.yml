@@ -1,21 +1,23 @@
 services:
-  chatgptbot:
-    container_name: chatgptbot
-    image: yym68686/chatgpt:latest
-    environment:
-      - BOT_TOKEN=${BOT_TOKEN}
-      - API=sk-KjjI60Yf0JFcsvgRmXqFwgGmWUd9GZnmi3KlvowmRWpWpQRo
-      - API_URL=http://127.0.0.1:8001/v1/chat/completions
-      - GET_MODELS=True
-    ports:
-      - 80:8080
-
   uni-api:
     container_name: uni-api
     image: yym68686/uni-api:latest
     environment:
-      - USE_ROUND_ROBIN=True
+      - USE_ROUND_ROBIN=False
     ports:
       - 8001:8000
     volumes:
       - ${API_YAML_PATH}:/home/api.yaml
+
+  mybot:
+    container_name: mybot
+    image: yym68686/chatgpt:latest
+    depends_on:
+      - uni-api
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - API=sk-KjjI60Yf0JFcsvgRmXqFwgGmWUd9GZnmi3KlvowmRWpWpQRo
+      - API_URL=http://uni-api:8000/v1/chat/completions
+      - GET_MODELS=True
+    ports:
+      - 8080:8080

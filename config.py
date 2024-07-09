@@ -349,6 +349,7 @@ if GET_MODELS:
         models = response.json()
         models_list = models["data"]
         models_id = [model["id"] for model in models_list]
+        # print(models_id)
         initial_model = models_id
     except Exception as e:
         print("error:", e)
