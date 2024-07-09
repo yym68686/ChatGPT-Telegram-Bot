@@ -7,6 +7,8 @@ from utils.i18n import strings
 from datetime import datetime
 from ModelMerge.src.ModelMerge.utils import prompt
 from ModelMerge.src.ModelMerge.models import chatgpt, claude, groq, claude3, gemini, PLUGINS
+from ModelMerge.src.ModelMerge.models.base import BaseAPI
+
 from telegram import InlineKeyboardButton
 
 NICK = os.environ.get('NICK', None)
@@ -18,6 +20,7 @@ API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions'
 API = os.environ.get('API', None)
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
 CHAT_MODE = os.environ.get('CHAT_MODE', "global")
+GET_MODELS = (os.environ.get('GET_MODELS', "False") == "False") == False
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
@@ -336,6 +339,20 @@ if GOOGLE_AI_API_KEY:
         "gemini-1.5-pro",
         "gemini-1.5-flash",
     ])
+
+if GET_MODELS:
+    try:
+        endpoint = BaseAPI(api_url=API_URL)
+        endpoint_models_url = endpoint.v1_models
+        import requests
+        response = requests.get(endpoint_models_url)
+        models = response.json()
+        models_list = models["data"]
+        models_id = [model["id"] for model in models_list]
+        initial_model = models_id
+    except Exception as e:
+        print("error:", e)
+        pass
 
 CUSTOM_MODELS = os.environ.get('CUSTOM_MODELS', None)
 if CUSTOM_MODELS:

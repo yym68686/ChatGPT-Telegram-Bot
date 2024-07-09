@@ -176,6 +176,9 @@ Run Docker Compose container in the background
 ```bash
 docker-compose pull
 docker-compose up -d
+
+# uni-api
+docker-compose -f docker-compose-uni-api.yml up -d
 ```
 
 Package the Docker image in the repository and upload it to Docker Hub
