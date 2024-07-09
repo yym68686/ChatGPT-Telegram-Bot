@@ -174,6 +174,7 @@ services:
 Run Docker Compose container in the background
 
 ```bash
+docker-compose pull
 docker-compose up -d
 ```
 
@@ -212,15 +213,23 @@ By default, DuckDuckGo search is provided. The official API for Google search ne
 
 - How do I switch models?
 
-You can switch between GPT3.5, GPT4, and other models using the "info" command in the chat window.
-
-- Does it support a vector database?
-
-No, previous versions did support it, but after installing unstructured[md,pdf] dependencies for parsing PDFs, the docker image size reached 9GB, so the support for the vector database was removed in the current version. Since the vector database is just a transitional product when the context of large language models is relatively short and there is significant information loss. With the introduction of claude2.1 200k and gpt4 Turbo 128k, vector databases have become less and less important. Although their price is lower, by comparison, I would prefer better performance.
+You can switch between GPT3.5/4/4o, and other models using the "/info" command in the chat window.
 
 - Can it be deployed in a group?
 
-Yes, it supports whitelisting to prevent abuse and information leakage.
+Yes, it supports whitelist to prevent abuse and information leakage.
+
+- Why can't the bot talk when I add it to the group?
+
+If this is the first time you add the bot to a group chat, you need to set the group privacy to disable in botfather, then remove the bot from the group chat and re-add it to use it normally.
+
+The second method is to set the bot as an administrator, so the bot can be used normally. However, if you want to add the bot to a group chat where you are not an administrator, the first method is more suitable.
+
+Another possibility is that the GROUP_LIST set is not the current group chat ID. Please check if GROUP_LIST is set; GROUP_LIST is the group ID, not the group name. The group ID starts with a minus sign followed by a string of numbers.
+
+- Why did I set GROUP_LIST, but others can't private chat?
+
+Once the GROUP_LIST environment variable is set, by default, no one can private chat with the bot, only administrators can. If you need others to be able to private chat with the bot, you need to add them to the ADMIN_LIST. Please note that administrators have higher permissions to modify the bot's configuration. Once GROUP_LIST is set, regardless of whether the whitelist is set, no one can chat privately with the bot except administrators.
 
 - How should I set the API_URL?
 
@@ -248,6 +257,10 @@ gpt4free is an open-source project that reverse-engineers multiple platforms to 
 
 You can enable gpt4free by simply clicking on it in the `/info` command. Please note that gpt4free does not support all models. You can check the gpt4free documentation to see which models it supports. Once gpt4free is enabled, all questions and searches will use the gpt4free API. If you encounter any errors, please copy the robot's backend log to @yym68686, or open an issue on GitHub. Our developers will resolve it as soon as possible. -->
 
+<!-- - Does it support a vector database?
+
+No, previous versions did support it, but after installing unstructured[md,pdf] dependencies for parsing PDFs, the docker image size reached 9GB, so the support for the vector database was removed in the current version. Since the vector database is just a transitional product when the context of large language models is relatively short and there is significant information loss. With the introduction of claude2.1 200k and gpt4 Turbo 128k, vector databases have become less and less important. Although their price is lower, by comparison, I would prefer better performance. -->
+
 - After setting the `NICK`, there's no response when I @ the bot, and it only replies when the message starts with the nick. How can I make it respond to both the nick and @botname?
 
 In a group chat scenario, if the environment variable `NICK` is not set, the bot will receive all group messages and respond to all of them. Therefore, it is necessary to set `NICK`. After setting `NICK`, the bot will only respond to messages that start with `NICK`. So, if you want to @ the bot to get a response, you just need to set NICK to @botname. This way, when you @ the bot in the group, the bot will detect that the message starts with @botname, and it will respond to the message.
@@ -259,6 +272,43 @@ All other models use the official context length settings, for example, the `gpt
 - How to delete the default model name from the model list?
 
 You can use the CUSTOM_MODELS environment variable to complete it. For example, if you want to add gpt-4o and remove the gpt-3.5 model from the model list, please set CUSTOM_MODELS to `gpt-4o,-gpt-3.5`.
+
+- How does conversation isolation specifically work?
+
+Conversations are always isolated based on different windows, not different users. This means that within the same group chat window, the same topic, and the same private chat window, it is considered the same conversation. CHAT_MODE only affects whether configurations are isolated. In multi-user mode, each user's plugin configurations, preferences, etc., are independent and do not affect each other. In single-user mode, all users share the same plugin configurations and preferences. However, conversation history is always isolated. Conversation isolation is to protect user privacy, ensuring that users' conversation history, plugin configurations, preferences, etc., are not visible to other users.
+
+- Why hasn't the Docker image been updated for a long time?
+
+The Docker image only stores the runtime environment of the program. Currently, the runtime environment of the program is stable, and the environment dependencies have hardly changed, so the Docker image has not been updated. Each time the Docker image is redeployed, it will pull the latest code, so there is no need to worry about the Docker image update issue.
+
+- Why does the container report an error "http connect error or telegram.error.TimedOut: Timed out" after starting?
+
+This issue is likely caused by the server deploying Docker being unable to connect to the Telegram server or the instability of the Telegram server.
+
+1. In most cases, restarting the service, checking the server network environment, or waiting for the Telegram service to recover will suffice.
+2. Additionally, you might try communicating with the Telegram server via web hook, which might solve the problem.
+
+- How to make docker retry infinitely instead of stop at beginning?
+
+The `--restart unless-stopped` parameter in Docker sets the container's restart policy. Specifically:
+
+1. unless-stopped: This policy means that the container will automatically restart if it stops, except when it is manually stopped. In other words, if the container stops due to an error or system reboot, it will automatically restart. However, if you manually stop the container (e.g., using the docker stop command), it will not restart on its own.
+This parameter is particularly useful for services that need to run continuously, as it ensures that the service will automatically recover from unexpected interruptions without requiring manual intervention.
+
+2. Example: Suppose you have a Docker container running a web server, and you want it to restart automatically if it crashes or if the system reboots, but not if you manually stop it. You can use the following command:
+
+```shell
+docker run -d --name my-web-server -p 80:80 --restart unless-stopped my-web-server-image
+```
+In this example, the web server container named my-web-server will restart automatically unless you manually stop it.
+
+- Switching models, do I need to re-enter the prompt?
+
+Yes, because switching models will reset the history, so you need to re-enter the prompt.
+
+- Can Bot tokens have multiple tokens?
+
+No, in the future it will support multiple Bot Tokens.
 
 ## References
 
@@ -278,7 +328,7 @@ We are grateful for the support from the following sponsors:
 
 - @fasizhuanqian: 300 USDT
 
-- @ZETA: $200
+- @ZETA: $250
 
 - @yuerbujin: ¥600
 
