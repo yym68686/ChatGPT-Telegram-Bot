@@ -345,7 +345,11 @@ if GET_MODELS:
         endpoint = BaseAPI(api_url=API_URL)
         endpoint_models_url = endpoint.v1_models
         import requests
-        response = requests.get(endpoint_models_url)
+        response = requests.post(
+            endpoint_models_url,
+            headers={"Authorization": f"Bearer {API}"},
+        )
+        # response = requests.get(endpoint_models_url)
         models = response.json()
         models_list = models["data"]
         models_id = [model["id"] for model in models_list]
