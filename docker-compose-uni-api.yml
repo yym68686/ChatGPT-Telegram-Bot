@@ -2,8 +2,6 @@ services:
   uni-api:
     container_name: uni-api
     image: yym68686/uni-api:latest
-    environment:
-      - USE_ROUND_ROBIN=False
     ports:
       - 8001:8000
     volumes:

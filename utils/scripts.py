@@ -81,7 +81,9 @@ async def GetMesageInfo(update, context):
     elif update.callback_query:
         message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesage(update.callback_query.message, context)
         update_message = update.callback_query.message
-    else:
+    elif update.message:
         message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesage(update.message, context)
         update_message = update.message
+    else:
+        return None, None, None, None, None, None, None, None, None, None
     return message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content
