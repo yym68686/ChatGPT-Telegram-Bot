@@ -37,25 +37,33 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 
 ## 🍃 Environment variables
 
-| Variable Name           | Comment                                                      | required? |
-| ---------------------- | ------------------------------------------------------------ | ---------------------- |
-| **BOT_TOKEN** | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. | **Yes** |
-| API       | OpenAI or third-party API key.                              | No |
-| GPT_ENGINE    | Set the default QA model; the default is:`gpt-4o`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
-| WEB_HOOK  | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
-| API_URL       | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
-| GROQ_API_KEY  | Groq offical API key.                              | No |
-| GOOGLE_AI_API_KEY       | Google AI offical API key.                              | No |
-| claude_api_key | Claude offical API key.                              | No |
-| NICK          | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |
-| PASS_HISTORY  | The default is `False`. The bot remembers the conversation history and considers the context when replying next time. If set to `False`, the bot will forget the conversation history and only consider the current conversation. Ensure the first letter of `False` and `True` is capitalized. | No |
-| GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. Create credentials in Google Cloud's [APIs & Services](https://console.cloud.google.com/apis/api/customsearch.googleapis.com) and the API Key will be GOOGLE_API_KEY on the credentials page. Google search can be queried 100 times a day, which is completely sufficient for light use. When the usage limit has been reached, the bot will automatically turn off Google search. | No |
-| GOOGLE_CSE_ID | If you need to use Google search, you need to set it together with GOOGLE_API_KEY. Create a search engine in [Programmable Search Engine](https://programmablesearchengine.google.com/), where the search engine ID is the value of GOOGLE_CSE_ID. | No |
-| whitelist     | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). Please note that here we are referring to the Telegram ID, not the Telegram username, as they are different. The whitelist cannot contain group IDs, to authorize specific groups for use, the environment variable GROUP_LIST must be used. | No |
-| ADMIN_LIST | Set up an admin list. Only admins can use the `info` command to configure the bot. When `GROUP_LIST` is set, only admins can have private chats with the bot. If `ADMIN_LIST` is not set, all users can modify the basic settings of the bot through the `info` command by default. Connect the admin IDs with a comma (','). You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). | No |
-| GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). After setting `GROUP_LIST`, except for the admin, no one else can have a private chat with the bot.You can obtain your own Telegram ID and group ID through this [bot](https://t.me/getidsbot). | No |
-| CUSTOM_MODELS | Set up a list of custom model name. Connect the model name with a comma (','). If you need to delete the default model, add a hyphen(-) before the default model name. | No |
-| CHAT_MODE       | Introduce multi-user mode, different users' configurations are not shared, the default is that each user has the same configuration, and the CHAT_MODE environment variable is used to control the configuration behavior. When CHAT_MODE is global, all users share the configuration. When CHAT_MODE is multiusers, user configurations are independent of each other.                             | No |
+| Variable Name | Description | Required? |
+|---------------|-------------|-----------|
+| BOT_TOKEN | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. | **Yes** |
+| API | OpenAI or third-party API key. | No |
+| GPT_ENGINE | Set the default QA model; the default is:`gpt-4o`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
+| WEB_HOOK | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
+| API_URL | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
+| GROQ_API_KEY | Groq official API key. | No |
+| GOOGLE_AI_API_KEY | Google AI official API key. | No |
+| claude_api_key | Claude official API key. | No |
+| NICK | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |
+| PASS_HISTORY | The default is `False`. The bot remembers the conversation history and considers the context when replying next time. If set to `False`, the bot will forget the conversation history and only consider the current conversation. Ensure the first letter of `False` and `True` is capitalized. | No |
+| GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. | No |
+| GOOGLE_CSE_ID | If you need to use Google search, you need to set it together with GOOGLE_API_KEY. | No |
+| whitelist | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. | No |
+| ADMIN_LIST | Set up an admin list. Only admins can use the `info` command to configure the bot. When `GROUP_LIST` is set, only admins can have private chats with the bot. | No |
+| GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). | No |
+| CUSTOM_MODELS | Set up a list of custom model names. Connect the model names with a comma (','). If you need to delete the default model, add a hyphen(-) before the default model name. | No |
+| CHAT_MODE | Introduce multi-user mode, different users' configurations are not shared. When CHAT_MODE is global, all users share the configuration. When CHAT_MODE is multiusers, user configurations are independent of each other. | No |
+| LONG_TEXT | If the user's input exceeds the Telegram limit and is split into multiple messages sent consecutively in a very short time, the bot will treat these multiple messages as one. Default is `True`. | No |
+| LONG_TEXT_SPLIT | When the bot's response exceeds the Telegram limit, it will be split into multiple messages. Default is `True`. | No |
+| FOLLOW_UP | Automatically generate several related questions for the user to choose from. Default is `False`. | No |
+| TITLE | Whether to display the model name at the beginning of the bot's reply. Default is `False`. | No |
+| TYPING | Whether to display "typing" status when the bot is replying. Default is `False`. | No |
+| REPLY | Whether the bot's reply should be in "reply" format to the user's message. Default is `False`. | No |
+| temperature | Specify the temperature for the LLM. Default is `0.5`. | No |
+| GET_MODELS | Specify whether to get supported models via API. Default is `False`. | No |
 
 ## Koyeb Remote Deployment
 
