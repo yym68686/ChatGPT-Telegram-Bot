@@ -21,6 +21,8 @@ def GroupAuthorization(func):
     async def wrapper(*args, **kwargs):
         if config.GROUP_LIST == None:
             return await func(*args, **kwargs)
+        if args[0].effective_chat == None:
+            return await func(*args, **kwargs)
         if (args[0].effective_chat.id not in config.GROUP_LIST):
             if (config.ADMIN_LIST and args[0].effective_user.id in config.ADMIN_LIST):
                 return await func(*args, **kwargs)
