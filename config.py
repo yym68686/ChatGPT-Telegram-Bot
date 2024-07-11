@@ -151,7 +151,10 @@ def update_ENGINE(data = None, chat_id=None):
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
     if api_key:
-        ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=systemprompt, temperature=temperature)
+        if "claude" in engine:
+            ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
+        else:
+            ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=systemprompt, temperature=temperature)
         SummaryBot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine="gpt-3.5-turbo", system_prompt=systemprompt, temperature=temperature)
     if CLAUDE_API and "claude-2.1" in engine:
         claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
@@ -228,15 +231,19 @@ def reset_ENGINE(chat_id, message=None):
     global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
+    engine = Users.get_config(chat_id, "engine")
     if message:
-        if "claude" not in Users.get_config(chat_id, "engine") or CLAUDE_API is None:
-            Users.set_config(chat_id, "systemprompt", message)
-        if "claude" in Users.get_config(chat_id, "engine") and CLAUDE_API:
+        if "claude" in engine:
             Users.set_config(chat_id, "claude_systemprompt", message)
+        else:
+            Users.set_config(chat_id, "systemprompt", message)
     systemprompt = Users.get_config(chat_id, "systemprompt")
     claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
     if api_key and ChatGPTbot:
-        ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
+        if "claude" in engine:
+            ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=claude_systemprompt)
+        else:
+            ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
     if CLAUDE_API and claudeBot:
         claudeBot.reset(convo_id=str(chat_id), system_prompt=claude_systemprompt)
     if CLAUDE_API and claude3Bot:
