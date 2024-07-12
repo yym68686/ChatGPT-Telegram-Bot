@@ -47,6 +47,7 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | GROQ_API_KEY | Groq official API key. | No |
 | GOOGLE_AI_API_KEY | Google AI official API key. | No |
 | claude_api_key | Claude official API key. | No |
+| CLAUDE_API_URL | If you are using the Anthropic official API, you don't need to set this. If you using a third-party Anthropic API, you need to fill in the third-party proxy website. The default is: https://api.anthropic.com/v1/messages | No |
 | NICK | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |
 | PASS_HISTORY | The default is `False`. The bot remembers the conversation history and considers the context when replying next time. If set to `False`, the bot will forget the conversation history and only consider the current conversation. Ensure the first letter of `False` and `True` is capitalized. | No |
 | GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. | No |
