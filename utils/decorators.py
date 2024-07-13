@@ -19,19 +19,22 @@ def Authorization(func):
 # 判断是否在群聊白名单
 def GroupAuthorization(func):
     async def wrapper(*args, **kwargs):
+        update, context = args[:2]
+        from utils.scripts import GetMesageInfo
+        _, _, _, chatid, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
         if config.GROUP_LIST == None:
             return await func(*args, **kwargs)
-        if args[0].effective_chat == None:
+        if update.effective_chat == None:
             return await func(*args, **kwargs)
-        if (args[0].effective_chat.id not in config.GROUP_LIST):
-            if (config.ADMIN_LIST and args[0].effective_user.id in config.ADMIN_LIST):
+        if (chatid not in config.GROUP_LIST):
+            if (config.ADMIN_LIST and update.effective_user.id in config.ADMIN_LIST):
                 return await func(*args, **kwargs)
             message = (
-                f"`Hi, {args[0].effective_user.username}!`\n\n"
-                f"id: `{args[0].effective_user.id}`\n\n"
+                f"`Hi, {update.effective_user.username}!`\n\n"
+                f"id: `{update.effective_user.id}`\n\n"
                 f"无权访问！\n\n"
             )
-            await args[1].bot.send_message(chat_id=args[0].effective_chat.id, text=message, parse_mode='MarkdownV2')
+            await context.bot.send_message(chat_id=chatid, text=message, parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)
     return wrapper
@@ -39,15 +42,16 @@ def GroupAuthorization(func):
 # 判断是否是管理员
 def AdminAuthorization(func):
     async def wrapper(*args, **kwargs):
+        update, context = args[:2]
         if config.ADMIN_LIST == None:
             return await func(*args, **kwargs)
-        if (args[0].effective_user.id not in config.ADMIN_LIST):
+        if (update.effective_user.id not in config.ADMIN_LIST):
             message = (
-                f"`Hi, {args[0].effective_user.username}!`\n\n"
-                f"id: `{args[0].effective_user.id}`\n\n"
+                f"`Hi, {update.effective_user.username}!`\n\n"
+                f"id: `{update.effective_user.id}`\n\n"
                 f"无权访问！\n\n"
             )
-            await args[1].bot.send_message(chat_id=args[0].effective_user.id, text=message, parse_mode='MarkdownV2')
+            await context.bot.send_message(chat_id=update.effective_user.id, text=message, parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)
     return wrapper
@@ -86,7 +90,8 @@ def PrintMessage(func):
         update, context = args[:2]
         from utils.scripts import GetMesageInfo
         _, rawtext, _, _, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
-        print("update", update)
+        import json
+        print("update", json.dumps(update.to_dict(), indent=2, ensure_ascii=False))
         print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
         return await func(*args, **kwargs)
     return wrapper

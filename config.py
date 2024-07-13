@@ -281,7 +281,7 @@ if ADMIN_LIST:
     ADMIN_LIST = [int(id) for id in ADMIN_LIST.split(",")]
 GROUP_LIST = os.environ.get('GROUP_LIST', None)
 if GROUP_LIST:
-    GROUP_LIST = [int(id) for id in GROUP_LIST.split(",")]
+    GROUP_LIST = [id for id in GROUP_LIST.split(",")]
 
 def delete_model_digit_tail(lst):
     for i in range(len(lst) - 1, -1, -1):

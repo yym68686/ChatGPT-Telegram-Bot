@@ -96,13 +96,20 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 pass_history = False
             message = prompt + message
         if message:
-            if reply_to_message_text and update_message.reply_to_message.from_user.is_bot and Users.get_config(convo_id, "TITLE") == True:
-                message = '\n'.join(reply_to_message_text.split('\n')[1:]) + "\n" + message
-            elif update_message.reply_to_message and (not update_message.reply_to_message.from_user.is_bot or Users.get_config(convo_id, "TITLE") == False):
-                if reply_to_message_text:
-                    message = reply_to_message_text + "\n" + message
-                if reply_to_message_file_content:
-                    message = reply_to_message_file_content + "\n" + message
+            bot_info = await context.bot.get_me()
+            if update_message.reply_to_message \
+            and update_message.from_user.is_bot == False \
+            and update_message.reply_to_message.from_user.username == bot_info.username:
+                if update_message.reply_to_message.from_user.is_bot and Users.get_config(convo_id, "TITLE") == True:
+                    message = '\n'.join(reply_to_message_text.split('\n')[1:]) + "\n" + message
+                else:
+                    if reply_to_message_text:
+                        message = reply_to_message_text + "\n" + message
+                    if reply_to_message_file_content:
+                        message = reply_to_message_file_content + "\n" + message
+            elif update_message.reply_to_message.from_user.is_bot \
+            and update_message.reply_to_message.from_user.username != bot_info.username:
+                return
 
             robot, role = get_robot(convo_id)
             engine = get_ENGINE(convo_id)
