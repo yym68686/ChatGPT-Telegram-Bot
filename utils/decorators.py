@@ -6,7 +6,7 @@ def Authorization(func):
         update, context = args[:2]
         from utils.scripts import GetMesageInfo
         _, _, _, chatid, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
-        if config.whitelist == None or chatid in config.GROUP_LIST:
+        if config.whitelist == None or (config.GROUP_LIST and chatid in config.GROUP_LIST):
             return await func(*args, **kwargs)
         if (update.effective_user.id not in config.whitelist):
             message = (
