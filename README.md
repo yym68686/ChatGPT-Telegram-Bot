@@ -37,6 +37,8 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 
 ## 🍃 Environment variables
 
+The following is a list of environment variables related to the bot's core settings:
+
 | Variable Name | Description | Required? |
 |---------------|-------------|-----------|
 | BOT_TOKEN | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. | **Yes** |
@@ -49,7 +51,6 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | claude_api_key | Claude official API key. | No |
 | CLAUDE_API_URL | If you are using the Anthropic official API, you don't need to set this. If you using a third-party Anthropic API, you need to fill in the third-party proxy website. The default is: https://api.anthropic.com/v1/messages | No |
 | NICK | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |
-| PASS_HISTORY | The default is `False`. The bot remembers the conversation history and considers the context when replying next time. If set to `False`, the bot will forget the conversation history and only consider the current conversation. Ensure the first letter of `False` and `True` is capitalized. | No |
 | GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. | No |
 | GOOGLE_CSE_ID | If you need to use Google search, you need to set it together with GOOGLE_API_KEY. | No |
 | whitelist | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. | No |
@@ -57,14 +58,32 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 | GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). | No |
 | CUSTOM_MODELS | Set up a list of custom model names. Connect the model names with a comma (','). If you need to delete the default model, add a hyphen(-) before the default model name. | No |
 | CHAT_MODE | Introduce multi-user mode, different users' configurations are not shared. When CHAT_MODE is global, all users share the configuration. When CHAT_MODE is multiusers, user configurations are independent of each other. | No |
+| temperature | Specify the temperature for the LLM. Default is `0.5`. | No |
+| GET_MODELS | Specify whether to get supported models via API. Default is `False`. | No |
+
+The following is a list of environment variables related to the bot's preference settings:
+
+| Variable Name | Description | Required? |
+|---------------|-------------|-----------|
+| PASS_HISTORY | The default is `False`. The bot remembers the conversation history and considers the context when replying next time. If set to `False`, the bot will forget the conversation history and only consider the current conversation. Ensure the first letter of `False` and `True` is capitalized. | No |
 | LONG_TEXT | If the user's input exceeds the Telegram limit and is split into multiple messages sent consecutively in a very short time, the bot will treat these multiple messages as one. Default is `True`. | No |
 | LONG_TEXT_SPLIT | When the bot's response exceeds the Telegram limit, it will be split into multiple messages. Default is `True`. | No |
 | FOLLOW_UP | Automatically generate several related questions for the user to choose from. Default is `False`. | No |
 | TITLE | Whether to display the model name at the beginning of the bot's reply. Default is `False`. | No |
 | TYPING | Whether to display "typing" status when the bot is replying. Default is `False`. | No |
 | REPLY | Whether the bot's reply should be in "reply" format to the user's message. Default is `False`. | No |
-| temperature | Specify the temperature for the LLM. Default is `0.5`. | No |
-| GET_MODELS | Specify whether to get supported models via API. Default is `False`. | No |
+
+The following is a list of environment variables related to the bot's plugin settings:
+
+| Variable Name | Description | Required? |
+|---------------|-------------|-----------|
+| SEARCH | Whether to enable the search plugin. Default is `True`. | No |
+| URL | Whether to enable the URL summarization plugin. Default is `True`. | No |
+| ARXIV | Whether to enable the arXiv paper summarization plugin. Default is `True`. | No |
+| CODE | Whether to enable the code interpreter plugin. Default is `False`. | No |
+| IMAGE | Whether to enable the image generation plugin. Default is `False`. | No |
+| DATE | Whether to enable the date plugin. Default is `False`. | No |
+
 
 ## Koyeb Remote Deployment
 
