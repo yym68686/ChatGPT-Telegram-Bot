@@ -24,7 +24,7 @@ def GroupAuthorization(func):
         _, _, _, chatid, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
         if config.GROUP_LIST == None:
             return await func(*args, **kwargs)
-        if update.effective_chat == None:
+        if update.effective_chat == None or chatid[0] != "-":
             return await func(*args, **kwargs)
         if (chatid not in config.GROUP_LIST):
             if (config.ADMIN_LIST and update.effective_user.id in config.ADMIN_LIST):
