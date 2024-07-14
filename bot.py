@@ -107,7 +107,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                         message = reply_to_message_text + "\n" + message
                     if reply_to_message_file_content:
                         message = reply_to_message_file_content + "\n" + message
-            elif update_message.reply_to_message.from_user.is_bot \
+            elif update_message.reply_to_message and update_message.reply_to_message.from_user.is_bot \
             and update_message.reply_to_message.from_user.username != bot_info.username:
                 return
 
