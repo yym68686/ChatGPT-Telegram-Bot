@@ -3,15 +3,18 @@ import config
 # 判断是否在白名单
 def Authorization(func):
     async def wrapper(*args, **kwargs):
-        if config.whitelist == None:
+        update, context = args[:2]
+        from utils.scripts import GetMesageInfo
+        _, _, _, chatid, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
+        if config.whitelist == None or chatid in config.GROUP_LIST:
             return await func(*args, **kwargs)
-        if (args[0].effective_user.id not in config.whitelist):
+        if (update.effective_user.id not in config.whitelist):
             message = (
-                f"`Hi, {args[0].effective_user.username}!`\n\n"
-                f"id: `{args[0].effective_user.id}`\n\n"
+                f"`Hi, {update.effective_user.username}!`\n\n"
+                f"id: `{update.effective_user.id}`\n\n"
                 f"无权访问！\n\n"
             )
-            await args[1].bot.send_message(chat_id=args[0].effective_user.id, text=message, parse_mode='MarkdownV2')
+            await context.bot.send_message(chat_id=chatid, text=message, parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)
     return wrapper
