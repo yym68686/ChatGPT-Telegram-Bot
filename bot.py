@@ -220,7 +220,12 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             if history[-1].get('name') == "generate_image" and not image_has_send:
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)
                 image_has_send = 1
-            elif len(history) > 2 and history[-2].get('content') and history[-2].get('content')[0].get("name") == "generate_image" and not image_has_send:
+            elif len(history) > 2 \
+            and type(history[-2]) != str \
+            and history[-2].get('content') \
+            and type(history[-2].get('content')[0]) != str \
+            and history[-2].get('content')[0].get("name") == "generate_image" \
+            and not image_has_send:
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'][0]["content"], reply_to_message_id=messageid)
                 image_has_send = 1
             modifytime = modifytime + 1
@@ -494,7 +499,7 @@ async def start(update, context): # 当用户输入/start时，返回文本
     else:
         update_language_status("English", chat_id=convo_id)
     message = (
-        f"Hi `{user.username}` ! I am an Assistant, a large language model trained by _OpenAI_. I will do my best to help answer your questions.\n\n"
+        f"Hi `{user.username}` ! I am an Assistant, a large language model trained by _OpenAI_. I will do my best to help answer your questions. ![👍](tg://emoji?id=5368324170671202286)\n\n"
         # "Welcome to visit https://github.com/yym68686/ChatGPT-Telegram-Bot to view the source code.\n\n"
         # "If you find any bugs, you can contact @yym68686."
     )
