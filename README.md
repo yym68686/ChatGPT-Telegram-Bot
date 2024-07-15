@@ -54,8 +54,8 @@ The following is a list of environment variables related to the bot's core setti
 | GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. | No |
 | GOOGLE_CSE_ID | If you need to use Google search, you need to set it together with GOOGLE_API_KEY. | No |
 | whitelist | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. | No |
-| ADMIN_LIST | Set up an admin list. Only admins can use the `info` command to configure the bot. When `GROUP_LIST` is set, only admins can have private chats with the bot. | No |
-| GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). | No |
+| ADMIN_LIST | Set up an admin list. Only admins can use the `/info` command to configure the bot. | No |
+| GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). Even if group members are not on the whitelist, as long as the group ID is in the GROUP_LIST, all members of the group can use the bot. | No |
 | CUSTOM_MODELS | Set up a list of custom model names. Connect the model names with a comma (','). If you need to delete the default model, add a hyphen(-) before the default model name. | No |
 | CHAT_MODE | Introduce multi-user mode, different users' configurations are not shared. When CHAT_MODE is global, all users share the configuration. When CHAT_MODE is multiusers, user configurations are independent of each other. | No |
 | temperature | Specify the temperature for the LLM. Default is `0.5`. | No |
@@ -258,9 +258,9 @@ The second method is to set the bot as an administrator, so the bot can be used 
 
 Another possibility is that the GROUP_LIST set is not the current group chat ID. Please check if GROUP_LIST is set; GROUP_LIST is the group ID, not the group name. The group ID starts with a minus sign followed by a string of numbers.
 
-- Why did I set GROUP_LIST, but others can't private chat?
+- How do the settings of GROUP_LIST, ADMIN_LIST, and whitelist affect the behavior of the bot?
 
-Once the GROUP_LIST environment variable is set, by default, no one can private chat with the bot, only administrators can. If you need others to be able to private chat with the bot, you need to add them to the ADMIN_LIST. Please note that administrators have higher permissions to modify the bot's configuration. Once GROUP_LIST is set, regardless of whether the whitelist is set, no one can chat privately with the bot except administrators.
+If whitelist is not set, everyone can use the bot. If whitelist is set, only users in the whitelist can use the bot. If GROUP_LIST is set, only groups in the GROUP_LIST can use the bot. If both whitelist and GROUP_LIST are set, everyone in the group can use the bot, but only users in the whitelist can privately chat with the bot. If ADMIN_LIST is set, only users in the ADMIN_LIST can use the /info command to change the bot's settings. If ADMIN_LIST is not set, everyone can use the /info command to change the bot's configuration.
 
 - How should I set the API_URL?
 
@@ -281,16 +281,6 @@ Here's a troubleshooting guide: Please carefully check if the GROUP_LIST is corr
 - I've uploaded a document, but it's not responding based on the content of the document. What's going on?
 
 To use the document question and answer feature, you must first enable the history record. You can turn on the history record through the `/info` command, or by setting the environment variable `PASS_HISTORY` to `True` to enable the history record by default. Please note that enabling the history record will incur additional costs, so this project does not enable the history record by default. This means that the question and answer feature cannot be used under the default settings. Before using this feature, you need to manually enable the history record.
-
-<!-- - What is gpt4free in the `/info` command? Do I need to enable it?
-
-gpt4free is an open-source project that reverse-engineers multiple platforms to use models like gpt4/gpt3 for free. As it's a free API, it may be unstable, so please use it with caution. If you have your own API, it is recommended to use that as a priority.
-
-You can enable gpt4free by simply clicking on it in the `/info` command. Please note that gpt4free does not support all models. You can check the gpt4free documentation to see which models it supports. Once gpt4free is enabled, all questions and searches will use the gpt4free API. If you encounter any errors, please copy the robot's backend log to @yym68686, or open an issue on GitHub. Our developers will resolve it as soon as possible. -->
-
-<!-- - Does it support a vector database?
-
-No, previous versions did support it, but after installing unstructured[md,pdf] dependencies for parsing PDFs, the docker image size reached 9GB, so the support for the vector database was removed in the current version. Since the vector database is just a transitional product when the context of large language models is relatively short and there is significant information loss. With the introduction of claude2.1 200k and gpt4 Turbo 128k, vector databases have become less and less important. Although their price is lower, by comparison, I would prefer better performance. -->
 
 - After setting the `NICK`, there's no response when I @ the bot, and it only replies when the message starts with the nick. How can I make it respond to both the nick and @botname?
 
@@ -361,7 +351,9 @@ We are grateful for the support from the following sponsors:
 
 - @ZETA: $250
 
-- @yuerbujin: ¥600
+- @yuerbujin: ¥1200
+
+- @RR5AM: ¥300
 
 - @IKUNONHK: 30 USDT
 
