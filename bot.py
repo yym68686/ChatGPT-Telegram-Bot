@@ -494,7 +494,7 @@ async def start(update, context): # 当用户输入/start时，返回文本
     else:
         update_language_status("English", chat_id=convo_id)
     message = (
-        f"Hi `{user.username}` ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.\n\n"
+        f"Hi `{user.username}` ! I am an Assistant, a large language model trained by _OpenAI_. I will do my best to help answer your questions.\n\n"
         # "Welcome to visit https://github.com/yym68686/ChatGPT-Telegram-Bot to view the source code.\n\n"
         # "If you find any bugs, you can contact @yym68686."
     )
