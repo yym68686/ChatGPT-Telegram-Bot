@@ -346,7 +346,7 @@ The markdown rendering of the message used is another [project](https://github.c
 ## Sponsors
 
 We are grateful for the support from the following sponsors:
-
+<!-- $300+$250+¥1200+¥300+$30+$25+$20+¥50 -->
 - @fasizhuanqian: 300 USDT
 
 - @ZETA: $250
@@ -360,6 +360,8 @@ We are grateful for the support from the following sponsors:
 - [@Zeabur](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss): $25
 
 - @Bill_ZKE: 20 USDT
+
+- @wagon_look: ¥50
 
 <!-- [![Deployed on Zeabur](https://zeabur.com/deployed-on-zeabur-dark.svg)](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss) -->
 
