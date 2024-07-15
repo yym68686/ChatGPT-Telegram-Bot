@@ -220,6 +220,9 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             if history[-1].get('name') == "generate_image" and not image_has_send:
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)
                 image_has_send = 1
+            elif len(history) > 2 and history[-2].get('content') and history[-2].get('content')[0].get("name") == "generate_image" and not image_has_send:
+                await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'][0]["content"], reply_to_message_id=messageid)
+                image_has_send = 1
             modifytime = modifytime + 1
 
             if len(tmpresult) > 3500 and Users.get_config(convo_id, "LONG_TEXT_SPLIT"):
