@@ -427,8 +427,10 @@ async def handle_file(update, context):
     message = Document_extract(file_url, image_url, engine)
 
     robot.add_to_conversation(message, role, convo_id)
-    message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_doc'][get_current_lang()]), parse_mode='MarkdownV2', disable_web_page_preview=True)
-    await delete_message(update, context, [message.message_id])
+
+    if Users.get_config(convo_id, "FILE_UPLOAD_MESS"):
+        message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_doc'][get_current_lang()]), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        await delete_message(update, context, [message.message_id])
 
 @decorators.GroupAuthorization
 @decorators.Authorization

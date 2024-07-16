@@ -29,6 +29,7 @@ PREFERENCES = {
     "PASS_HISTORY"      : (os.environ.get('PASS_HISTORY', "True") == "False") == False,
     "LONG_TEXT"         : (os.environ.get('LONG_TEXT', "True") == "False") == False,
     "LONG_TEXT_SPLIT"   : (os.environ.get('LONG_TEXT_SPLIT', "True") == "False") == False,
+    "FILE_UPLOAD_MESS"  : (os.environ.get('FILE_UPLOAD_MESS', "True") == "False") == False,
     "FOLLOW_UP"         : (os.environ.get('FOLLOW_UP', "False") == "False") == False,
     "TITLE"             : (os.environ.get('TITLE', "False") == "False") == False,
     "TYPING"            : (os.environ.get('TYPING', "False") == "False") == False,

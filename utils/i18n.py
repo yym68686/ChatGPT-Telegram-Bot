@@ -64,6 +64,11 @@ strings = {
         "en": "Long text split",
         "zh-hk": "長文本分割",
     },
+    "FILE_UPLOAD_MESS": {
+        "zh": "提醒消息",
+        "en": "Reminder message",
+        "zh-hk": "提醒消息",
+    },
     "TITLE": {
         "zh": "模型标题",
         "en": "Model title",
