@@ -332,6 +332,14 @@ Yes, because switching models will reset the history, so you need to re-enter th
 
 No, in the future it will support multiple Bot Tokens.
 
+- How to use robot commands?
+
+1. `/info`: The robot `/info` command can view the robot's configuration information, including the current model in use, API URL, API key, etc. It can also change the robot's display language, preferences, and plugin settings.
+
+2. `/start`: The robot `/start` command can view the robot's usage instructions, usage methods, and function introduction. You can set the API key using the `/start` command. If you have an official OpenAI API key, please use the following command: `/start your_api_key`. If you are using a third-party API key, please use the following command: `/start https://your_api_url your_api_key`.
+
+3. `/reset`: The robot `/reset` command can clear the robot's conversation messages and force the robot to stop generating replies. If you want to reset the system prompt, please use the following command: `/reset your_system_prompt`. However, the `/reset` command will never restore the robot's display language, preferences, plugin settings, model in use, API URL, API key, system prompt, etc.
+
 ## References
 
 https://core.telegram.org/bots/api
