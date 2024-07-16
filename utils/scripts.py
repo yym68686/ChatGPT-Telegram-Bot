@@ -22,6 +22,10 @@ async def get_file_url(file, context):
     file_url = new_file.file_path
     return file_url
 
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 async def GetMesage(update_message, context):
     from ModelMerge.src.ModelMerge.utils.scripts import Document_extract
     image_url = None
