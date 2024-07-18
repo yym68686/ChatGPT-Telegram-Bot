@@ -361,6 +361,10 @@ if GET_MODELS:
         models = response.json()
         models_list = models["data"]
         models_id = [model["id"] for model in models_list]
+        set_models = set()
+        for model_item in models_id:
+            set_models.add(delete_model_digit_tail(model_item.split("-")))
+        models_id = list(set_models)
         # print(models_id)
         initial_model = models_id
     except Exception as e:
