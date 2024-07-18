@@ -95,10 +95,9 @@ def APICheck(func):
 def PrintMessage(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
-        from utils.scripts import GetMesageInfo
-        _, rawtext, _, _, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
         import json
-        print("update", json.dumps(update.to_dict(), indent=2, ensure_ascii=False))
-        print("\033[32m", update.effective_user.username, update.effective_user.id, rawtext, "\033[0m")
+        print("\033[32m")
+        print(json.dumps(update.to_dict(), indent=2, ensure_ascii=False))
+        print("\033[0m")
         return await func(*args, **kwargs)
     return wrapper

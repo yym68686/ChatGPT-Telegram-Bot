@@ -487,7 +487,15 @@ async def reset_chat(update, context):
 async def info(update, context):
     _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _ = await GetMesageInfo(update, context)
     info_message = update_info_message(convo_id)
-    message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(info_message), reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    message = await context.bot.send_message(
+        chat_id=chatid,
+        message_thread_id=message_thread_id,
+        text=escape(info_message),
+        reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)),
+        parse_mode='MarkdownV2',
+        disable_web_page_preview=True,
+        read_timeout=600,
+    )
     await delete_message(update, context, [message.message_id, user_message_id])
 
 @decorators.PrintMessage
