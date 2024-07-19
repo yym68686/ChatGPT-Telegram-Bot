@@ -231,34 +231,73 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             modifytime = modifytime + 1
 
             if len(tmpresult) > 3500 and Users.get_config(convo_id, "LONG_TEXT_SPLIT"):
+                # print("tmpresult", tmpresult)
                 replace_text = replace_all(tmpresult, r"(```[\D\d\s]+?```)", split_code)
                 if "@|@|@|@" in replace_text:
-                    print(replace_text)
+                    print("@|@|@|@", replace_text)
                     split_messages = replace_text.split("@|@|@|@")
                     send_split_message = split_messages[0]
                     result = split_messages[1][:-4]
+                else:
+                    print("replace_text", replace_text)
+                    if replace_text.strip().endswith("```"):
+                        replace_text = replace_text.strip()[:4]
+                    split_messages_new = []
+                    split_messages = replace_text.split("```")
+                    for index, item in enumerate(split_messages):
+                        if index % 2 == 1:
+                            item = "```" + item
+                            if index != len(split_messages) - 1:
+                                item = item + "```"
+                            split_messages_new.append(item)
+                        if index % 2 == 0:
+                            item_split_new = []
+                            item_split = item.split("\n\n")
+                            for sub_index, sub_item in enumerate(item_split):
+                                if sub_index % 2 == 1:
+                                    sub_item = "\n\n" + sub_item
+                                    if sub_index != len(item_split) - 1:
+                                        sub_item = sub_item + "\n\n"
+                                    item_split_new.append(sub_item)
+                                if sub_index % 2 == 0:
+                                    item_split_new.append(sub_item)
+                            split_messages_new.extend(item_split_new)
 
-                    await context.bot.edit_message_text(
-                        chat_id=chatid,
-                        message_id=answer_messageid,
-                        text=escape(send_split_message),
-                        parse_mode='MarkdownV2',
-                        disable_web_page_preview=True,
-                        read_timeout=time_out,
-                        write_timeout=time_out,
-                        pool_timeout=time_out,
-                        connect_timeout=time_out
-                    )
-                    answer_messageid = (await context.bot.send_message(
-                        chat_id=chatid,
-                        message_thread_id=message_thread_id,
-                        text=escape(strings['message_think'][get_current_lang()]),
-                        parse_mode='MarkdownV2',
-                        reply_to_message_id=messageid,
-                    )).message_id
+                    split_index = 0
+                    for index, _ in enumerate(split_messages_new):
+                        if len("".join(split_messages_new[:index])) < len(text) // 2:
+                            split_index += 1
+                            continue
+                        else:
+                            break
+                    send_split_message = ''.join(split_messages_new[:split_index])
+                    tmp = ''.join(split_messages_new[split_index:])
+                    if not tmp.strip().endswith("```"):
+                        result = tmp[:4]
+                    else:
+                        result = tmp
+
+                await context.bot.edit_message_text(
+                    chat_id=chatid,
+                    message_id=answer_messageid,
+                    text=escape(send_split_message),
+                    parse_mode='MarkdownV2',
+                    disable_web_page_preview=True,
+                    read_timeout=time_out,
+                    write_timeout=time_out,
+                    pool_timeout=time_out,
+                    connect_timeout=time_out
+                )
+                answer_messageid = (await context.bot.send_message(
+                    chat_id=chatid,
+                    message_thread_id=message_thread_id,
+                    text=escape(strings['message_think'][get_current_lang()]),
+                    parse_mode='MarkdownV2',
+                    reply_to_message_id=messageid,
+                )).message_id
 
             now_result = escape(tmpresult)
-            if (modifytime % Frequency_Modification == 0 and lastresult != now_result) or "🌐" in data:
+            if now_result and (modifytime % Frequency_Modification == 0 and lastresult != now_result) or "🌐" in data:
                 lastresult = now_result
                 await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
     except Exception as e:
