@@ -215,7 +215,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             if "claude" in model_name:
                 tmpresult = claude_replace(tmpresult)
             if "🌐" in data:
-                tmpresult = data
+                search_index_string = data.split(" ")[1]
+                tmpresult = strings[search_index_string][get_current_lang()]
             history = robot.conversation[convo_id]
             if history[-1].get('name') == "generate_image" and not image_has_send:
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)

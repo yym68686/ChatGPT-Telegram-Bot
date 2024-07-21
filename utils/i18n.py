@@ -205,4 +205,24 @@ strings = {
         "en": "Upload successfully!",
         "zh-hk": "上傳成功！",
     },
+    "message_search_stage_1": {
+        "zh": "🌐 正在搜索您的问题，提取关键词...",
+        "en": "🌐 Searching your question, extracting keywords...",
+        "zh-hk": "🌐 正在搜索您的問題，提取關鍵詞...",
+    },
+    "message_search_stage_2": {
+        "zh": "🌐 正在网上挑选最相关的信息源，请稍候...",
+        "en": "🌐 Selecting the most relevant information sources online, please wait...",
+        "zh-hk": "🌐 正在網上挑選最相關的信息源，請稍候...",
+    },
+    "message_search_stage_3": {
+        "zh": "🌐 已找到一些有用的链接，正在获取详细内容...",
+        "en": "🌐 Some useful links have been found, getting detailed content...",
+        "zh-hk": "🌐 已找到一些有用的鏈接，正在獲取詳細內容...",
+    },
+    "message_search_stage_4": {
+        "zh": "🌐 快完成了✅，正在为您整理搜索结果...",
+        "en": "🌐 Almost done✅, organizing search results for you...",
+        "zh-hk": "🌐 快完成了✅，正在為您整理搜索結果...",
+    },
 }
