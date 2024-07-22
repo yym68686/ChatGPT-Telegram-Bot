@@ -546,6 +546,8 @@ async def start(update, context): # 当用户输入/start时，返回文本
         update_language_status("Simplified Chinese", chat_id=convo_id)
     elif user.language_code == "zh-hant":
         update_language_status("Traditional Chinese", chat_id=convo_id)
+    elif user.language_code == "ru":
+        update_language_status("Russian", chat_id=convo_id)
     else:
         update_language_status("English", chat_id=convo_id)
     message = (

@@ -29,7 +29,7 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 - **Long Text Message Merging**: Automatically merges long text messages, breaking through Telegram's single message length limit.
 - **Multi-user Dialogue Isolation**: Supports dialogue isolation and configuration isolation, allowing selection between multi-user and single-user modes.
 - **Question Prediction**: Automatically generates follow-up questions, anticipating what users might ask next.
-- **Multi-language Interface**: Supports Simplified Chinese, Traditional Chinese, and English interfaces.
+- **Multi-language Interface**: Supports Simplified Chinese, Traditional Chinese, Russian and English interfaces.
 - **Whitelist, Blacklist, and Admin Settings**: Supports setting up whitelists, blacklists, and administrators.
 - **Inline Mode**: Allows users to @ the bot in any chat window to generate answers without needing to ask questions in the bot's chat window.
 - **User-friendly Interface**: Allows flexible model switching within the chat window and supports streaming output for a typewriter-like effect.Supports precise Markdown rendering of messages, utilizing another [project](https://github.com/yym68686/md2tgmd) of mine.
