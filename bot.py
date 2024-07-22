@@ -316,7 +316,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         if "Can't parse entities: can't find end of code entity at byte offset" in tmpresult:
             await update.message.reply_text(tmpresult)
             print(now_result)
-        else:
+        elif now_result:
             sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
 
     if Users.get_config(convo_id, "FOLLOW_UP"):
