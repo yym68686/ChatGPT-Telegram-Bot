@@ -281,7 +281,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 await context.bot.edit_message_text(
                     chat_id=chatid,
                     message_id=answer_messageid,
-                    text=escape(send_split_message),
+                    text=escape(send_split_message, italic=False),
                     parse_mode='MarkdownV2',
                     disable_web_page_preview=True,
                     read_timeout=time_out,
@@ -297,7 +297,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                     reply_to_message_id=messageid,
                 )).message_id
 
-            now_result = escape(tmpresult)
+            now_result = escape(tmpresult, italic=False)
             if now_result and (modifytime % Frequency_Modification == 0 and lastresult != now_result) or "🌐" in data:
                 lastresult = now_result
                 await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
@@ -311,7 +311,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             robot.reset(convo_id=convo_id, system_prompt=config.systemprompt)
         tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
-    now_result = escape(tmpresult)
+    now_result = escape(tmpresult, italic=False)
     if lastresult != now_result and answer_messageid:
         if "Can't parse entities: can't find end of code entity at byte offset" in tmpresult:
             await update.message.reply_text(tmpresult)
@@ -338,7 +338,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         for ques in result:
             keyboard.append([KeyboardButton(ques)])
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
-        await update.message.reply_text(text=escape(tmpresult), parse_mode='MarkdownV2', reply_to_message_id=messageid, reply_markup=reply_markup)
+        await update.message.reply_text(text=escape(tmpresult, italic=False), parse_mode='MarkdownV2', reply_to_message_id=messageid, reply_markup=reply_markup)
         await context.bot.delete_message(chat_id=chatid, message_id=sent_message.message_id)
 
 @decorators.AdminAuthorization
@@ -381,7 +381,7 @@ async def button_press(update, context):
             info_message = update_info_message(convo_id)
             if  info_message != rawtext:
                 message = await callback_query.edit_message_text(
-                    text=escape(info_message),
+                    text=escape(info_message, italic=False),
                     reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", convo_id)),
                     parse_mode='MarkdownV2'
                 )
@@ -390,7 +390,7 @@ async def button_press(update, context):
             pass
     elif data.startswith("LANGUAGE"):
         message = await callback_query.edit_message_text(
-            text=escape(info_message),
+            text=escape(info_message, italic=False),
             reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", convo_id)),
             parse_mode='MarkdownV2'
         )
@@ -406,7 +406,7 @@ async def button_press(update, context):
             info_message = update_info_message(convo_id)
             if  info_message != rawtext:
                 message = await callback_query.edit_message_text(
-                    text=escape(info_message),
+                    text=escape(info_message, italic=False),
                     reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", convo_id)),
                     parse_mode='MarkdownV2'
                 )
@@ -415,7 +415,7 @@ async def button_press(update, context):
             pass
     elif data.startswith("PREFERENCES"):
         message = await callback_query.edit_message_text(
-            text=escape(info_message),
+            text=escape(info_message, italic=False),
             reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", convo_id)),
             parse_mode='MarkdownV2'
         )
@@ -435,7 +435,7 @@ async def button_press(update, context):
             info_message = update_info_message(convo_id)
             if  info_message != rawtext:
                 message = await callback_query.edit_message_text(
-                    text=escape(info_message),
+                    text=escape(info_message, italic=False),
                     reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", convo_id)),
                     parse_mode='MarkdownV2'
                 )
@@ -444,14 +444,14 @@ async def button_press(update, context):
             pass
     elif data.startswith("PLUGINS"):
         message = await callback_query.edit_message_text(
-            text=escape(info_message),
+            text=escape(info_message, italic=False),
             reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", convo_id)),
             parse_mode='MarkdownV2'
         )
 
     elif data.startswith("BACK"):
         message = await callback_query.edit_message_text(
-            text=escape(info_message),
+            text=escape(info_message, italic=False),
             reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)),
             parse_mode='MarkdownV2'
         )
@@ -541,7 +541,7 @@ async def inlinequery(update: Update, context) -> None:
                 title=f"{engine}",
                 thumbnail_url="https://pb.yym68686.top/TTGk",
                 description=f"{result}",
-                input_message_content=InputTextMessageContent(escape(result), parse_mode='MarkdownV2')),
+                input_message_content=InputTextMessageContent(escape(result, italic=False), parse_mode='MarkdownV2')),
         ]
 
         await update.inline_query.answer(results)
@@ -582,7 +582,7 @@ async def info(update, context):
     message = await context.bot.send_message(
         chat_id=chatid,
         message_thread_id=message_thread_id,
-        text=escape(info_message),
+        text=escape(info_message, italic=False),
         reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)),
         parse_mode='MarkdownV2',
         disable_web_page_preview=True,
@@ -620,7 +620,7 @@ async def start(update, context): # 当用户输入/start时，返回文本
         Users.set_config(convo_id, "api_url", "https://api.openai.com/v1/chat/completions")
         update_ENGINE(chat_id=convo_id)
 
-    await update.message.reply_text(escape(message), parse_mode='MarkdownV2', disable_web_page_preview=True)
+    await update.message.reply_text(escape(message, italic=False), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def error(update, context):
     # if str(context.error) == "httpx.RemoteProtocolError: Server disconnected without sending a response.": return
