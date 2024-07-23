@@ -472,7 +472,6 @@ async def handle_file(update, context):
         message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_doc'][get_current_lang()]), parse_mode='MarkdownV2', disable_web_page_preview=True)
         await delete_message(update, context, [message.message_id])
 
-from pydub import AudioSegment
 from io import BytesIO
 async def transcribe_audio(file_id: str, bot) -> str:
     file_unique_id = file_id
@@ -482,17 +481,17 @@ async def transcribe_audio(file_id: str, bot) -> str:
         file = await bot.get_file(file_id)
         file_bytes = await file.download_as_bytearray()
 
-        audio = AudioSegment.from_file(BytesIO(file_bytes))
-        audio.export(filename_mp3, format="mp3")
+        # 创建一个字节流对象
+        audio_stream = BytesIO(file_bytes)
 
-        with open(filename_mp3, 'rb') as audio_file:
-            transcript = config.whisperBot.generate(audio_file)
+        # 直接使用字节流对象进行转录
+        transcript = config.whisperBot.generate(audio_stream)
 
         return transcript
 
     except Exception as e:
         logging.exception(e)
-        return f"Ошибка при обработке аудиофайла: {str(e)}"
+        return f"处理音频文件时出错： {str(e)}"
     finally:
         import os
         if os.path.exists(filename_mp3):
@@ -511,6 +510,7 @@ async def handle_voice(update, context):
     _, _, _, chatid, messageid, _, _, message_thread_id, convo_id, file_url, _ = await GetMesageInfo(update, context)
     engine = get_ENGINE(convo_id)
     robot, role = get_robot(convo_id)
+    title = ""
     if Users.get_config(convo_id, "TITLE"):
         title = f"`🤖️ {engine}`\n\n"
     if Users.get_config(convo_id, "REPLY") == False:
