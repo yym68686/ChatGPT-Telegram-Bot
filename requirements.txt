@@ -4,6 +4,7 @@ python-telegram-bot[webhooks,rate-limiter]==21.0.1
 
 lxml
 pytz
+pydub
 PyExecJS
 requests
 pdfminer.six
