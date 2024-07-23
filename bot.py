@@ -320,13 +320,17 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
 
     if Users.get_config(convo_id, "FOLLOW_UP"):
+        if title != "":
+            info = "\n\n".join(tmpresult.split("\n\n")[1:])
+        else:
+            info = tmpresult
         prompt = (
             f"You are a professional Q&A expert. You will now be given reference information. Based on the reference information, please help me ask three most relevant questions that you most want to know from my perspective. Be concise and to the point. Do not have numbers in front of questions. Separate each question with a line break. Only output three questions in {config.LANGUAGE}, no need for any explanation. reference infomation is provided inside <infomation></infomation> XML tags."
             "Here is the reference infomation, inside <infomation></infomation> XML tags:"
             "<infomation>"
             "{}"
             "</infomation>"
-        ).format("\n\n".join(tmpresult.split("\n\n")[1:]))
+        ).format(info)
         result = config.SummaryBot.ask(prompt, convo_id=convo_id, pass_history=False).split('\n')
         keyboard = []
         result = [i for i in result if i.strip() and len(i) > 5]
@@ -334,8 +338,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         for ques in result:
             keyboard.append([KeyboardButton(ques)])
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
-        await context.bot.delete_message(chat_id=chatid, message_id=sent_message.message_id)
         await update.message.reply_text(text=escape(tmpresult), parse_mode='MarkdownV2', reply_to_message_id=messageid, reply_markup=reply_markup)
+        await context.bot.delete_message(chat_id=chatid, message_id=sent_message.message_id)
 
 @decorators.AdminAuthorization
 @decorators.GroupAuthorization
