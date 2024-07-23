@@ -6,7 +6,7 @@ load_dotenv()
 from utils.i18n import strings
 from datetime import datetime
 from ModelMerge.src.ModelMerge.utils import prompt
-from ModelMerge.src.ModelMerge.models import chatgpt, claude, groq, claude3, gemini, PLUGINS
+from ModelMerge.src.ModelMerge.models import chatgpt, claude, groq, claude3, gemini, PLUGINS, whisper
 from ModelMerge.src.ModelMerge.models.base import BaseAPI
 
 from telegram import InlineKeyboardButton
@@ -143,9 +143,9 @@ def get_ENGINE(user_id = None):
 temperature = float(os.environ.get('temperature', '0.5'))
 CLAUDE_API = os.environ.get('claude_api_key', None)
 
-ChatGPTbot, SummaryBot, claudeBot, claude3Bot, groqBot, gemini_Bot = None, None, None, None, None, None
+ChatGPTbot, SummaryBot, claudeBot, claude3Bot, groqBot, gemini_Bot, whisperBot = None, None, None, None, None, None, None
 def update_ENGINE(data = None, chat_id=None):
-    global Users, ChatGPTbot, SummaryBot, claudeBot, claude3Bot, groqBot, gemini_Bot
+    global Users, ChatGPTbot, SummaryBot, claudeBot, claude3Bot, groqBot, gemini_Bot, whisperBot
     if data:
         Users.set_config(chat_id, "engine", data)
     engine = Users.get_config(chat_id, "engine")
@@ -159,6 +159,7 @@ def update_ENGINE(data = None, chat_id=None):
         else:
             ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=systemprompt, temperature=temperature)
         SummaryBot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine="gpt-3.5-turbo", system_prompt=systemprompt, temperature=temperature)
+        whisperBot = whisper(api_key=f"{api_key}", api_url=api_url)
     if CLAUDE_API and "claude-2.1" in engine:
         claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
     if CLAUDE_API and "claude-3" in engine:

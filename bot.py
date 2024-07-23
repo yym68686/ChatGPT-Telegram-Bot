@@ -472,6 +472,52 @@ async def handle_file(update, context):
         message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_doc'][get_current_lang()]), parse_mode='MarkdownV2', disable_web_page_preview=True)
         await delete_message(update, context, [message.message_id])
 
+from pydub import AudioSegment
+from io import BytesIO
+async def transcribe_audio(file_id: str, bot) -> str:
+    file_unique_id = file_id
+    filename_mp3 = f'{file_unique_id}.mp3'
+
+    try:
+        file = await bot.get_file(file_id)
+        file_bytes = await file.download_as_bytearray()
+
+        audio = AudioSegment.from_file(BytesIO(file_bytes))
+        audio.export(filename_mp3, format="mp3")
+
+        with open(filename_mp3, 'rb') as audio_file:
+            transcript = config.whisperBot.generate(audio_file)
+
+        return transcript
+
+    except Exception as e:
+        logging.exception(e)
+        return f"Ошибка при обработке аудиофайла: {str(e)}"
+    finally:
+        import os
+        if os.path.exists(filename_mp3):
+            os.remove(filename_mp3)
+
+
+@decorators.GroupAuthorization
+@decorators.Authorization
+@decorators.APICheck
+async def handle_voice(update, context):
+    file_id = update.message.voice.file_id
+    bot = context.bot
+
+    transcript_text = await transcribe_audio(file_id, bot)
+
+    _, _, _, chatid, messageid, _, _, message_thread_id, convo_id, file_url, _ = await GetMesageInfo(update, context)
+    engine = get_ENGINE(convo_id)
+    robot, role = get_robot(convo_id)
+    if Users.get_config(convo_id, "TITLE"):
+        title = f"`🤖️ {engine}`\n\n"
+    if Users.get_config(convo_id, "REPLY") == False:
+        messageid = None
+    pass_history = Users.get_config(convo_id, "PASS_HISTORY")
+    await getChatGPT(update, context, title, robot, transcript_text, chatid, messageid, convo_id, message_thread_id, pass_history)
+
 @decorators.GroupAuthorization
 @decorators.Authorization
 @decorators.APICheck
@@ -625,6 +671,7 @@ if __name__ == '__main__':
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False), block = False))
     application.add_handler(MessageHandler(filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg") | filters.Document.FileExtension("png"))), lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
     application.add_handler(MessageHandler(~filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.PDF | filters.Document.TXT | filters.Document.DOC | filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg") | filters.Document.FileExtension("md") | filters.Document.FileExtension("py"))), handle_file))
+    application.add_handler(MessageHandler(filters.VOICE, handle_voice))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
 
