@@ -202,7 +202,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
 
     try:
         for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
-            if stop_event.is_set() and convo_id == target_convo_id:
+            if stop_event.is_set() and convo_id == target_convo_id and answer_messageid < reset_mess_id:
                 return
             if "🌐" not in data:
                 result = result + data
@@ -544,12 +544,14 @@ async def inlinequery(update: Update, context) -> None:
 
 # 定义一个全局变量来存储 chatid
 target_convo_id = None
+reset_mess_id = 9999
 
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def reset_chat(update, context):
-    global target_convo_id
+    global target_convo_id, reset_mess_id
     _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _ = await GetMesageInfo(update, context)
+    reset_mess_id = user_message_id
     target_convo_id = convo_id
     stop_event.set()
     message = None
