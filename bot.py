@@ -201,7 +201,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     )).message_id
 
     try:
-        for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
+        async for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
+        # for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
             if stop_event.is_set() and convo_id == target_convo_id and answer_messageid < reset_mess_id:
                 return
             if "🌐" not in data:
