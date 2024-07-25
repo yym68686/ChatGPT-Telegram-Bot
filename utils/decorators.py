@@ -72,13 +72,14 @@ def APICheck(func):
             Users,
             get_robot,
             get_current_lang,
+            CLAUDE_API,
         )
         from md2tgmd.src.md2tgmd import escape
         from utils.i18n import strings
         api_key = Users.get_config(convo_id, "api_key")
         api_url = Users.get_config(convo_id, "api_url")
         robot, role = get_robot(convo_id)
-        if robot == None or api_key == None:
+        if robot == None or (api_key == None and CLAUDE_API == None):
             await context.bot.send_message(
                 chat_id=chatid,
                 message_thread_id=message_thread_id,
@@ -86,7 +87,7 @@ def APICheck(func):
                 parse_mode='MarkdownV2',
             )
             return
-        if api_key.endswith("your_api_key") or api_url.endswith("your_api_url"):
+        if (api_key and api_key.endswith("your_api_key")) or api_url.endswith("your_api_url"):
             await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_api_error'][get_current_lang()]), parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)

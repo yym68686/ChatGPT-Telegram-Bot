@@ -502,7 +502,6 @@ async def transcribe_audio(file_id: str, bot) -> str:
         if os.path.exists(filename_mp3):
             os.remove(filename_mp3)
 
-
 @decorators.GroupAuthorization
 @decorators.Authorization
 @decorators.APICheck
