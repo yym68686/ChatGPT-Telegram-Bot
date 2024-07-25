@@ -9,7 +9,7 @@ def Authorization(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
         from utils.scripts import GetMesageInfo
-        _, _, _, chatid, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
+        _, _, _, chatid, _, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
         if config.whitelist == None or (config.GROUP_LIST and chatid in config.GROUP_LIST):
             return await func(*args, **kwargs)
         if (update.effective_user.id not in config.whitelist):
@@ -28,7 +28,7 @@ def GroupAuthorization(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
         from utils.scripts import GetMesageInfo
-        _, _, _, chatid, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
+        _, _, _, chatid, _, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
         if config.GROUP_LIST == None:
             return await func(*args, **kwargs)
         if update.effective_chat == None or chatid[0] != "-":
@@ -67,7 +67,7 @@ def APICheck(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
         from utils.scripts import GetMesageInfo
-        _, _, _, chatid, _, _, _, message_thread_id, convo_id, _, _ = await GetMesageInfo(update, context)
+        _, _, _, chatid, _, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
         from config import (
             Users,
             get_robot,

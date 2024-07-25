@@ -81,7 +81,7 @@ time_stamps = defaultdict(lambda: [])
 @decorators.APICheck
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", has_command=True):
     stop_event.clear()
-    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content = await GetMesageInfo(update, context)
+    message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesageInfo(update, context)
 
     if has_command == False or len(context.args) > 0:
         if has_command:
@@ -95,6 +95,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     prompt = translator_en2zh_prompt
                 pass_history = False
             message = prompt + message
+        if message == None:
+            message = voice_text
         if message:
             bot_info = await context.bot.get_me()
             if update_message.reply_to_message \
@@ -347,7 +349,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
 @decorators.Authorization
 async def button_press(update, context):
     """Function to handle the button press"""
-    _, rawtext, _, _, _, _, _, _, convo_id, _, _ = await GetMesageInfo(update, context)
+    _, rawtext, _, _, _, _, _, _, convo_id, _, _, voice_text = await GetMesageInfo(update, context)
     callback_query = update.callback_query
     info_message = update_info_message(convo_id)
     await callback_query.answer()
@@ -461,7 +463,7 @@ async def button_press(update, context):
 @decorators.Authorization
 @decorators.APICheck
 async def handle_file(update, context):
-    _, _, image_url, chatid, _, _, _, message_thread_id, convo_id, file_url, _ = await GetMesageInfo(update, context)
+    _, _, image_url, chatid, _, _, _, message_thread_id, convo_id, file_url, _, voice_text = await GetMesageInfo(update, context)
     robot, role = get_robot(convo_id)
     engine = get_ENGINE(convo_id)
 
@@ -476,51 +478,6 @@ async def handle_file(update, context):
     if Users.get_config(convo_id, "FILE_UPLOAD_MESS"):
         message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_doc'][get_current_lang()]), parse_mode='MarkdownV2', disable_web_page_preview=True)
         await delete_message(update, context, [message.message_id])
-
-from io import BytesIO
-async def transcribe_audio(file_id: str, bot) -> str:
-    file_unique_id = file_id
-    filename_mp3 = f'{file_unique_id}.mp3'
-
-    try:
-        file = await bot.get_file(file_id)
-        file_bytes = await file.download_as_bytearray()
-
-        # 创建一个字节流对象
-        audio_stream = BytesIO(file_bytes)
-
-        # 直接使用字节流对象进行转录
-        transcript = config.whisperBot.generate(audio_stream)
-
-        return transcript
-
-    except Exception as e:
-        logging.exception(e)
-        return f"处理音频文件时出错： {str(e)}"
-    finally:
-        import os
-        if os.path.exists(filename_mp3):
-            os.remove(filename_mp3)
-
-@decorators.GroupAuthorization
-@decorators.Authorization
-@decorators.APICheck
-async def handle_voice(update, context):
-    file_id = update.message.voice.file_id
-    bot = context.bot
-
-    transcript_text = await transcribe_audio(file_id, bot)
-
-    _, _, _, chatid, messageid, _, _, message_thread_id, convo_id, file_url, _ = await GetMesageInfo(update, context)
-    engine = get_ENGINE(convo_id)
-    robot, role = get_robot(convo_id)
-    title = ""
-    if Users.get_config(convo_id, "TITLE"):
-        title = f"`🤖️ {engine}`\n\n"
-    if Users.get_config(convo_id, "REPLY") == False:
-        messageid = None
-    pass_history = Users.get_config(convo_id, "PASS_HISTORY")
-    await getChatGPT(update, context, title, robot, transcript_text, chatid, messageid, convo_id, message_thread_id, pass_history)
 
 @decorators.GroupAuthorization
 @decorators.Authorization
@@ -554,7 +511,7 @@ reset_mess_id = 9999
 @decorators.Authorization
 async def reset_chat(update, context):
     global target_convo_id, reset_mess_id
-    _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _ = await GetMesageInfo(update, context)
+    _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _, voice_text = await GetMesageInfo(update, context)
     reset_mess_id = user_message_id
     target_convo_id = convo_id
     stop_event.set()
@@ -577,7 +534,7 @@ async def reset_chat(update, context):
 @decorators.GroupAuthorization
 @decorators.Authorization
 async def info(update, context):
-    _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _ = await GetMesageInfo(update, context)
+    _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _, voice_text = await GetMesageInfo(update, context)
     info_message = update_info_message(convo_id)
     message = await context.bot.send_message(
         chat_id=chatid,
@@ -592,7 +549,7 @@ async def info(update, context):
 
 @decorators.PrintMessage
 async def start(update, context): # 当用户输入/start时，返回文本
-    _, _, _, _, _, _, _, _, convo_id, _, _ = await GetMesageInfo(update, context)
+    _, _, _, _, _, _, _, _, convo_id, _, _, voice_text = await GetMesageInfo(update, context)
     user = update.effective_user
     if user.language_code == "zh-hans":
         update_language_status("Simplified Chinese", chat_id=convo_id)
@@ -674,10 +631,9 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english")))
     application.add_handler(InlineQueryHandler(inlinequery))
     application.add_handler(CallbackQueryHandler(button_press))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False), block = False))
+    application.add_handler(MessageHandler((filters.TEXT | filters.VOICE) & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False), block = False))
     application.add_handler(MessageHandler(filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg") | filters.Document.FileExtension("png"))), lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
-    application.add_handler(MessageHandler(~filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.PDF | filters.Document.TXT | filters.Document.DOC | filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg") | filters.Document.FileExtension("md") | filters.Document.FileExtension("py"))), handle_file))
-    application.add_handler(MessageHandler(filters.VOICE, handle_voice))
+    application.add_handler(MessageHandler(~filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.PDF | filters.Document.TXT | filters.Document.DOC | filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg") | filters.Document.FileExtension("md") | filters.Document.FileExtension("py") | filters.AUDIO | filters.Document.FileExtension("wav"))), handle_file))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
 
