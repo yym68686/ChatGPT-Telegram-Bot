@@ -288,6 +288,8 @@ if GROUP_LIST:
     GROUP_LIST = [id for id in GROUP_LIST.split(",")]
 
 def delete_model_digit_tail(lst):
+    if len(lst) == 2:
+        return "-".join(lst)
     for i in range(len(lst) - 1, -1, -1):
         if not lst[i].isdigit():
             if i == len(lst) - 1:
