@@ -124,6 +124,12 @@ strings = {
         "zh-hk": "👇 下面可以隨時更改默認模型：",
         "ru": "👇 Измените модель ниже:",
     },
+    "message_ban": {
+        "zh": "您没有权限访问！",
+        "en": "You do not have permission to access\!",
+        "zh-hk": "您沒有權限訪問！",
+        "ru": "У вас нет разрешения на доступ\!",
+    },
     "SEARCH": {
         "zh": "搜索",
         "en": "Search",

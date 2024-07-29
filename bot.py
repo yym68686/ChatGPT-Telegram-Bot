@@ -159,7 +159,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         message = await context.bot.send_message(
             chat_id=chatid,
             message_thread_id=message_thread_id,
-            text=escape(strings['message_command_text_none'][get_current_lang()]),
+            text=escape(strings['message_command_text_none'][get_current_lang(convo_id)]),
             parse_mode='MarkdownV2',
             reply_to_message_id=messageid,
         )
@@ -197,7 +197,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     answer_messageid = (await context.bot.send_message(
         chat_id=chatid,
         message_thread_id=message_thread_id,
-        text=escape(strings['message_think'][get_current_lang()]),
+        text=escape(strings['message_think'][get_current_lang(convo_id)]),
         parse_mode='MarkdownV2',
         reply_to_message_id=messageid,
     )).message_id
@@ -219,7 +219,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 tmpresult = claude_replace(tmpresult)
             if "🌐" in data:
                 search_index_string = data.split(" ")[1]
-                tmpresult = strings[search_index_string][get_current_lang()]
+                tmpresult = strings[search_index_string][get_current_lang(convo_id)]
             history = robot.conversation[convo_id]
             if history[-1].get('name') == "generate_image" and not image_has_send:
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)
@@ -295,7 +295,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 answer_messageid = (await context.bot.send_message(
                     chat_id=chatid,
                     message_thread_id=message_thread_id,
-                    text=escape(strings['message_think'][get_current_lang()]),
+                    text=escape(strings['message_think'][get_current_lang(convo_id)]),
                     parse_mode='MarkdownV2',
                     reply_to_message_id=messageid,
                 )).message_id
@@ -354,7 +354,7 @@ async def button_press(update, context):
     info_message = update_info_message(convo_id)
     await callback_query.answer()
     data = callback_query.data
-    banner = strings['message_banner'][get_current_lang()]
+    banner = strings['message_banner'][get_current_lang(convo_id)]
 
     if data.endswith("_MODELS"):
         data = data[:-7]
@@ -476,7 +476,7 @@ async def handle_file(update, context):
     robot.add_to_conversation(message, role, convo_id)
 
     if Users.get_config(convo_id, "FILE_UPLOAD_MESS"):
-        message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_doc'][get_current_lang()]), parse_mode='MarkdownV2', disable_web_page_preview=True)
+        message = await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_doc'][get_current_lang(convo_id)]), parse_mode='MarkdownV2', disable_web_page_preview=True)
         await delete_message(update, context, [message.message_id])
 
 @decorators.GroupAuthorization
@@ -511,7 +511,7 @@ reset_mess_id = 9999
 @decorators.Authorization
 async def reset_chat(update, context):
     global target_convo_id, reset_mess_id
-    _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _, voice_text = await GetMesageInfo(update, context)
+    _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
     reset_mess_id = user_message_id
     target_convo_id = convo_id
     stop_event.set()
@@ -524,7 +524,7 @@ async def reset_chat(update, context):
     message = await context.bot.send_message(
         chat_id=chatid,
         message_thread_id=message_thread_id,
-        text=escape(strings['message_reset'][get_current_lang()]),
+        text=escape(strings['message_reset'][get_current_lang(convo_id)]),
         reply_markup=remove_keyboard,
         parse_mode='MarkdownV2',
     )
@@ -549,7 +549,7 @@ async def info(update, context):
 
 @decorators.PrintMessage
 async def start(update, context): # 当用户输入/start时，返回文本
-    _, _, _, _, _, _, _, _, convo_id, _, _, voice_text = await GetMesageInfo(update, context)
+    _, _, _, _, _, _, _, _, convo_id, _, _, _ = await GetMesageInfo(update, context)
     user = update.effective_user
     if user.language_code == "zh-hans":
         update_language_status("Simplified Chinese", chat_id=convo_id)

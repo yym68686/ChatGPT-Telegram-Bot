@@ -4,20 +4,26 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from utils.i18n import strings
+from utils.scripts import GetMesageInfo
+
+def ban_message(update, convo_id):
+    message = (
+        f"`Hi, {update.effective_user.username}!`\n\n"
+        f"id: `{update.effective_user.id}`\n\n"
+        f"{strings['message_ban'][config.get_current_lang(convo_id)]}\n\n"
+    )
+    return message
+
 # 判断是否在白名单
 def Authorization(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
-        from utils.scripts import GetMesageInfo
-        _, _, _, chatid, _, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
+        _, _, _, chatid, _, _, _, _, convo_id, _, _, _ = await GetMesageInfo(update, context)
         if config.whitelist == None or (config.GROUP_LIST and chatid in config.GROUP_LIST):
             return await func(*args, **kwargs)
         if (update.effective_user.id not in config.whitelist):
-            message = (
-                f"`Hi, {update.effective_user.username}!`\n\n"
-                f"id: `{update.effective_user.id}`\n\n"
-                f"无权访问！\n\n"
-            )
+            message = ban_message(update, convo_id)
             await context.bot.send_message(chat_id=chatid, text=message, parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)
@@ -27,8 +33,7 @@ def Authorization(func):
 def GroupAuthorization(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
-        from utils.scripts import GetMesageInfo
-        _, _, _, chatid, _, _, _, _, _, _, _, _ = await GetMesageInfo(update, context)
+        _, _, _, chatid, _, _, _, _, convo_id, _, _, _ = await GetMesageInfo(update, context)
         if config.GROUP_LIST == None:
             return await func(*args, **kwargs)
         if update.effective_chat == None or chatid[0] != "-":
@@ -36,11 +41,7 @@ def GroupAuthorization(func):
         if (chatid not in config.GROUP_LIST):
             if (config.ADMIN_LIST and update.effective_user.id in config.ADMIN_LIST):
                 return await func(*args, **kwargs)
-            message = (
-                f"`Hi, {update.effective_user.username}!`\n\n"
-                f"id: `{update.effective_user.id}`\n\n"
-                f"无权访问！\n\n"
-            )
+            message = ban_message(update, convo_id)
             await context.bot.send_message(chat_id=chatid, text=message, parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)
@@ -50,15 +51,12 @@ def GroupAuthorization(func):
 def AdminAuthorization(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
+        _, _, _, chatid, _, _, _, _, convo_id, _, _, _ = await GetMesageInfo(update, context)
         if config.ADMIN_LIST == None:
             return await func(*args, **kwargs)
         if (update.effective_user.id not in config.ADMIN_LIST):
-            message = (
-                f"`Hi, {update.effective_user.username}!`\n\n"
-                f"id: `{update.effective_user.id}`\n\n"
-                f"无权访问！\n\n"
-            )
-            await context.bot.send_message(chat_id=update.effective_user.id, text=message, parse_mode='MarkdownV2')
+            message = ban_message(update, convo_id)
+            await context.bot.send_message(chat_id=chatid, text=message, parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)
     return wrapper
@@ -66,7 +64,6 @@ def AdminAuthorization(func):
 def APICheck(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
-        from utils.scripts import GetMesageInfo
         _, _, _, chatid, _, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
         from config import (
             Users,
@@ -83,7 +80,7 @@ def APICheck(func):
             await context.bot.send_message(
                 chat_id=chatid,
                 message_thread_id=message_thread_id,
-                text=escape(strings['message_api_none'][get_current_lang()]),
+                text=escape(strings['message_api_none'][get_current_lang(convo_id)]),
                 parse_mode='MarkdownV2',
             )
             return
