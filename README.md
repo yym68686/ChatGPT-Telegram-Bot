@@ -68,6 +68,7 @@ The following is a list of environment variables related to the bot's preference
 |---------------|-------------|-----------|
 | PASS_HISTORY | The default is `False`. The bot remembers the conversation history and considers the context when replying next time. If set to `False`, the bot will forget the conversation history and only consider the current conversation. Ensure the first letter of `False` and `True` is capitalized. | No |
 | LONG_TEXT | If the user's input exceeds the Telegram limit and is split into multiple messages sent consecutively in a very short time, the bot will treat these multiple messages as one. Default is `True`. | No |
+| IMAGEQA | Whether to enable image Q&A, the default setting is that the model can answer image content, the default value is `True`. | No |
 | LONG_TEXT_SPLIT | When the bot's response exceeds the Telegram limit, it will be split into multiple messages. Default is `True`. | No |
 | FILE_UPLOAD_MESS | When the file or image is uploaded and the robot has finished processing, the robot will send a message indicating a successful upload. Default is `True`. | No |
 | FOLLOW_UP | Automatically generate several related questions for the user to choose from. Default is `False`. | No |

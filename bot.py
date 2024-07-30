@@ -469,6 +469,8 @@ async def handle_file(update, context):
 
     if file_url == None and image_url:
         file_url = image_url
+        if Users.get_config(convo_id, "IMAGEQA") == False:
+            return
     if image_url == None and file_url:
         image_url = file_url
     message = Document_extract(file_url, image_url, engine)
