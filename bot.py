@@ -43,9 +43,6 @@ lock = asyncio.Lock()
 event = asyncio.Event()
 stop_event = asyncio.Event()
 
-from collections import defaultdict
-import time
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 
@@ -72,6 +69,7 @@ update_logger = logging.getLogger("root")
 update_logger.addFilter(my_filter)
 
 # 定义一个缓存来存储消息
+from collections import defaultdict
 message_cache = defaultdict(lambda: [])
 time_stamps = defaultdict(lambda: [])
 
@@ -119,6 +117,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if Users.get_config(convo_id, "LONG_TEXT"):
                 async with lock:
                     message_cache[convo_id].append(message)
+                    import time
                     time_stamps[convo_id].append(time.time())
                     if len(message_cache[convo_id]) == 1:
                         print("first message len:", len(message_cache[convo_id][0]))
@@ -184,6 +183,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     time_out = 600
     image_has_send = 0
     model_name = Users.get_config(convo_id, "engine")
+    language = Users.get_config(convo_id, "language")
 
     Frequency_Modification = 20
     if "gpt-4o" in model_name:
@@ -203,7 +203,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     )).message_id
 
     try:
-        async for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
+        async for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name, language=language):
         # for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
             if stop_event.is_set() and convo_id == target_convo_id and answer_messageid < reset_mess_id:
                 return
@@ -582,11 +582,12 @@ async def start(update, context): # 当用户输入/start时，返回文本
     await update.message.reply_text(escape(message, italic=False), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def error(update, context):
-    # if str(context.error) == "httpx.RemoteProtocolError: Server disconnected without sending a response.": return
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
     traceback_string = traceback.format_exception(None, context.error, context.error.__traceback__)
+    if "telegram.error.TimedOut: Timed out" in traceback_string:
+        logger.warning('telegram.error.TimedOut: Timed out')
+        return
+    logger.warning('Update "%s" caused error "%s"', update, context.error)
     logger.warning('Error traceback: %s', ''.join(traceback_string))
-    # await update.message.reply_text(escape("出错啦！请重试。"), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 @decorators.GroupAuthorization
 @decorators.Authorization
