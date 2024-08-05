@@ -310,8 +310,9 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         print(tmpresult)
         print('\033[0m')
         api_key = Users.get_config(convo_id, "api_key")
+        systemprompt = Users.get_config(convo_id, "systemprompt")
         if api_key:
-            robot.reset(convo_id=convo_id, system_prompt=config.systemprompt)
+            robot.reset(convo_id=convo_id, system_prompt=systemprompt)
         tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
     now_result = escape(tmpresult, italic=False)
@@ -328,7 +329,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         else:
             info = tmpresult
         prompt = (
-            f"You are a professional Q&A expert. You will now be given reference information. Based on the reference information, please help me ask three most relevant questions that you most want to know from my perspective. Be concise and to the point. Do not have numbers in front of questions. Separate each question with a line break. Only output three questions in {config.LANGUAGE}, no need for any explanation. reference infomation is provided inside <infomation></infomation> XML tags."
+            f"You are a professional Q&A expert. You will now be given reference information. Based on the reference information, please help me ask three most relevant questions that you most want to know from my perspective. Be concise and to the point. Do not have numbers in front of questions. Separate each question with a line break. Only output three questions in {language}, no need for any explanation. reference infomation is provided inside <infomation></infomation> XML tags."
             "Here is the reference infomation, inside <infomation></infomation> XML tags:"
             "<infomation>"
             "{}"
