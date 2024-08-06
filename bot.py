@@ -362,7 +362,7 @@ async def button_press(update, context):
         update_ENGINE(data, convo_id)
         try:
             info_message = update_info_message(convo_id)
-            if  info_message + banner != rawtext:
+            if info_message + banner != rawtext:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message + banner),
                     reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id)),
@@ -372,18 +372,19 @@ async def button_press(update, context):
             logger.info(e)
             pass
     elif data.startswith("MODELS"):
-        message = await callback_query.edit_message_text(
-            text=escape(info_message + banner),
-            reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id)),
-            parse_mode='MarkdownV2'
-        )
+        if info_message + banner != rawtext:
+            message = await callback_query.edit_message_text(
+                text=escape(info_message + banner),
+                reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id)),
+                parse_mode='MarkdownV2'
+            )
 
     elif data.endswith("_LANGUAGES"):
         data = data[:-10]
         update_language_status(data, chat_id=convo_id)
         try:
             info_message = update_info_message(convo_id)
-            if  info_message != rawtext:
+            if info_message != rawtext:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message, italic=False),
                     reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", convo_id)),
@@ -393,11 +394,12 @@ async def button_press(update, context):
             logger.info(e)
             pass
     elif data.startswith("LANGUAGE"):
-        message = await callback_query.edit_message_text(
-            text=escape(info_message, italic=False),
-            reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", convo_id)),
-            parse_mode='MarkdownV2'
-        )
+        if info_message != rawtext:
+            message = await callback_query.edit_message_text(
+                text=escape(info_message, italic=False),
+                reply_markup=InlineKeyboardMarkup(update_menu_buttons(LANGUAGES, "_LANGUAGES", convo_id)),
+                parse_mode='MarkdownV2'
+            )
 
     if data.endswith("_PREFERENCES"):
         data = data[:-12]
@@ -408,7 +410,7 @@ async def button_press(update, context):
             logger.info(e)
         try:
             info_message = update_info_message(convo_id)
-            if  info_message != rawtext:
+            if info_message != rawtext:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message, italic=False),
                     reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", convo_id)),
@@ -418,11 +420,12 @@ async def button_press(update, context):
             logger.info(e)
             pass
     elif data.startswith("PREFERENCES"):
-        message = await callback_query.edit_message_text(
-            text=escape(info_message, italic=False),
-            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", convo_id)),
-            parse_mode='MarkdownV2'
-        )
+        if info_message != rawtext:
+            message = await callback_query.edit_message_text(
+                text=escape(info_message, italic=False),
+                reply_markup=InlineKeyboardMarkup(update_menu_buttons(PREFERENCES, "_PREFERENCES", convo_id)),
+                parse_mode='MarkdownV2'
+            )
 
     if data.endswith("_PLUGINS"):
         data = data[:-8]
@@ -437,7 +440,7 @@ async def button_press(update, context):
             logger.info(e)
         try:
             info_message = update_info_message(convo_id)
-            if  info_message != rawtext:
+            if info_message != rawtext:
                 message = await callback_query.edit_message_text(
                     text=escape(info_message, italic=False),
                     reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", convo_id)),
@@ -447,18 +450,20 @@ async def button_press(update, context):
             logger.info(e)
             pass
     elif data.startswith("PLUGINS"):
-        message = await callback_query.edit_message_text(
-            text=escape(info_message, italic=False),
-            reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", convo_id)),
-            parse_mode='MarkdownV2'
-        )
+        if info_message != rawtext:
+            message = await callback_query.edit_message_text(
+                text=escape(info_message, italic=False),
+                reply_markup=InlineKeyboardMarkup(update_menu_buttons(PLUGINS, "_PLUGINS", convo_id)),
+                parse_mode='MarkdownV2'
+            )
 
     elif data.startswith("BACK"):
-        message = await callback_query.edit_message_text(
-            text=escape(info_message, italic=False),
-            reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)),
-            parse_mode='MarkdownV2'
-        )
+        if info_message != rawtext:
+            message = await callback_query.edit_message_text(
+                text=escape(info_message, italic=False),
+                reply_markup=InlineKeyboardMarkup(update_first_buttons_message(convo_id)),
+                parse_mode='MarkdownV2'
+            )
 
 @decorators.GroupAuthorization
 @decorators.Authorization
