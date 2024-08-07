@@ -302,9 +302,27 @@ def get_status(chatid = None, item = None):
     return "✅ " if Users.get_config(chatid, item) else "☑️ "
 
 def create_buttons(strings, plugins_status=False, lang="English", button_text=None, Suffix="", chatid=None):
-    # 过滤出长度小于15的字符串
-    filtered_strings1 = [s for s in strings if len(delete_model_digit_tail(s.split("-"))) <= 14]
-    filtered_strings2 = [s for s in strings if len(delete_model_digit_tail(s.split("-"))) > 14]
+    if plugins_status:
+        strings_array = strings
+    else:
+        # 过滤出长度小于15的字符串
+        abbreviation_strings = [delete_model_digit_tail(s.split("-")) for s in strings]
+        from collections import Counter
+        counter = Counter(abbreviation_strings)
+        filtered_counter = {key: count for key, count in counter.items() if count > 1}
+        # print(filtered_counter)
+
+        strings_array = []
+        for s in strings:
+            if delete_model_digit_tail(s.split("-")) in filtered_counter:
+                strings_array.append(s)
+            else:
+                strings_array.append(delete_model_digit_tail(s.split('-')))
+
+    filtered_strings1 = [s for s in strings_array if len(s) <= 14]
+    # print(filtered_strings1)
+    filtered_strings2 = [s for s in strings_array if len(s) > 14]
+    # print(filtered_strings2)
 
     buttons = []
     temp = []
@@ -313,7 +331,7 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
         if plugins_status:
             button = InlineKeyboardButton(f"{get_status(chatid, string)}{button_text[string][lang]}", callback_data=string + Suffix)
         else:
-            button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + Suffix)
+            button = InlineKeyboardButton(string, callback_data=string + Suffix)
         temp.append(button)
 
         # 每两个按钮一组
@@ -329,18 +347,19 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
         if plugins_status:
             button = InlineKeyboardButton(f"{get_status(chatid, string)}{button_text[string][lang]}", callback_data=string + Suffix)
         else:
-            button = InlineKeyboardButton(delete_model_digit_tail(string.split("-")), callback_data=string + Suffix)
+            button = InlineKeyboardButton(string, callback_data=string + Suffix)
         buttons.append([button])
 
     return buttons
 
 initial_model = [
     "gpt-4o",
-    "gpt-4-turbo-2024-04-09",
-    "gpt-3.5-turbo",
+    "gpt-4o-mini",
     "claude-3-opus-20240229",
     "claude-3-5-sonnet-20240620",
-    "claude-3-haiku-20240307",
+    # "gpt-4-turbo-2024-04-09",
+    # "gpt-3.5-turbo",
+    # "claude-3-haiku-20240307",
 ]
 
 if GROQ_API_KEY:
@@ -380,6 +399,7 @@ if GET_MODELS:
 CUSTOM_MODELS = os.environ.get('CUSTOM_MODELS', None)
 if CUSTOM_MODELS:
     CUSTOM_MODELS_LIST = [id for id in CUSTOM_MODELS.split(",")]
+    # print("CUSTOM_MODELS_LIST", CUSTOM_MODELS_LIST)
 else:
     CUSTOM_MODELS_LIST = None
 if CUSTOM_MODELS_LIST:
