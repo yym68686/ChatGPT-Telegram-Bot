@@ -303,7 +303,7 @@ def get_status(chatid = None, item = None):
 
 def create_buttons(strings, plugins_status=False, lang="English", button_text=None, Suffix="", chatid=None):
     if plugins_status:
-        strings_array = strings
+        strings_array = {kv:kv for kv in strings}
     else:
         # 过滤出长度小于15的字符串
         abbreviation_strings = [delete_model_digit_tail(s.split("-")) for s in strings]
@@ -312,26 +312,26 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
         filtered_counter = {key: count for key, count in counter.items() if count > 1}
         # print(filtered_counter)
 
-        strings_array = []
+        strings_array = {}
         for s in strings:
             if delete_model_digit_tail(s.split("-")) in filtered_counter:
-                strings_array.append(s)
+                strings_array[s] = s
             else:
-                strings_array.append(delete_model_digit_tail(s.split('-')))
+                strings_array[delete_model_digit_tail(s.split('-'))] = s
 
-    filtered_strings1 = [s for s in strings_array if len(s) <= 14]
+    filtered_strings1 = {k:v for k, v in strings_array.items() if len(k) <= 14}
     # print(filtered_strings1)
-    filtered_strings2 = [s for s in strings_array if len(s) > 14]
+    filtered_strings2 = {k:v for k, v in strings_array.items() if len(k) > 14}
     # print(filtered_strings2)
 
     buttons = []
     temp = []
 
-    for string in filtered_strings1:
+    for k, v in filtered_strings1.items():
         if plugins_status:
-            button = InlineKeyboardButton(f"{get_status(chatid, string)}{button_text[string][lang]}", callback_data=string + Suffix)
+            button = InlineKeyboardButton(f"{get_status(chatid, k)}{button_text[k][lang]}", callback_data=k + Suffix)
         else:
-            button = InlineKeyboardButton(string, callback_data=string + Suffix)
+            button = InlineKeyboardButton(k, callback_data=v + Suffix)
         temp.append(button)
 
         # 每两个按钮一组
@@ -343,11 +343,11 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
     if temp:
         buttons.append(temp)
 
-    for string in filtered_strings2:
+    for k, v in filtered_strings2.items():
         if plugins_status:
-            button = InlineKeyboardButton(f"{get_status(chatid, string)}{button_text[string][lang]}", callback_data=string + Suffix)
+            button = InlineKeyboardButton(f"{get_status(chatid, k)}{button_text[k][lang]}", callback_data=k + Suffix)
         else:
-            button = InlineKeyboardButton(string, callback_data=string + Suffix)
+            button = InlineKeyboardButton(k, callback_data=v + Suffix)
         buttons.append([button])
 
     return buttons
