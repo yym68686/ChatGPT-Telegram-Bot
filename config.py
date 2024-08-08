@@ -156,19 +156,19 @@ def update_ENGINE(data = None, chat_id=None):
     api_url = Users.get_config(chat_id, "api_url")
     if api_key:
         if "claude" in engine:
-            ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
+            ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=claude_systemprompt, temperature=temperature, convo_id=chat_id)
         else:
-            ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=systemprompt, temperature=temperature)
-        SummaryBot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine="gpt-3.5-turbo", system_prompt=systemprompt, temperature=temperature, use_plugins=False)
+            ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=systemprompt, temperature=temperature, convo_id=chat_id)
+        SummaryBot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine="gpt-3.5-turbo", system_prompt=systemprompt, temperature=temperature, use_plugins=False, convo_id=chat_id)
         whisperBot = whisper(api_key=f"{api_key}", api_url=api_url)
     if CLAUDE_API and "claude-2.1" in engine:
-        claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
+        claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature, convo_id=chat_id)
     if CLAUDE_API and "claude-3" in engine:
-        claude3Bot = claude3(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature)
+        claude3Bot = claude3(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature, convo_id=chat_id)
     if GROQ_API_KEY and ("mixtral" in engine or "llama" in engine):
-        groqBot = groq(api_key=f"{GROQ_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature)
+        groqBot = groq(api_key=f"{GROQ_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature, convo_id=chat_id)
     if GOOGLE_AI_API_KEY and "gemini" in engine:
-        gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature)
+        gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature, convo_id=chat_id)
 
 def update_language_status(language, chat_id=None):
     global Users
