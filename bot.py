@@ -153,6 +153,10 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     message = get_image_message(image_url, [{"text": message}], engine)
                 else:
                     message = get_image_message(image_url, [{"type": "text", "text": message}], engine)
+            elif file_url:
+                image_url = file_url
+                message = Document_extract(file_url, image_url, engine) + message
+
             await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history)
     else:
         message = await context.bot.send_message(
@@ -641,8 +645,40 @@ if __name__ == '__main__':
     application.add_handler(InlineQueryHandler(inlinequery))
     application.add_handler(CallbackQueryHandler(button_press))
     application.add_handler(MessageHandler((filters.TEXT | filters.VOICE) & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False), block = False))
-    application.add_handler(MessageHandler(filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg") | filters.Document.FileExtension("png"))), lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
-    application.add_handler(MessageHandler(~filters.CAPTION & ((filters.PHOTO & ~filters.COMMAND) | (filters.Document.PDF | filters.Document.TXT | filters.Document.DOC | filters.Document.FileExtension("jpg") | filters.Document.FileExtension("jpeg") | filters.Document.FileExtension("md") | filters.Document.FileExtension("py") | filters.AUDIO | filters.Document.FileExtension("wav"))), handle_file))
+    application.add_handler(MessageHandler(
+        filters.CAPTION &
+        (
+            (filters.PHOTO & ~filters.COMMAND) |
+            (
+                filters.Document.PDF |
+                filters.Document.TXT |
+                filters.Document.DOC |
+                filters.Document.FileExtension("jpg") |
+                filters.Document.FileExtension("jpeg") |
+                filters.Document.FileExtension("png") |
+                filters.Document.FileExtension("md") |
+                filters.Document.FileExtension("py") |
+                filters.Document.FileExtension("yml")
+            )
+        ), lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
+    application.add_handler(MessageHandler(
+        ~filters.CAPTION &
+        (
+            (filters.PHOTO & ~filters.COMMAND) |
+            (
+                filters.Document.PDF |
+                filters.Document.TXT |
+                filters.Document.DOC |
+                filters.Document.FileExtension("jpg") |
+                filters.Document.FileExtension("jpeg") |
+                filters.Document.FileExtension("png") |
+                filters.Document.FileExtension("md") |
+                filters.Document.FileExtension("py") |
+                filters.Document.FileExtension("yml") |
+                filters.AUDIO |
+                filters.Document.FileExtension("wav")
+            )
+        ), handle_file))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
 
