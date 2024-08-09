@@ -46,11 +46,9 @@ stop_event = asyncio.Event()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 
-httpx_logger = logging.getLogger("httpx")
-httpx_logger.setLevel(logging.CRITICAL)
-
-httpx_logger = logging.getLogger("chromadb.telemetry.posthog")
-httpx_logger.setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.CRITICAL)
+logging.getLogger("chromadb.telemetry.posthog").setLevel(logging.WARNING)
+logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 
 class SpecificStringFilter(logging.Filter):
     def __init__(self, specific_string):
