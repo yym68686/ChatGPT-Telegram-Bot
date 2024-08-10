@@ -186,6 +186,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     image_has_send = 0
     model_name = Users.get_config(convo_id, "engine")
     language = Users.get_config(convo_id, "language")
+    api_key = Users.get_config(convo_id, "api_key")
+    api_url = Users.get_config(convo_id, "api_url")
 
     Frequency_Modification = 20
     if "gpt-4o" in model_name:
@@ -205,7 +207,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     )).message_id
 
     try:
-        async for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name, language=language):
+        async for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name, language=language, api_url=api_url, api_key=api_key):
         # for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
             if stop_event.is_set() and convo_id == target_convo_id and answer_messageid < reset_mess_id:
                 return
@@ -570,22 +572,18 @@ async def start(update, context): # 当用户输入/start时，返回文本
     else:
         update_language_status("English", chat_id=convo_id)
     message = (
-        f"Hi `{user.username}` ! I am an Assistant, a large language model trained by _OpenAI_. I will do my best to help answer your questions.\n\n"
-        # "Welcome to visit https://github.com/yym68686/ChatGPT-Telegram-Bot to view the source code.\n\n"
-        # "If you find any bugs, you can contact @yym68686."
+        f"Hi `{user.username}` ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.\n\n"
     )
     if (len(context.args) == 2):
         api_url = context.args[0]
         api_key = context.args[1]
         Users.set_config(convo_id, "api_key", api_key)
         Users.set_config(convo_id, "api_url", api_url)
-        update_ENGINE(chat_id=convo_id)
 
     if (len(context.args) == 1):
         api_key = context.args[0]
         Users.set_config(convo_id, "api_key", api_key)
         Users.set_config(convo_id, "api_url", "https://api.openai.com/v1/chat/completions")
-        update_ENGINE(chat_id=convo_id)
 
     await update.message.reply_text(escape(message, italic=False), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
