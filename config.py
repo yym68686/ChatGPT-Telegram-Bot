@@ -398,7 +398,8 @@ if GET_MODELS:
         models_id = [model["id"] for model in models_list]
         set_models = set()
         for model_item in models_id:
-            set_models.add(delete_model_digit_tail(model_item.split("-")))
+            parts = [part for segment in model_item.split("-") for part in segment.split("@")]
+            set_models.add(delete_model_digit_tail(parts))
         models_id = list(set_models)
         # print(models_id)
         initial_model = models_id
