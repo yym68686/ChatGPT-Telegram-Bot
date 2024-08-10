@@ -278,6 +278,7 @@ def get_robot(chat_id = None):
         role = "user"
     elif ("mixtral" in engine or "llama" in engine) and GROQ_API_KEY:
         robot = groqBot
+        role = "user"
     elif GOOGLE_AI_API_KEY and "gemini" in engine:
         robot = gemini_Bot
         role = "user"
