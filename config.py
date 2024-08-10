@@ -171,7 +171,7 @@ def update_ENGINE(data = None, chat_id=None):
         gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature, convo_id=chat_id)
 
 def update_language_status(language, chat_id=None):
-    global Users
+    global Users, ChatGPTbot, SummaryBot, claudeBot, claude3Bot, groqBot, gemini_Bot, whisperBot
     systemprompt = Users.get_config(chat_id, "systemprompt")
     claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
     LAST_LANGUAGE = Users.get_config(chat_id, "language")
@@ -185,10 +185,19 @@ def update_language_status(language, chat_id=None):
         claude_systemprompt = claude_systemprompt.replace(LAST_LANGUAGE, Users.get_config(chat_id, "language"))
         Users.set_config(chat_id, "systemprompt", systemprompt)
         Users.set_config(chat_id, "claude_systemprompt", claude_systemprompt)
+        if ChatGPTbot == None:
+            update_ENGINE(chat_id=chat_id)
+        if ChatGPTbot:
+            ChatGPTbot.system_prompt[chat_id] = systemprompt
+        if claude3Bot:
+            claude3Bot.system_prompt[chat_id] = claude_systemprompt
+        if groqBot:
+            groqBot.system_prompt[chat_id] = systemprompt
+        if gemini_Bot:
+            gemini_Bot.system_prompt[chat_id] = systemprompt
     except Exception as e:
         print("error:", e)
         pass
-    update_ENGINE(chat_id=chat_id)
 
 update_language_status(LANGUAGE)
 

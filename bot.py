@@ -362,7 +362,7 @@ async def button_press(update, context):
     try:
         if data.endswith("_MODELS"):
             data = data[:-7]
-            update_ENGINE(data, convo_id)
+            Users.set_config(convo_id, "engine", data)
             try:
                 info_message = update_info_message(convo_id)
                 message = await callback_query.edit_message_text(
