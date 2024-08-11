@@ -239,6 +239,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             modifytime = modifytime + 1
 
             if len(tmpresult) > 3500 and Users.get_config(convo_id, "LONG_TEXT_SPLIT"):
+                Frequency_Modification = 40
+
                 # print("tmpresult", tmpresult)
                 replace_text = replace_all(tmpresult, r"(```[\D\d\s]+?```)", split_code)
                 if "@|@|@|@" in replace_text:
