@@ -270,8 +270,6 @@ def reset_ENGINE(chat_id, message=None):
 def get_robot(chat_id = None):
     global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot
     engine = Users.get_config(chat_id, "engine")
-    api_key = Users.get_config(chat_id, "api_key")
-    api_url = Users.get_config(chat_id, "api_url")
     if CLAUDE_API and "claude-2.1" in engine:
         robot = claudeBot
         role = "Human"
@@ -295,6 +293,9 @@ def get_robot(chat_id = None):
     else:
         robot = ChatGPTbot
         role = "user"
+        api_key = Users.get_config(chat_id, "api_key")
+        api_url = Users.get_config(chat_id, "api_url")
+        api_url = BaseAPI(api_url=api_url).chat_url
 
     return robot, role, api_key, api_url
 
