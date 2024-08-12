@@ -109,7 +109,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             and update_message.reply_to_message.from_user.username != bot_info.username:
                 return
 
-            robot, role = get_robot(convo_id)
+            robot, role, api_key, api_url = get_robot(convo_id)
             engine = get_ENGINE(convo_id)
 
             if Users.get_config(convo_id, "LONG_TEXT"):
@@ -155,7 +155,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 image_url = file_url
                 message = Document_extract(file_url, image_url, engine) + message
 
-            await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history)
+            await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history, api_key, api_url)
     else:
         message = await context.bot.send_message(
             chat_id=chatid,
@@ -176,7 +176,7 @@ async def delete_message(update, context, messageid = [], delay=60):
                 print("delete_message error", e)
                 print('\033[0m')
 
-async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=False):
+async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=False, api_key=None, api_url=None):
     lastresult = title
     text = message
     result = ""
@@ -186,8 +186,6 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     image_has_send = 0
     model_name = Users.get_config(convo_id, "engine")
     language = Users.get_config(convo_id, "language")
-    api_key = Users.get_config(convo_id, "api_key")
-    api_url = Users.get_config(convo_id, "api_url")
 
     Frequency_Modification = 20
     if "gpt-4o" in model_name:
@@ -434,7 +432,7 @@ async def button_press(update, context):
                 current_data = Users.get_config(convo_id, data)
                 Users.set_config(convo_id, data, not current_data)
                 plugins_config = Users.extract_plugins_config(convo_id)
-                robot, role = get_robot(convo_id)
+                robot, role, api_key, api_url = get_robot(convo_id)
                 if robot:
                     robot.plugins[convo_id] = plugins_config
             except Exception as e:
@@ -476,7 +474,7 @@ async def button_press(update, context):
 @decorators.APICheck
 async def handle_file(update, context):
     _, _, image_url, chatid, _, _, _, message_thread_id, convo_id, file_url, _, voice_text = await GetMesageInfo(update, context)
-    robot, role = get_robot(convo_id)
+    robot, role, api_key, api_url = get_robot(convo_id)
     engine = get_ENGINE(convo_id)
 
     if file_url == None and image_url:

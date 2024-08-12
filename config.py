@@ -270,23 +270,33 @@ def reset_ENGINE(chat_id, message=None):
 def get_robot(chat_id = None):
     global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot
     engine = Users.get_config(chat_id, "engine")
+    api_key = Users.get_config(chat_id, "api_key")
+    api_url = Users.get_config(chat_id, "api_url")
     if CLAUDE_API and "claude-2.1" in engine:
         robot = claudeBot
         role = "Human"
+        api_key = CLAUDE_API
+        api_url = "https://api.anthropic.com/v1/complete"
     elif CLAUDE_API and "claude-3" in engine:
         robot = claude3Bot
         role = "user"
+        api_key = CLAUDE_API
+        api_url = "https://api.anthropic.com/v1/messages"
     elif ("mixtral" in engine or "llama" in engine) and GROQ_API_KEY:
         robot = groqBot
         role = "user"
+        api_key = GROQ_API_KEY
+        api_url = "https://api.groq.com/openai/v1/chat/completions"
     elif GOOGLE_AI_API_KEY and "gemini" in engine:
         robot = gemini_Bot
         role = "user"
+        api_key = GOOGLE_AI_API_KEY
+        api_url = "https://generativelanguage.googleapis.com/v1beta/models/{model}:{stream}?key={api_key}"
     else:
         robot = ChatGPTbot
         role = "user"
 
-    return robot, role
+    return robot, role, api_key, api_url
 
 whitelist = os.environ.get('whitelist', None)
 if whitelist:

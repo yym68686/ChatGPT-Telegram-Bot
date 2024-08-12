@@ -73,9 +73,7 @@ def APICheck(func):
         )
         from md2tgmd.src.md2tgmd import escape
         from utils.i18n import strings
-        api_key = Users.get_config(convo_id, "api_key")
-        api_url = Users.get_config(convo_id, "api_url")
-        robot, role = get_robot(convo_id)
+        robot, role, api_key, api_url = get_robot(convo_id)
         if robot == None or (api_key == None and CLAUDE_API == None):
             await context.bot.send_message(
                 chat_id=chatid,
