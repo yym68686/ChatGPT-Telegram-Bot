@@ -66,7 +66,7 @@ The following is a list of environment variables related to the bot's preference
 
 | Variable Name | Description | Required? |
 |---------------|-------------|-----------|
-| PASS_HISTORY | The default is `False`. The bot remembers the conversation history and considers the context when replying next time. If set to `False`, the bot will forget the conversation history and only consider the current conversation. Ensure the first letter of `False` and `True` is capitalized. | No |
+| PASS_HISTORY | The default is `9999`. The bot remembers the conversation history and considers the context when replying next time. If set to `0`, the bot will forget the conversation history and only consider the current conversation. The value of PASS_HISTORY must be greater than or equal to 0. | No |
 | LONG_TEXT | If the user's input exceeds the Telegram limit and is split into multiple messages sent consecutively in a very short time, the bot will treat these multiple messages as one. Default is `True`. | No |
 | IMAGEQA | Whether to enable image Q&A, the default setting is that the model can answer image content, the default value is `True`. | No |
 | LONG_TEXT_SPLIT | When the bot's response exceeds the Telegram limit, it will be split into multiple messages. Default is `True`. | No |
@@ -283,7 +283,7 @@ Here's a troubleshooting guide: Please carefully check if the GROUP_LIST is corr
 
 - I've uploaded a document, but it's not responding based on the content of the document. What's going on?
 
-To use the document question and answer feature, you must first enable the history record. You can turn on the history record through the `/info` command, or by setting the environment variable `PASS_HISTORY` to `True` to enable the history record by default. Please note that enabling the history record will incur additional costs, so this project does not enable the history record by default. This means that the question and answer feature cannot be used under the default settings. Before using this feature, you need to manually enable the history record.
+To use the document question and answer feature, you must first enable the history record. You can turn on the history record through the `/info` command, or by setting the environment variable `PASS_HISTORY` to be greater than to 2 to enable the history record by default. Please note that enabling the history record will incur additional costs, so this project does not enable the history record by default. This means that the question and answer feature cannot be used under the default settings. Before using this feature, you need to manually enable the history record.
 
 - After setting the `NICK`, there's no response when I @ the bot, and it only replies when the message starts with the nick. How can I make it respond to both the nick and @botname?
 
@@ -329,6 +329,10 @@ In this example, the web server container named my-web-server will restart autom
 - Switching models, do I need to re-enter the prompt?
 
 Yes, because switching models will reset the history, so you need to re-enter the prompt.
+
+- What is the appropriate value for PASS_HISTORY?
+
+The number of PASS_HISTORY is strictly equal to the number of messages in the conversation history. The recommended value is 2, because the system prompt occupies one message count. If set to 0, PASS_HISTORY will automatically reset to 2 to ensure the conversation proceeds normally. When PASS_HISTORY is less than or equal to 2, the bot's behavior can be regarded as only remembering the current conversation, i.e., one question and one answer, and it will not remember the content of the previous Q&A next time. There is no limit to the maximum value of PASS_HISTORY, but please note that the more messages in the conversation history, the higher the cost of each conversation will be. When PASS_HISTORY is not set, the default value is 9999, indicating that the number of messages in the conversation history is 9999.
 
 - Can Bot tokens have multiple tokens?
 

@@ -26,8 +26,8 @@ GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
 
 PREFERENCES = {
-    "PASS_HISTORY"      : (os.environ.get('PASS_HISTORY', "True") == "False") == False,
-    "IMAGEQA"             : (os.environ.get('IMAGEQA', "False") == "True") == False,
+    "PASS_HISTORY"      : int(os.environ.get('PASS_HISTORY', 9999)),
+    "IMAGEQA"           : (os.environ.get('IMAGEQA', "False") == "True") == False,
     "LONG_TEXT"         : (os.environ.get('LONG_TEXT', "True") == "False") == False,
     "LONG_TEXT_SPLIT"   : (os.environ.get('LONG_TEXT_SPLIT', "True") == "False") == False,
     "FILE_UPLOAD_MESS"  : (os.environ.get('FILE_UPLOAD_MESS', "True") == "False") == False,
@@ -385,8 +385,8 @@ initial_model = [
 
 if GROQ_API_KEY:
     initial_model.extend([
-        "mixtral-8x7b-32768",
-        "llama3-70b-8192",
+        "llama-3.1-70b-versatile",
+        "llama-3.1-405b-reasoning",
     ])
 if GOOGLE_AI_API_KEY:
     initial_model.extend([

@@ -89,7 +89,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     prompt = prompt.format(language)
                 else:
                     prompt = translator_en2zh_prompt
-                pass_history = False
+                pass_history = 0
             message = prompt + message
         if message == None:
             message = voice_text
@@ -176,7 +176,7 @@ async def delete_message(update, context, messageid = [], delay=60):
                 print("delete_message error", e)
                 print('\033[0m')
 
-async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=False, api_key=None, api_url=None):
+async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=0, api_key=None, api_url=None):
     lastresult = title
     text = message
     result = ""
@@ -339,7 +339,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             "{}"
             "</infomation>"
         ).format(info)
-        result = (await config.SummaryBot.ask(prompt, convo_id=convo_id, pass_history=False)).split('\n')
+        result = (await config.SummaryBot.ask(prompt, convo_id=convo_id, pass_history=0)).split('\n')
         keyboard = []
         result = [i for i in result if i.strip() and len(i) > 5]
         print(result)
@@ -406,6 +406,14 @@ async def button_press(update, context):
             data = data[:-12]
             try:
                 current_data = Users.get_config(convo_id, data)
+                if data == "PASS_HISTORY":
+                    if current_data == 0:
+                        current_data = 9999
+                    else:
+                        current_data = 0
+                    Users.set_config(convo_id, data, current_data)
+                    return
+
                 Users.set_config(convo_id, data, not current_data)
             except Exception as e:
                 logger.info(e)
@@ -502,7 +510,7 @@ async def inlinequery(update: Update, context) -> None:
     query = update.inline_query.query
     if (query.endswith('.') or query.endswith('。')) and query.strip():
         prompt = "Answer the following questions as concisely as possible:\n\n"
-        result = config.ChatGPTbot.ask(prompt + query, convo_id=chatid, pass_history=False)
+        result = config.ChatGPTbot.ask(prompt + query, convo_id=chatid, pass_history=0)
 
         results = [
             InlineQueryResultArticle(
