@@ -282,7 +282,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                     send_split_message = ''.join(split_messages_new[:split_index])
                     tmp = ''.join(split_messages_new[split_index:])
                     if tmp.strip().endswith("```"):
-                        result = tmp[:4]
+                        result = tmp[:-4]
                     else:
                         result = tmp
 
