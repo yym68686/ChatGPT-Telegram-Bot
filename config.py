@@ -26,10 +26,10 @@ GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
 
 PASS_HISTORY = os.environ.get('PASS_HISTORY', 9999)
-if PASS_HISTORY.isdigit():
-    PASS_HISTORY = int(PASS_HISTORY)
-elif type(PASS_HISTORY) == str:
-    if PASS_HISTORY.lower() == "true":
+if type(PASS_HISTORY) == str:
+    if PASS_HISTORY.isdigit():
+        PASS_HISTORY = int(PASS_HISTORY)
+    elif PASS_HISTORY.lower() == "true":
         PASS_HISTORY = 9999
     elif PASS_HISTORY.lower() == "false":
         PASS_HISTORY = 0
