@@ -236,7 +236,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 image_has_send = 1
             modifytime = modifytime + 1
 
-            if len(tmpresult) > 3500 and Users.get_config(convo_id, "LONG_TEXT_SPLIT"):
+            split_len = 3500
+            if len(tmpresult) > split_len and Users.get_config(convo_id, "LONG_TEXT_SPLIT"):
                 Frequency_Modification = 40
 
                 # print("tmpresult", tmpresult)
@@ -273,14 +274,14 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
 
                     split_index = 0
                     for index, _ in enumerate(split_messages_new):
-                        if len("".join(split_messages_new[:index])) < len(text) // 2:
+                        if len("".join(split_messages_new[:index])) < split_len:
                             split_index += 1
                             continue
                         else:
                             break
                     send_split_message = ''.join(split_messages_new[:split_index])
                     tmp = ''.join(split_messages_new[split_index:])
-                    if not tmp.strip().endswith("```"):
+                    if tmp.strip().endswith("```"):
                         result = tmp[:4]
                     else:
                         result = tmp
