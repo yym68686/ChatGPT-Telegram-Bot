@@ -25,8 +25,21 @@ GET_MODELS = (os.environ.get('GET_MODELS', "False") == "False") == False
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
 
+PASS_HISTORY = os.environ.get('PASS_HISTORY', 9999)
+if PASS_HISTORY.isdigit():
+    PASS_HISTORY = int(PASS_HISTORY)
+elif type(PASS_HISTORY) == str:
+    if PASS_HISTORY.lower() == "true":
+        PASS_HISTORY = 9999
+    elif PASS_HISTORY.lower() == "false":
+        PASS_HISTORY = 0
+    else:
+        PASS_HISTORY = 9999
+else:
+    PASS_HISTORY = 9999
+
 PREFERENCES = {
-    "PASS_HISTORY"      : int(os.environ.get('PASS_HISTORY', 9999)),
+    "PASS_HISTORY"      : int(PASS_HISTORY),
     "IMAGEQA"           : (os.environ.get('IMAGEQA', "False") == "True") == False,
     "LONG_TEXT"         : (os.environ.get('LONG_TEXT', "True") == "False") == False,
     "LONG_TEXT_SPLIT"   : (os.environ.get('LONG_TEXT_SPLIT', "True") == "False") == False,
