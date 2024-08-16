@@ -42,6 +42,7 @@ import asyncio
 lock = asyncio.Lock()
 event = asyncio.Event()
 stop_event = asyncio.Event()
+time_out = 600
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
@@ -94,7 +95,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if message == None:
             message = voice_text
         if message:
-            bot_info = await context.bot.get_me()
+            bot_info = await context.bot.get_me(read_timeout=time_out, write_timeout=time_out, connect_timeout=time_out, pool_timeout=time_out)
             if update_message.reply_to_message \
             and update_message.from_user.is_bot == False \
             and update_message.reply_to_message.from_user.username == bot_info.username:
@@ -624,7 +625,6 @@ async def post_init(application: Application) -> None:
     await application.bot.set_my_description(description)
 
 if __name__ == '__main__':
-    time_out = 600
     application = (
         ApplicationBuilder()
         .token(BOT_TOKEN)

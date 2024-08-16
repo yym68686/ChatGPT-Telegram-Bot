@@ -16,9 +16,10 @@ def CutNICK(update_text, update_message):
             else:
                 return None
 
+time_out = 600
 async def get_file_url(file, context):
     file_id = file.file_id
-    new_file = await context.bot.get_file(file_id)
+    new_file = await context.bot.get_file(file_id, read_timeout=time_out, write_timeout=time_out, connect_timeout=time_out, pool_timeout=time_out)
     file_url = new_file.file_path
     return file_url
 
