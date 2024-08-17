@@ -241,6 +241,20 @@ This script is for restarting the Docker image with a single command. It first r
 
 ## 📄 Q & A
 
+- What is the use of the WEB_HOOK environment variable? How should it be used?
+
+WEB_HOOK is a webhook address. Specifically, when a Telegram bot receives a user message, it sends the message to the Telegram server, which then forwards the message to the server at the WEB_HOOK address set by the bot. Therefore, when a message is sent to the bot, the bot executes the processing program almost immediately. Receiving messages via WEB_HOOK results in faster response times than when WEB_HOOK is not set.
+
+When deploying a bot using platforms like Zeabur, Replit, or Koyeb, these platforms provide you with a domain name that you need to fill in the WEB_HOOK, so the bot can receive user messages. Of course, not setting WEB_HOOK is also possible, but the bot's response time will be slightly longer, although the difference is not significant, so generally setting WEB_HOOK is not necessary.
+
+When deploying a bot on a server, you need to use reverse proxy tools like nginx or caddy to forward messages sent by the Telegram server to your server, so the bot can receive user messages. Therefore, you need to set WEB_HOOK to your server's domain name and forward the traffic requesting WEB_HOOK to the server and corresponding port where the bot is located. For example, in caddy, you can configure it like this in the caddy configuration file /etc/caddy/Caddyfile:
+
+```caddy
+your_webhook_domain.com {
+    reverse_proxy localhost:8082
+}
+```
+
 - Why can't I use Google search?
 
 By default, DuckDuckGo search is provided. The official API for Google search needs to be applied for by the user. It can provide real-time information that GPT could not answer before, such as today's trending topics on Weibo, today's weather in a specific location, and the progress of a certain person or news event.
