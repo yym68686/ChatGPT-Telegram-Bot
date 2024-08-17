@@ -172,7 +172,7 @@ def update_ENGINE(data = None, chat_id=None):
             ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=claude_systemprompt, temperature=temperature, convo_id=chat_id)
         else:
             ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=systemprompt, temperature=temperature, convo_id=chat_id)
-        SummaryBot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine="gpt-3.5-turbo", system_prompt=systemprompt, temperature=temperature, use_plugins=False, convo_id=chat_id)
+        SummaryBot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=systemprompt, temperature=temperature, use_plugins=False, convo_id=chat_id)
         whisperBot = whisper(api_key=f"{api_key}", api_url=api_url)
     if CLAUDE_API and "claude-2.1" in engine:
         claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature, convo_id=chat_id)
