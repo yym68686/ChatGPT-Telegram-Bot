@@ -187,6 +187,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     image_has_send = 0
     model_name = Users.get_config(convo_id, "engine")
     language = Users.get_config(convo_id, "language")
+    systemprompt = Users.get_config(convo_id, "systemprompt")
 
     Frequency_Modification = 20
     if "gpt-4o" in model_name:
@@ -206,7 +207,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     )).message_id
 
     try:
-        async for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name, language=language, api_url=api_url, api_key=api_key):
+        async for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name, language=language, api_url=api_url, api_key=api_key, systemprompt=systemprompt):
         # for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
             if stop_event.is_set() and convo_id == target_convo_id and answer_messageid < reset_mess_id:
                 return
