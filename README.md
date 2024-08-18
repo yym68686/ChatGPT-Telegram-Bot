@@ -61,6 +61,7 @@ The following is a list of environment variables related to the bot's core setti
 | temperature | Specify the temperature for the LLM. Default is `0.5`. | No |
 | GET_MODELS | Specify whether to get supported models via API. Default is `False`. | No |
 | SYSTEMPROMPT | Specify the system prompt. Default is `None`. | No |
+| CONFIG_DIR | Specify storage user profile folder. CONFIG_DIR is the folder for storing user configurations. Each time the bot starts, it reads the configurations from the CONFIG_DIR folder, so users won't lose their previous settings every time they restart. you can achieve configuration persistence by mounting folders using the `-v` parameter when deploying locally with Docker. Default is `user_configs`. | No |
 
 The following is a list of environment variables related to the bot's preference settings:
 
@@ -183,6 +184,7 @@ docker run -p 80:8080 --name chatbot -dit \
     -e BOT_TOKEN=your_telegram_bot_token \
     -e API= \
     -e API_URL= \
+    -v ./user_configs:/home/user_configs \
     yym68686/chatgpt:latest
 ```
 
@@ -198,6 +200,8 @@ services:
       - BOT_TOKEN=
       - API=
       - API_URL=
+    volumes:
+      - ./user_configs:/home/user_configs
     ports:
       - 80:8080
 ```
@@ -233,6 +237,7 @@ docker run -p 8080:8080 -dit --name chatbot \
 -e GOOGLE_API_KEY= \
 -e GOOGLE_CSE_ID= \
 -e claude_api_key= \
+-v ./user_configs:/home/user_configs \
 yym68686/chatgpt:latest
 docker logs -f chatbot
 ```

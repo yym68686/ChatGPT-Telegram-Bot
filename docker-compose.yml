@@ -7,5 +7,7 @@ services:
       - BOT_TOKEN=
       - API=
       - API_URL=
+    volumes:
+      - ./user_configs:/home/user_configs
     ports:
       - 80:8080

@@ -71,6 +71,69 @@ Current_Date = current_date.strftime("%Y-%m-%d")
 systemprompt = os.environ.get('SYSTEMPROMPT', prompt.system_prompt.format(LANGUAGE, Current_Date))
 claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt.format(LANGUAGE))
 
+
+import json
+import fcntl
+from contextlib import contextmanager
+
+CONFIG_DIR = os.environ.get('CONFIG_DIR', 'user_configs')
+
+@contextmanager
+def file_lock(filename):
+    with open(filename, 'a+') as f:
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            yield f
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+def save_user_config(user_id, config):
+    if not os.path.exists(CONFIG_DIR):
+        os.makedirs(CONFIG_DIR)
+
+    filename = os.path.join(CONFIG_DIR, f'{user_id}.json')
+
+    with file_lock(filename):
+        with open(filename, 'w') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+
+def load_user_config(user_id):
+    filename = os.path.join(CONFIG_DIR, f'{user_id}.json')
+
+    if not os.path.exists(filename):
+        return {}
+
+    with file_lock(filename):
+        with open(filename, 'r') as f:
+            content = f.read()
+            if not content.strip():
+                return {}
+            else:
+                return json.loads(content)
+
+def update_user_config(user_id, key, value):
+    config = load_user_config(user_id)
+    config[key] = value
+    save_user_config(user_id, config)
+
+class NestedDict:
+    def __init__(self):
+        self.data = {}
+
+    def __getitem__(self, key):
+        if key not in self.data:
+            self.data[key] = NestedDict()
+        return self.data[key]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def __str__(self):
+        return str(self.data)
+
+    def keys(self):
+        return self.data.keys()
+
 class UserConfig:
     def __init__(self,
         user_id: str = None,
@@ -96,14 +159,32 @@ class UserConfig:
         self.plugins = plugins
         self.systemprompt = systemprompt
         self.claude_systemprompt = claude_systemprompt
-        self.users = {
-            "global": self.get_init_preferences()
-        }
+        self.users = NestedDict()
+        self.users["global"] = self.get_init_preferences()
+        # self.users = {
+        #     "global": self.get_init_preferences()
+        # }
         self.users["global"].update(self.preferences)
         self.users["global"].update(self.plugins)
         self.users["global"].update(self.languages)
         self.mode = mode
+        self.load_all_configs()
         self.parameter_name_list = list(self.users["global"].keys())
+        for key in self.parameter_name_list:
+            update_user_config("global", key, self.users["global"][key])
+
+
+    def load_all_configs(self):
+        if not os.path.exists(CONFIG_DIR):
+            return
+
+        for filename in os.listdir(CONFIG_DIR):
+            if filename.endswith('.json'):
+                user_id = filename[:-5]  # 移除 '.json' 后缀
+                user_config = load_user_config(user_id)
+                self.users[user_id] = NestedDict()
+                for key, value in user_config.items():
+                    self.users[user_id][key] = value
 
     def get_init_preferences(self):
         return {
@@ -124,6 +205,8 @@ class UserConfig:
             self.users[self.user_id].update(self.preferences)
             self.users[self.user_id].update(self.plugins)
             self.users[self.user_id].update(self.languages)
+            for key in self.users[self.user_id].keys():
+                update_user_config(user_id, key, self.users[self.user_id][key])
 
     def get_config(self, user_id = None, parameter_name = None):
         if parameter_name not in self.parameter_name_list:
@@ -139,9 +222,11 @@ class UserConfig:
             raise ValueError("parameter_name is not in the parameter_name_list")
         if self.mode == "global":
             self.users["global"][parameter_name] = value
+            update_user_config("global", parameter_name, value)
         if self.mode == "multiusers":
             self.user_init(user_id)
             self.users[self.user_id][parameter_name] = value
+            update_user_config(self.user_id, parameter_name, value)
 
     def extract_plugins_config(self, user_id = None):
         self.user_init(user_id)

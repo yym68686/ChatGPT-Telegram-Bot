@@ -17,5 +17,7 @@ services:
       - API=sk-KjjI60Yf0JFcsvgRmXqFwgGmWUd9GZnmi3KlvowmRWpWpQRo
       - API_URL=http://uni-api:8000/v1/chat/completions
       - GET_MODELS=True
+    volumes:
+      - ./user_configs:/home/user_configs
     ports:
       - 8080:8080
