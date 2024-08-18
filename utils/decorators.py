@@ -82,7 +82,7 @@ def APICheck(func):
                 parse_mode='MarkdownV2',
             )
             return
-        if (api_key and api_key.endswith("your_api_key")) or api_url.endswith("your_api_url"):
+        if (api_key and api_key.endswith("your_api_key")) or (api_url and api_url.endswith("your_api_url")):
             await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=escape(strings['message_api_error'][get_current_lang()]), parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)

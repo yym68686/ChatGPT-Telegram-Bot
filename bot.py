@@ -135,7 +135,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     time_stamps[convo_id][i] - time_stamps[convo_id][i - 1]
                     for i in range(1, len(time_stamps[convo_id]))
                 ]
-                print(f"Chat ID {convo_id} 时间间隔: {intervals}，总时间：{sum(intervals)}")
+                if intervals:
+                    print(f"Chat ID {convo_id} 时间间隔: {intervals}，总时间：{sum(intervals)}")
 
                 message = "\n".join(message_cache[convo_id])
                 message_cache[convo_id] = []
