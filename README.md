@@ -372,6 +372,8 @@ https://github.com/gpchelkin/scdlbot/blob/d64d14f6c6d357ba818e80b8a0a9291c2146d6
 
 The markdown rendering of the message used is another [project](https://github.com/yym68686/md2tgmd) of mine.
 
+duckduckgo AI: https://github.com/mrgick/duck_chat
+
 ## Sponsors
 
 We are grateful for the support from the following sponsors:

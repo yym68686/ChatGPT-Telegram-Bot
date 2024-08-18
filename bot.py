@@ -329,7 +329,11 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             await update.message.reply_text(tmpresult)
             print(now_result)
         elif now_result:
-            sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+            try:
+                sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+            except Exception as e:
+                if "parse entities" in str(e):
+                    sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=tmpresult, disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
 
     if Users.get_config(convo_id, "FOLLOW_UP"):
         if title != "":
