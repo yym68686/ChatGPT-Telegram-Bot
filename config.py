@@ -369,8 +369,8 @@ def reset_ENGINE(chat_id, message=None):
         groqBot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
     if GOOGLE_AI_API_KEY and gemini_Bot:
         gemini_Bot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
-    if duckBot:
-        duckBot.reset(convo_id=str(chat_id))
+    # if duckBot:
+    #     await duckBot.reset(convo_id=str(chat_id))
 
 def get_robot(chat_id = None):
     global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot, duckBot
