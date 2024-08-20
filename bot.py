@@ -178,6 +178,19 @@ async def delete_message(update, context, messageid = [], delay=60):
                 print("delete_message error", e)
                 print('\033[0m')
 
+from telegram.error import Forbidden, TelegramError
+async def is_bot_blocked(bot, user_id: int) -> bool:
+    try:
+        # 尝试向用户发送一条测试消息
+        await bot.send_chat_action(chat_id=user_id, action="typing")
+        return False  # 如果成功发送，说明机器人未被封禁
+    except Forbidden:
+        print("error:", user_id, "已封禁机器人")
+        return True  # 如果收到Forbidden错误，说明机器人被封禁
+    except TelegramError:
+        # 处理其他可能的错误
+        return False  # 如果是其他错误，我们假设机器人未被封禁
+
 async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=0, api_key=None, api_url=None):
     lastresult = title
     text = message
@@ -199,15 +212,19 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         Frequency_Modification = 1
 
 
-    answer_messageid = (await context.bot.send_message(
-        chat_id=chatid,
-        message_thread_id=message_thread_id,
-        text=escape(strings['message_think'][get_current_lang(convo_id)]),
-        parse_mode='MarkdownV2',
-        reply_to_message_id=messageid,
-    )).message_id
+    if not await is_bot_blocked(context.bot, chatid):
+        answer_messageid = (await context.bot.send_message(
+            chat_id=chatid,
+            message_thread_id=message_thread_id,
+            text=escape(strings['message_think'][get_current_lang(convo_id)]),
+            parse_mode='MarkdownV2',
+            reply_to_message_id=messageid,
+        )).message_id
+    else:
+        return
 
     try:
+        # print("text", text)
         async for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name, language=language, api_url=api_url, api_key=api_key, systemprompt=systemprompt):
         # for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
             if stop_event.is_set() and convo_id == target_convo_id and answer_messageid < reset_mess_id:
