@@ -236,7 +236,10 @@ class UserConfig:
 
     def extract_plugins_config(self, user_id = None):
         self.user_init(user_id)
-        user_data = self.users[self.user_id].data
+        if isinstance(self.users[self.user_id], dict):
+            user_data = self.users[self.user_id]
+        else:
+            user_data = self.users[self.user_id].data
         plugins_config = {key: value for key, value in user_data.items() if key in self.plugins}
         return plugins_config
 
