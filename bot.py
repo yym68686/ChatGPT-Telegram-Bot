@@ -19,16 +19,14 @@ from config import (
     PREFERENCES,
     LANGUAGES,
     PLUGINS,
-    update_first_buttons_message,
+    get_robot,
+    reset_ENGINE,
     get_current_lang,
     update_info_message,
-    update_ENGINE,
-    reset_ENGINE,
-    get_robot,
-    get_ENGINE,
-    update_language_status,
-    update_models_buttons,
     update_menu_buttons,
+    update_models_buttons,
+    update_language_status,
+    update_first_buttons_message,
 )
 
 from utils.i18n import strings
@@ -111,7 +109,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 return
 
             robot, role, api_key, api_url = get_robot(convo_id)
-            engine = get_ENGINE(convo_id)
+            engine = Users.get_config(convo_id, "engine")
 
             if Users.get_config(convo_id, "LONG_TEXT"):
                 async with lock:
@@ -157,7 +155,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 image_url = file_url
                 message = Document_extract(file_url, image_url, engine) + message
 
-            await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history, api_key, api_url)
+            await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history, api_key, api_url, engine)
     else:
         message = await context.bot.send_message(
             chat_id=chatid,
@@ -191,7 +189,7 @@ async def is_bot_blocked(bot, user_id: int) -> bool:
         # 处理其他可能的错误
         return False  # 如果是其他错误，我们假设机器人未被封禁
 
-async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=0, api_key=None, api_url=None):
+async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=0, api_key=None, api_url=None, engine = None):
     lastresult = title
     text = message
     result = ""
@@ -199,9 +197,10 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     modifytime = 0
     time_out = 600
     image_has_send = 0
-    model_name = Users.get_config(convo_id, "engine")
+    model_name = engine
     language = Users.get_config(convo_id, "language")
-    systemprompt = Users.get_config(convo_id, "systemprompt")
+    system_prompt = Users.get_config(convo_id, "systemprompt")
+    plugins = Users.extract_plugins_config(convo_id)
 
     Frequency_Modification = 20
     if "gpt-4o" in model_name:
@@ -225,7 +224,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
 
     try:
         # print("text", text)
-        async for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name, language=language, api_url=api_url, api_key=api_key, systemprompt=systemprompt):
+        async for data in robot.ask_stream_async(text, convo_id=convo_id, pass_history=pass_history, model=model_name, language=language, api_url=api_url, api_key=api_key, system_prompt=system_prompt, plugins=plugins):
         # for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
             if stop_event.is_set() and convo_id == target_convo_id and answer_messageid < reset_mess_id:
                 return
@@ -437,9 +436,8 @@ async def button_press(update, context):
                     else:
                         current_data = 0
                     Users.set_config(convo_id, data, current_data)
-                    return
-
-                Users.set_config(convo_id, data, not current_data)
+                else:
+                    Users.set_config(convo_id, data, not current_data)
             except Exception as e:
                 logger.info(e)
             try:
@@ -464,10 +462,6 @@ async def button_press(update, context):
             try:
                 current_data = Users.get_config(convo_id, data)
                 Users.set_config(convo_id, data, not current_data)
-                plugins_config = Users.extract_plugins_config(convo_id)
-                robot, role, api_key, api_url = get_robot(convo_id)
-                if robot:
-                    robot.plugins[convo_id] = plugins_config
             except Exception as e:
                 logger.info(e)
             try:
@@ -508,7 +502,7 @@ async def button_press(update, context):
 async def handle_file(update, context):
     _, _, image_url, chatid, _, _, _, message_thread_id, convo_id, file_url, _, voice_text = await GetMesageInfo(update, context)
     robot, role, api_key, api_url = get_robot(convo_id)
-    engine = get_ENGINE(convo_id)
+    engine = Users.get_config(convo_id, "engine")
 
     if file_url == None and image_url:
         file_url = image_url
@@ -531,7 +525,7 @@ async def inlinequery(update: Update, context) -> None:
     """Handle the inline query."""
 
     chatid = update.effective_user.id
-    engine = get_ENGINE(chatid)
+    engine = Users.get_config(chatid, "engine")
     query = update.inline_query.query
     if (query.endswith('.') or query.endswith('。')) and query.strip():
         prompt = "Answer the following questions as concisely as possible:\n\n"

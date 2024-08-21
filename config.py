@@ -6,7 +6,7 @@ load_dotenv()
 from utils.i18n import strings
 from datetime import datetime
 from ModelMerge.src.ModelMerge.utils import prompt
-from ModelMerge.src.ModelMerge.models import chatgpt, claude, groq, claude3, gemini, PLUGINS, whisper, DuckChat
+from ModelMerge.src.ModelMerge.models import chatgpt, groq, claude3, gemini, PLUGINS, whisper, DuckChat
 from ModelMerge.src.ModelMerge.models.base import BaseAPI
 
 from telegram import InlineKeyboardButton
@@ -185,6 +185,12 @@ class UserConfig:
                 self.users[user_id] = NestedDict()
                 for key, value in user_config.items():
                     self.users[user_id][key] = value
+                    if key == "api_url" and value != self.api_url:
+                        self.users[user_id]["api_url"] = self.api_url
+                        update_user_config(user_id, "api_url", self.api_url)
+                    if key == "api_key" and value != self.api_key:
+                        self.users[user_id]["api_key"] = self.api_key
+                        update_user_config(user_id, "api_key", self.api_key)
 
     def get_init_preferences(self):
         return {
@@ -230,48 +236,51 @@ class UserConfig:
 
     def extract_plugins_config(self, user_id = None):
         self.user_init(user_id)
-        user_data = self.users[self.user_id]
+        user_data = self.users[self.user_id].data
         plugins_config = {key: value for key, value in user_data.items() if key in self.plugins}
         return plugins_config
 
-Users = UserConfig(mode=CHAT_MODE, api_key=API, api_url=API_URL, engine=GPT_ENGINE, preferences=PREFERENCES, plugins=PLUGINS, language=LANGUAGE, languages=LANGUAGES, systemprompt=systemprompt, claude_systemprompt=claude_systemprompt)
+    def to_json(self, user_id=None):
+        def nested_dict_to_dict(nd):
+            if isinstance(nd, NestedDict):
+                return {k: nested_dict_to_dict(v) for k, v in nd.data.items()}
+            return nd
 
-def get_ENGINE(user_id = None):
-    return Users.get_config(user_id, "engine")
+        if user_id:
+            serializable_config = nested_dict_to_dict(self.users[user_id])
+        else:
+            serializable_config = nested_dict_to_dict(self.users)
+
+        return json.dumps(serializable_config, ensure_ascii=False, indent=2)
+
+    def __str__(self):
+        return str(self.users)
+
+Users = UserConfig(mode=CHAT_MODE, api_key=API, api_url=API_URL, engine=GPT_ENGINE, preferences=PREFERENCES, plugins=PLUGINS, language=LANGUAGE, languages=LANGUAGES, systemprompt=systemprompt, claude_systemprompt=claude_systemprompt)
 
 temperature = float(os.environ.get('temperature', '0.5'))
 CLAUDE_API = os.environ.get('claude_api_key', None)
 
-ChatGPTbot, SummaryBot, claudeBot, claude3Bot, groqBot, gemini_Bot, whisperBot, duckBot = None, None, None, None, None, None, None, None
-def update_ENGINE(data = None, chat_id=None):
-    global Users, ChatGPTbot, SummaryBot, claudeBot, claude3Bot, groqBot, gemini_Bot, whisperBot, duckBot
-    if data:
-        Users.set_config(chat_id, "engine", data)
-    engine = Users.get_config(chat_id, "engine")
-    systemprompt = Users.get_config(chat_id, "systemprompt")
-    claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
+ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, whisperBot, duckBot = None, None, None, None, None, None, None
+def InitEngine(chat_id=None):
+    global Users, ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, whisperBot, duckBot
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
     if api_key:
-        if "claude" in engine:
-            ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=claude_systemprompt, temperature=temperature, convo_id=chat_id)
-        else:
-            ChatGPTbot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=systemprompt, temperature=temperature, convo_id=chat_id)
-        SummaryBot = chatgpt(api_key=f"{api_key}", api_url=api_url, engine=engine, system_prompt=systemprompt, temperature=temperature, use_plugins=False, convo_id=chat_id)
-        whisperBot = whisper(api_key=f"{api_key}", api_url=api_url)
-    if CLAUDE_API and "claude-2.1" in engine:
-        claudeBot = claude(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature, convo_id=chat_id)
-    if CLAUDE_API and "claude-3" in engine:
-        claude3Bot = claude3(api_key=f"{CLAUDE_API}", engine=engine, system_prompt=claude_systemprompt, temperature=temperature, convo_id=chat_id)
-    if GROQ_API_KEY and ("mixtral" in engine or "llama" in engine):
-        groqBot = groq(api_key=f"{GROQ_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature, convo_id=chat_id)
-    if GOOGLE_AI_API_KEY and "gemini" in engine:
-        gemini_Bot = gemini(api_key=f"{GOOGLE_AI_API_KEY}", engine=engine, system_prompt=systemprompt, temperature=temperature, convo_id=chat_id)
+        ChatGPTbot = chatgpt(temperature=temperature)
+        SummaryBot = chatgpt(temperature=temperature, use_plugins=False)
+        whisperBot = whisper(api_key=api_key, api_url=api_url)
+    if CLAUDE_API:
+        claude3Bot = claude3(temperature=temperature)
+    if GROQ_API_KEY:
+        groqBot = groq(temperature=temperature)
+    if GOOGLE_AI_API_KEY:
+        gemini_Bot = gemini(temperature=temperature)
 
-    duckBot = DuckChat(model=engine)
+    duckBot = DuckChat()
 
 def update_language_status(language, chat_id=None):
-    global Users, ChatGPTbot, SummaryBot, claudeBot, claude3Bot, groqBot, gemini_Bot, whisperBot, duckBot
+    global Users, ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, whisperBot, duckBot
     systemprompt = Users.get_config(chat_id, "systemprompt")
     claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
     LAST_LANGUAGE = Users.get_config(chat_id, "language")
@@ -280,29 +289,13 @@ def update_language_status(language, chat_id=None):
         Users.set_config(chat_id, lang, False)
 
     Users.set_config(chat_id, language, True)
-    try:
-        systemprompt = systemprompt.replace(LAST_LANGUAGE, Users.get_config(chat_id, "language"))
-        claude_systemprompt = claude_systemprompt.replace(LAST_LANGUAGE, Users.get_config(chat_id, "language"))
-        Users.set_config(chat_id, "systemprompt", systemprompt)
-        Users.set_config(chat_id, "claude_systemprompt", claude_systemprompt)
-        if duckBot == None:
-            update_ENGINE(chat_id=chat_id)
-        if ChatGPTbot:
-            ChatGPTbot.system_prompt[chat_id] = systemprompt
-        if claude3Bot:
-            claude3Bot.system_prompt[chat_id] = claude_systemprompt
-        if groqBot:
-            groqBot.system_prompt[chat_id] = systemprompt
-        if gemini_Bot:
-            gemini_Bot.system_prompt[chat_id] = systemprompt
-    except Exception as e:
-        print("error:", e)
-        pass
+    systemprompt = systemprompt.replace(LAST_LANGUAGE, Users.get_config(chat_id, "language"))
+    claude_systemprompt = claude_systemprompt.replace(LAST_LANGUAGE, Users.get_config(chat_id, "language"))
+    Users.set_config(chat_id, "systemprompt", systemprompt)
+    Users.set_config(chat_id, "claude_systemprompt", claude_systemprompt)
 
+InitEngine(chat_id=None)
 update_language_status(LANGUAGE)
-if ChatGPTbot == None and duckBot:
-    Users.engine = "gpt-4o-mini"
-
 
 def get_local_version_info():
     current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -335,7 +328,7 @@ def update_info_message(user_id = None):
     api_key = Users.get_config(user_id, "api_key")
     api_url = Users.get_config(user_id, "api_url")
     return "".join([
-        f"**🤖 Model:** `{get_ENGINE(user_id)}`\n\n",
+        f"**🤖 Model:** `{Users.get_config(user_id, 'engine')}`\n\n",
         f"**🔑 API:** `{replace_with_asterisk(api_key)}`\n\n" if api_key else "",
         f"**🔗 API URL:** `{api_url}`\n\n" if api_url else "",
         f"**🛜 WEB HOOK:** `{WEB_HOOK}`\n\n" if WEB_HOOK else "",
@@ -345,7 +338,7 @@ def update_info_message(user_id = None):
     ])
 
 def reset_ENGINE(chat_id, message=None):
-    global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot, duckBot
+    global ChatGPTbot, claude3Bot, groqBot, gemini_Bot
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
     engine = Users.get_config(chat_id, "engine")
@@ -361,49 +354,36 @@ def reset_ENGINE(chat_id, message=None):
             ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=claude_systemprompt)
         else:
             ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
-    if CLAUDE_API and claudeBot:
-        claudeBot.reset(convo_id=str(chat_id), system_prompt=claude_systemprompt)
     if CLAUDE_API and claude3Bot:
         claude3Bot.reset(convo_id=str(chat_id), system_prompt=claude_systemprompt)
     if GROQ_API_KEY and groqBot:
         groqBot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
     if GOOGLE_AI_API_KEY and gemini_Bot:
         gemini_Bot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
-    # if duckBot:
-    #     await duckBot.reset(convo_id=str(chat_id))
 
 def get_robot(chat_id = None):
-    global ChatGPTbot, claudeBot, claude3Bot, groqBot, gemini_Bot, duckBot
+    global ChatGPTbot, claude3Bot, groqBot, gemini_Bot, duckBot
     engine = Users.get_config(chat_id, "engine")
-    if CLAUDE_API and "claude-2.1" in engine:
-        robot = claudeBot
-        role = "Human"
-        api_key = CLAUDE_API
-        api_url = "https://api.anthropic.com/v1/complete"
-    elif CLAUDE_API and "claude-3" in engine:
+    role = "user"
+    if CLAUDE_API and "claude-3" in engine:
         robot = claude3Bot
-        role = "user"
         api_key = CLAUDE_API
         api_url = "https://api.anthropic.com/v1/messages"
     elif ("mixtral" in engine or "llama" in engine) and GROQ_API_KEY:
         robot = groqBot
-        role = "user"
         api_key = GROQ_API_KEY
         api_url = "https://api.groq.com/openai/v1/chat/completions"
     elif GOOGLE_AI_API_KEY and "gemini" in engine:
         robot = gemini_Bot
-        role = "user"
         api_key = GOOGLE_AI_API_KEY
         api_url = "https://generativelanguage.googleapis.com/v1beta/models/{model}:{stream}?key={api_key}"
     elif ChatGPTbot:
         robot = ChatGPTbot
-        role = "user"
         api_key = Users.get_config(chat_id, "api_key")
         api_url = Users.get_config(chat_id, "api_url")
         api_url = BaseAPI(api_url=api_url).chat_url
     else:
         robot = duckBot
-        role = "user"
         api_key = "duckduckgo"
         api_url = None
 
@@ -430,6 +410,8 @@ def delete_model_digit_tail(lst):
                 return "-".join(lst[:i + 1])
 
 def get_status(chatid = None, item = None):
+    if item == "PASS_HISTORY":
+        return "✅ " if int(Users.get_config(chatid, item)) > 2 else "☑️ "
     return "✅ " if Users.get_config(chatid, item) else "☑️ "
 
 def create_buttons(strings, plugins_status=False, lang="English", button_text=None, Suffix="", chatid=None):
@@ -544,6 +526,9 @@ else:
 if CUSTOM_MODELS_LIST:
     delete_models = [model[1:] for model in CUSTOM_MODELS_LIST if model[0] == "-"]
     for target in delete_models:
+        if target == "all":
+            initial_model = []
+            break
         for model in initial_model:
             if target in model:
                 initial_model.remove(model)

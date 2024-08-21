@@ -314,7 +314,7 @@ All other models use the official context length settings, for example, the `gpt
 
 - How to delete the default model name from the model list?
 
-You can use the CUSTOM_MODELS environment variable to complete it. For example, if you want to add gpt-4o and remove the gpt-3.5 model from the model list, please set CUSTOM_MODELS to `gpt-4o,-gpt-3.5`.
+You can use the `CUSTOM_MODELS` environment variable to complete it. For example, if you want to add gpt-4o and remove the gpt-3.5 model from the model list, please set `CUSTOM_MODELS` to `gpt-4o,-gpt-3.5`. If you want to delete all default models at once, you can set `CUSTOM_MODELS` to `-all,gpt-4o`.
 
 - How does conversation isolation specifically work?
 
@@ -369,6 +369,10 @@ No, in the future it will support multiple Bot Tokens.
 
 Koyeb's free service can be a bit unstable, so deployment failures are pretty common. You might want to try redeploying, and if that doesn't work, consider switching to another platform. 😊
 
+- Why does the default model name reappear after I use CUSTOM_MODELS to delete it, and then check again with the /info command?
+
+If you deployed using `docker-compose.yml`, do not add quotes around the value of `CUSTOM_MODELS`. Incorrect usage: `CUSTOM_MODELS="gpt-4o,-gpt-3.5"`, otherwise it will cause environment variable parsing errors, resulting in the default model name reappearing. The incorrect way will be parsed as deleting the `gpt-3.5"` model, which will cause the default model name `gpt-3.5` not to be deleted. The correct way to write it is: `CUSTOM_MODELS=gpt-4o,-gpt-3.5`.
+
 ## References
 
 https://core.telegram.org/bots/api
@@ -386,10 +390,10 @@ duckduckgo AI: https://github.com/mrgick/duck_chat
 ## Sponsors
 
 We are grateful for the support from the following sponsors:
-<!-- $300+$250+¥1200+¥300+$30+$25+$20+¥50 -->
+<!-- $300+$280+¥1200+¥300+$30+$25+$20+¥50 -->
 - @fasizhuanqian: 300 USDT
 
-- @ZETA: $250
+- @ZETA: $280
 
 - @yuerbujin: ¥1200
 
