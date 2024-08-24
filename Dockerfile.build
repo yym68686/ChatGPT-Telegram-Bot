@@ -1,12 +1,12 @@
-FROM python:3.10.13 AS builder
+FROM python:3.10-alpine AS builder
 COPY ./requirements.txt /home
-RUN pip install -r /home/requirements.txt
+RUN pip install --no-cache-dir -r /home/requirements.txt
 
-FROM python:3.10.13-slim-bullseye
+FROM python:3.10-alpine
 EXPOSE 8080
 WORKDIR /home
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY ./setup.sh /home
-RUN apt-get update && apt-get install -y --no-install-recommends git \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+RUN apk add --no-cache git \
+    && rm -rf /tmp/*
 ENTRYPOINT ["/home/setup.sh"]

@@ -12,4 +12,3 @@ fake-useragent
 beautifulsoup4
 tiktoken==0.6.0
 duckduckgo-search==5.3.1
-google-api-python-client==2.128.0
