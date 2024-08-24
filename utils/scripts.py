@@ -137,3 +137,11 @@ async def GetMesageInfo(update, context):
     else:
         return None, None, None, None, None, None, None, None, None, None, None, None
     return message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text
+
+def safe_get(data, *keys):
+    for key in keys:
+        try:
+            data = data[key] if isinstance(data, (dict, list)) else data.get(key)
+        except (KeyError, IndexError, AttributeError, TypeError):
+            return None
+    return data

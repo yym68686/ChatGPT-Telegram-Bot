@@ -30,7 +30,7 @@ from config import (
 )
 
 from utils.i18n import strings
-from utils.scripts import GetMesageInfo
+from utils.scripts import GetMesageInfo, safe_get
 
 from telegram.constants import ChatAction
 from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
@@ -242,16 +242,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 search_index_string = data.split(" ")[1]
                 tmpresult = strings[search_index_string][get_current_lang(convo_id)]
             history = robot.conversation[convo_id]
-            if history[-1].get('name') == "generate_image" and not image_has_send:
+            if safe_get(history, -2, "tool_calls", 0, 'function', 'name') == "generate_image" and not image_has_send and safe_get(history, -1, 'content'):
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)
-                image_has_send = 1
-            elif len(history) > 2 \
-            and type(history[-2]) != str \
-            and history[-2].get('content') \
-            and type(history[-2].get('content')[0]) != str \
-            and history[-2].get('content')[0].get("name") == "generate_image" \
-            and not image_has_send:
-                await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'][0]["content"], reply_to_message_id=messageid)
                 image_has_send = 1
             modifytime = modifytime + 1
 
