@@ -355,7 +355,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             "{}"
             "</infomation>"
         ).format(info)
-        result = (await config.SummaryBot.ask(prompt, convo_id=convo_id, pass_history=0)).split('\n')
+        result = (await config.SummaryBot.ask_async(prompt, convo_id=convo_id, pass_history=0, api_url=api_url, api_key=api_key)).split('\n')
         keyboard = []
         result = [i for i in result if i.strip() and len(i) > 5]
         print(result)
