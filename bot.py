@@ -294,20 +294,26 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                     tmp = ''.join(split_messages_new[split_index:])
                     if tmp.strip().endswith("```"):
                         result = tmp[:-4]
+                        matches = re.findall(r"(```.*?\n)", send_split_message)
+                        if not result.strip().startswith("```") and len(matches) >= 1:
+                            result = matches[-1] + result
                     else:
                         result = tmp
 
-                await context.bot.edit_message_text(
-                    chat_id=chatid,
-                    message_id=answer_messageid,
-                    text=escape(send_split_message, italic=False),
-                    parse_mode='MarkdownV2',
-                    disable_web_page_preview=True,
-                    read_timeout=time_out,
-                    write_timeout=time_out,
-                    pool_timeout=time_out,
-                    connect_timeout=time_out
-                )
+                title = ""
+                if lastresult != escape(send_split_message, italic=False):
+                    await context.bot.edit_message_text(
+                        chat_id=chatid,
+                        message_id=answer_messageid,
+                        text=escape(send_split_message, italic=False),
+                        parse_mode='MarkdownV2',
+                        disable_web_page_preview=True,
+                        read_timeout=time_out,
+                        write_timeout=time_out,
+                        pool_timeout=time_out,
+                        connect_timeout=time_out
+                    )
+                    lastresult = escape(send_split_message, italic=False)
                 answer_messageid = (await context.bot.send_message(
                     chat_id=chatid,
                     message_thread_id=message_thread_id,
