@@ -42,7 +42,7 @@ async def get_voice(file_id: str, context) -> str:
         return transcript
 
     except Exception as e:
-        return f"处理音频文件时出错： {str(e)}"
+        return f"error: Temporarily unable to use voice function: {str(e)}"
     finally:
         import os
         if os.path.exists(filename_mp3):
