@@ -261,7 +261,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 else:
                     print("replace_text", replace_text)
                     if replace_text.strip().endswith("```"):
-                        replace_text = replace_text.strip()[:4]
+                        replace_text = replace_text.strip()[:-4]
                     split_messages_new = []
                     split_messages = replace_text.split("```")
                     for index, item in enumerate(split_messages):
@@ -290,15 +290,25 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                             continue
                         else:
                             break
+                    # print("split_messages_new", split_messages_new)
                     send_split_message = ''.join(split_messages_new[:split_index])
+                    matches = re.findall(r"(```.*?\n)", send_split_message)
+                    if len(matches) % 2 != 0:
+                        send_split_message = send_split_message + "```\n"
+                    # print("send_split_message", send_split_message)
                     tmp = ''.join(split_messages_new[split_index:])
                     if tmp.strip().endswith("```"):
                         result = tmp[:-4]
-                        matches = re.findall(r"(```.*?\n)", send_split_message)
-                        if not result.strip().startswith("```") and len(matches) >= 1:
-                            result = matches[-1] + result
                     else:
                         result = tmp
+                    # print("result", result)
+                    matches = re.findall(r"(```.*?\n)", send_split_message)
+                    result_matches = re.findall(r"(```.*?\n)", result)
+                    # print("matches", matches)
+                    # print("result_matches", result_matches)
+                    if len(result_matches) > 0 and result_matches[0].startswith("```\n") and len(result_matches) >= 2:
+                        result = matches[-2] + result
+                    # print("result", result)
 
                 title = ""
                 if lastresult != escape(send_split_message, italic=False):

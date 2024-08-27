@@ -1,0 +1,803 @@
+fasthtml文档：
+###
+# Walkthrough of an idiomatic fasthtml app
+###
+
+# This fasthtml app includes functionality from fastcore, starlette, fastlite, and fasthtml itself.
+# Run with: `python adv_app.py`
+# Importing from `fasthtml.common` brings the key parts of all of these together.
+# For simplicity, you can just `from fasthtml.common import *`:
+from fasthtml.common import *
+# ...or you can import everything into a namespace:
+# from fasthtml import common as fh
+# ...or you can import each symbol explicitly (which we're commenting out here but including for completeness):
+"""
+from fasthtml.common import (
+    # These are the HTML components we use in this app
+    A, AX, Button, Card, CheckboxX, Container, Div, Form, Grid, Group, H1, H2, Hidden, Input, Li, Main, Script, Style, Textarea, Title, Titled, Ul,
+    # These are FastHTML symbols we'll use
+    Beforeware, FastHTML, fast_app, SortableJS, fill_form, picolink, serve,
+    # These are from Starlette, Fastlite, fastcore, and the Python stdlib
+    FileResponse, NotFoundError, RedirectResponse, database, patch, dataclass
+)
+"""
+
+from hmac import compare_digest
+
+# You can use any database you want; it'll be easier if you pick a lib that supports the MiniDataAPI spec.
+# Here we are using SQLite, with the FastLite library, which supports the MiniDataAPI spec.
+db = database('data/utodos.db')
+# The `t` attribute is the table collection. The `todos` and `users` tables are not created if they don't exist.
+# Instead, you can use the `create` method to create them if needed.
+todos,users = db.t.todos,db.t.users
+if todos not in db.t:
+    # You can pass a dict, or kwargs, to most MiniDataAPI methods.
+    users.create(dict(name=str, pwd=str), pk='name')
+    todos.create(id=int, title=str, done=bool, name=str, details=str, priority=int, pk='id')
+# Although you can just use dicts, it can be helpful to have types for your DB objects.
+# The `dataclass` method creates that type, and stores it in the object, so it will use it for any returned items.
+Todo,User = todos.dataclass(),users.dataclass()
+
+# Any Starlette response class can be returned by a FastHTML route handler.
+# In that case, FastHTML won't change it at all.
+# Status code 303 is a redirect that can change POST to GET, so it's appropriate for a login page.
+login_redir = RedirectResponse('/login', status_code=303)
+
+# The `before` function is a *Beforeware* function. These are functions that run before a route handler is called.
+def before(req, sess):
+    # This sets the `auth` attribute in the request scope, and gets it from the session.
+    # The session is a Starlette session, which is a dict-like object which is cryptographically signed,
+    # so it can't be tampered with.
+    # The `auth` key in the scope is automatically provided to any handler which requests it, and can not
+    # be injected by the user using query params, cookies, etc, so it should be secure to use.
+    auth = req.scope['auth'] = sess.get('auth', None)
+    # If the session key is not there, it redirects to the login page.
+    if not auth: return login_redir
+    # `xtra` is part of the MiniDataAPI spec. It adds a filter to queries and DDL statements,
+    # to ensure that the user can only see/edit their own todos.
+    todos.xtra(name=auth)
+
+markdown_js = """
+import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+import { proc_htmx} from "https://cdn.jsdelivr.net/gh/answerdotai/fasthtml-js/fasthtml.js";
+proc_htmx('.markdown', e => e.innerHTML = marked.parse(e.textContent));
+"""
+
+# We will use this in our `exception_handlers` dict
+def _not_found(req, exc): return Titled('Oh no!', Div('We could not find that page :('))
+
+# To create a Beforeware object, we pass the function itself, and optionally a list of regexes to skip.
+bware = Beforeware(before, skip=[r'/favicon\.ico', r'/static/.*', r'.*\.css', '/login'])
+# The `FastHTML` class is a subclass of `Starlette`, so you can use any parameters that `Starlette` accepts.
+# In addition, you can add your Beforeware here, and any headers you want included in HTML responses.
+# FastHTML includes the "HTMX" and "Surreal" libraries in headers, unless you pass `default_hdrs=False`.
+app = FastHTML(before=bware,
+               # These are the same as Starlette exception_handlers, except they also support `FT` results
+               exception_handlers={404: _not_found},
+               # PicoCSS is a particularly simple CSS framework, with some basic integration built in to FastHTML.
+               # `picolink` is pre-defined with the header for the PicoCSS stylesheet.
+               # You can use any CSS framework you want, or none at all.
+               hdrs=(picolink,
+                     # `Style` is an `FT` object, which are 3-element lists consisting of:
+                     # (tag_name, children_list, attrs_dict).
+                     # FastHTML composes them from trees and auto-converts them to HTML when needed.
+                     # You can also use plain HTML strings in handlers and headers,
+                     # which will be auto-escaped, unless you use `NotStr(...string...)`.
+                     Style(':root { --pico-font-size: 100%; }'),
+                     # Have a look at fasthtml/js.py to see how these Javascript libraries are added to FastHTML.
+                     # They are only 5-10 lines of code each, and you can add your own too.
+                     SortableJS('.sortable'),
+                     # MarkdownJS is actually provided as part of FastHTML, but we've included the js code here
+                     # so that you can see how it works.
+                     Script(markdown_js, type='module'))
+                )
+# We add `rt` as a shortcut for `app.route`, which is what we'll use to decorate our route handlers.
+# When using `app.route` (or this shortcut), the only required argument is the path.
+# The name of the decorated function (eg `get`, `post`, etc) is used as the HTTP verb for the handler.
+rt = app.route
+
+# For instance, this function handles GET requests to the `/login` path.
+@rt("/login")
+def get():
+    # This creates a form with two input fields, and a submit button.
+    # All of these components are `FT` objects. All HTML tags are provided in this form by FastHTML.
+    # If you want other custom tags (e.g. `MyTag`), they can be auto-generated by e.g
+    # `from fasthtml.components import MyTag`.
+    # Alternatively, manually call e.g `ft(tag_name, *children, **attrs)`.
+    frm = Form(
+        # Tags with a `name` attr will have `name` auto-set to the same as `id` if not provided
+        Input(id='name', placeholder='Name'),
+        Input(id='pwd', type='password', placeholder='Password'),
+        Button('login'),
+        action='/login', method='post')
+    # If a user visits the URL directly, FastHTML auto-generates a full HTML page.
+    # However, if the URL is accessed by HTMX, then one HTML partial is created for each element of the tuple.
+    # To avoid this auto-generation of a full page, return a `HTML` object, or a Starlette `Response`.
+    # `Titled` returns a tuple of a `Title` with the first arg and a `Container` with the rest.
+    # See the comments for `Title` later for details.
+    return Titled("Login", frm)
+
+# Handlers are passed whatever information they "request" in the URL, as keyword arguments.
+# Dataclasses, dicts, namedtuples, TypedDicts, and custom classes are automatically instantiated
+# from form data.
+# In this case, the `Login` class is a dataclass, so the handler will be passed `name` and `pwd`.
+@dataclass
+class Login: name:str; pwd:str
+
+# This handler is called when a POST request is made to the `/login` path.
+# The `login` argument is an instance of the `Login` class, which has been auto-instantiated from the form data.
+# There are a number of special parameter names, which will be passed useful information about the request:
+# `session`: the Starlette session; `request`: the Starlette request; `auth`: the value of `scope['auth']`,
+# `htmx`: the HTMX headers, if any; `app`: the FastHTML app object.
+# You can also pass any string prefix of `request` or `session`.
+@rt("/login")
+def post(login:Login, sess):
+    if not login.name or not login.pwd: return login_redir
+    # Indexing into a MiniDataAPI table queries by primary key, which is `name` here.
+    # It returns a dataclass object, if `dataclass()` has been called at some point, or a dict otherwise.
+    try: u = users[login.name]
+    # If the primary key does not exist, the method raises a `NotFoundError`.
+    # Here we use this to just generate a user -- in practice you'd probably to redirect to a signup page.
+    except NotFoundError: u = users.insert(login)
+    # This compares the passwords using a constant time string comparison
+    # https://sqreen.github.io/DevelopersSecurityBestPractices/timing-attack/python
+    if not compare_digest(u.pwd.encode("utf-8"), login.pwd.encode("utf-8")): return login_redir
+    # Because the session is signed, we can securely add information to it. It's stored in the browser cookies.
+    # If you don't pass a secret signing key to `FastHTML`, it will auto-generate one and store it in a file `./sesskey`.
+    sess['auth'] = u.name
+    return RedirectResponse('/', status_code=303)
+
+# Instead of using `app.route` (or the `rt` shortcut), you can also use `app.get`, `app.post`, etc.
+# In this case, the function name is not used to determine the HTTP verb.
+@app.get("/logout")
+def logout(sess):
+    del sess['auth']
+    return login_redir
+
+# FastHTML uses Starlette's path syntax, and adds a `static` type which matches standard static file extensions.
+# You can define your own regex path specifiers -- for instance this is how `static` is defined in FastHTML
+# `reg_re_param("static", "ico|gif|jpg|jpeg|webm|css|js|woff|png|svg|mp4|webp|ttf|otf|eot|woff2|txt|xml|html")`
+# In this app, we only actually have one static file, which is `favicon.ico`. But it would also be needed if
+# we were referencing images, CSS/JS files, etc.
+# Note, this function is unnecessary, as the `fast_app()` call already includes this functionality.
+# However, it's included here to show how you can define your own static file handler.
+@rt("/{fname:path}.{ext:static}")
+async def get(fname:str, ext:str): return FileResponse(f'{fname}.{ext}')
+
+# The `patch` decorator, which is defined in `fastcore`, adds a method to an existing class.
+# Here we are adding a method to the `Todo` class, which is returned by the `todos` table.
+# The `__ft__` method is a special method that FastHTML uses to convert the object into an `FT` object,
+# so that it can be composed into an FT tree, and later rendered into HTML.
+@patch
+def __ft__(self:Todo):
+    # Some FastHTML tags have an 'X' suffix, which means they're "extended" in some way.
+    # For instance, here `AX` is an extended `A` tag, which takes 3 positional arguments:
+    # `(text, hx_get, target_id)`.
+    # All underscores in FT attrs are replaced with hyphens, so this will create an `hx-get` attr,
+    # which HTMX uses to trigger a GET request.
+    # Generally, most of your route handlers in practice (as in this demo app) are likely to be HTMX handlers.
+    # For instance, for this demo, we only have two full-page handlers: the '/login' and '/' GET handlers.
+    show = AX(self.title, f'/todos/{self.id}', 'current-todo')
+    edit = AX('edit',     f'/edit/{self.id}' , 'current-todo')
+    dt = '✅ ' if self.done else ''
+    # FastHTML provides some shortcuts. For instance, `Hidden` is defined as simply:
+    # `return Input(type="hidden", value=value, **kwargs)`
+    cts = (dt, show, ' | ', edit, Hidden(id="id", value=self.id), Hidden(id="priority", value="0"))
+    # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
+    return Li(*cts, id=f'todo-{self.id}')
+
+# This is the handler for the main todo list application.
+# By including the `auth` parameter, it gets passed the current username, for displaying in the title.
+@rt("/")
+def get(auth):
+    title = f"{auth}'s Todo list"
+    top = Grid(H1(title), Div(A('logout', href='/logout'), style='text-align: right'))
+    # We don't normally need separate "screens" for adding or editing data. Here for instance,
+    # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
+    new_inp = Input(id="new-title", name="title", placeholder="New Todo")
+    add = Form(Group(new_inp, Button("Add")),
+               hx_post="/", target_id='todo-list', hx_swap="afterbegin")
+    # In the MiniDataAPI spec, treating a table as a callable (i.e with `todos(...)` here) queries the table.
+    # Because we called `xtra` in our Beforeware, this queries the todos for the current user only.
+    # We can include the todo objects directly as children of the `Form`, because the `Todo` class has `__ft__` defined.
+    # This is automatically called by FastHTML to convert the `Todo` objects into `FT` objects when needed.
+    # The reason we put the todo list inside a form is so that we can use the 'sortable' js library to reorder them.
+    # That library calls the js `end` event when dragging is complete, so our trigger here causes our `/reorder`
+    # handler to be called.
+    frm = Form(*todos(order_by='priority'),
+               id='todo-list', cls='sortable', hx_post="/reorder", hx_trigger="end")
+    # We create an empty 'current-todo' Div at the bottom of our page, as a target for the details and editing views.
+    card = Card(Ul(frm), header=add, footer=Div(id='current-todo'))
+    # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
+    # A handler can return either a single `FT` object or string, or a tuple of them.
+    # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
+    # The `Title` tag has a special purpose: it sets the title of the page.
+    return Title(title), Container(top, card)
+
+# This is the handler for the reordering of todos.
+# It's a POST request, which is used by the 'sortable' js library.
+# Because the todo list form created earlier included hidden inputs with the todo IDs,
+# they are passed as form data. By using a parameter called (e.g) "id", FastHTML will try to find
+# something suitable in the request with this name. In order, it searches as follows:
+# path; query; cookies; headers; session keys; form data.
+# Although all these are provided in the request as strings, FastHTML will use your parameter's type
+# annotation to try to cast the value to the requested type.
+# In the case of form data, there can be multiple values with the same key. So in this case,
+# the parameter is a list of ints.
+@rt("/reorder")
+def post(id:list[int]):
+    for i,id_ in enumerate(id): todos.update({'priority':i}, id_)
+    # HTMX by default replaces the inner HTML of the calling element, which in this case is the todo list form.
+    # Therefore, we return the list of todos, now in the correct order, which will be auto-converted to FT for us.
+    # In this case, it's not strictly necessary, because sortable.js has already reorder the DOM elements.
+    # However, by returning the updated data, we can be assured that there aren't sync issues between the DOM
+    # and the server.
+    return tuple(todos(order_by='priority'))
+
+# Refactoring components in FastHTML is as simple as creating Python functions.
+# The `clr_details` function creates a Div with specific HTMX attributes.
+# `hx_swap_oob='innerHTML'` tells HTMX to swap the inner HTML of the target element out-of-band,
+# meaning it will update this element regardless of where the HTMX request originated from.
+def clr_details(): return Div(hx_swap_oob='innerHTML', id='current-todo')
+
+# This route handler uses a path parameter `{id}` which is automatically parsed and passed as an int.
+@rt("/todos/{id}")
+def delete(id:int):
+    # The `delete` method is part of the MiniDataAPI spec, removing the item with the given primary key.
+    todos.delete(id)
+    # Returning `clr_details()` ensures the details view is cleared after deletion,
+    # leveraging HTMX's out-of-band swap feature.
+    # Note that we are not returning *any* FT component that doesn't have an "OOB" swap, so the target element
+    # inner HTML is simply deleted. That's why the deleted todo is removed from the list.
+    return clr_details()
+
+@rt("/edit/{id}")
+async def get(id:int):
+    # The `hx_put` attribute tells HTMX to send a PUT request when the form is submitted.
+    # `target_id` specifies which element will be updated with the server's response.
+    res = Form(Group(Input(id="title"), Button("Save")),
+        Hidden(id="id"), CheckboxX(id="done", label='Done'),
+        Textarea(id="details", name="details", rows=10),
+        hx_put="/", target_id=f'todo-{id}', id="edit")
+    # `fill_form` populates the form with existing todo data, and returns the result.
+    # Indexing into a table (`todos`) queries by primary key, which is `id` here. It also includes
+    # `xtra`, so this will only return the id if it belongs to the current user.
+    return fill_form(res, todos[id])
+
+@rt("/")
+async def put(todo: Todo):
+    # `update` is part of the MiniDataAPI spec.
+    # Note that the updated todo is returned. By returning the updated todo, we can update the list directly.
+    # Because we return a tuple with `clr_details()`, the details view is also cleared.
+    return todos.update(todo), clr_details()
+
+@rt("/")
+async def post(todo:Todo):
+    # `hx_swap_oob='true'` tells HTMX to perform an out-of-band swap, updating this element wherever it appears.
+    # This is used to clear the input field after adding the new todo.
+    new_inp =  Input(id="new-title", name="title", placeholder="New Todo", hx_swap_oob='true')
+    # `insert` returns the inserted todo, which is appended to the start of the list, because we used
+    # `hx_swap='afterbegin'` when creating the todo list form.
+    return todos.insert(todo), new_inp
+
+@rt("/todos/{id}")
+async def get(id:int):
+    todo = todos[id]
+    # `hx_swap` determines how the update should occur. We use "outerHTML" to replace the entire todo `Li` element.
+    btn = Button('delete', hx_delete=f'/todos/{todo.id}',
+                 target_id=f'todo-{todo.id}', hx_swap="outerHTML")
+    # The "markdown" class is used here because that's the CSS selector we used in the JS earlier.
+    # Therefore this will trigger the JS to parse the markdown in the details field.
+    # Because `class` is a reserved keyword in Python, we use `cls` instead, which FastHTML auto-converts.
+    return Div(H2(todo.title), Div(todo.details, cls="markdown"), btn)
+
+serve()
+
+我的代码：
+import os
+from fasthtml.common import *
+
+from typing import List, Tuple, Dict, Optional
+import pypinyin
+
+Matrix = List[List[int]]
+SourceMappingData = Dict[str, any]
+
+def extract_boundary_mapping_with_preset_pinyin(original_string: str) -> SourceMappingData:
+    pinyin_list = pypinyin.lazy_pinyin(original_string, style=pypinyin.NORMAL)
+    pinyin_string = ''
+    boundary = []
+    original_indices = []
+
+    current_index = 0
+    for i, (char, pinyin) in enumerate(zip(original_string, pinyin_list)):
+        if char.isascii():
+            pinyin_string += char.lower()
+            boundary.append([current_index, current_index])
+            original_indices.append(i)
+            current_index += 1
+        else:
+            pinyin_string += pinyin
+            boundary.append([current_index, current_index + len(pinyin) - 1])
+            original_indices.extend([i] * len(pinyin))
+            current_index += len(pinyin)
+
+    return {
+        'originalString': original_string,
+        'pinyinString': pinyin_string,
+        'boundary': boundary,
+        'originalLength': len(original_string),
+        'originalIndices': original_indices
+    }
+
+
+# def search_by_boundary_mapping(data: SourceMappingData, target: str, start_index: int, end_index: int) -> Optional[Matrix]:
+#     original_string = data['originalString'][start_index:end_index+1]
+#     pinyin_string = data['pinyinString']
+#     boundary = data['boundary']
+#     original_indices = data['originalIndices']
+
+#     target = target.lower().replace(' ', '')
+#     target_pinyin = ''.join(pypinyin.lazy_pinyin(target, style=pypinyin.NORMAL))
+
+#     dp = [[0] * (len(target_pinyin) + 1) for _ in range(len(pinyin_string) + 1)]
+
+#     for i in range(1, len(pinyin_string) + 1):
+#         for j in range(1, len(target_pinyin) + 1):
+#             if pinyin_string[i-1] == target_pinyin[j-1]:
+#                 dp[i][j] = dp[i-1][j-1] + 1
+#             else:
+#                 dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+
+#     if dp[-1][-1] != len(target_pinyin):
+#         return None
+
+#     matches = []
+#     i, j = len(pinyin_string), len(target_pinyin)
+#     while i > 0 and j > 0:
+#         if pinyin_string[i-1] == target_pinyin[j-1]:
+#             matches.append(i-1)
+#             i -= 1
+#             j -= 1
+#         elif dp[i-1][j] > dp[i][j-1]:
+#             i -= 1
+#         else:
+#             j -= 1
+#     matches = matches[::-1]
+
+#     hit_indices = []
+#     for match in matches:
+#         orig_index = original_indices[match]
+#         if start_index <= orig_index <= end_index:
+#             hit_indices.append([orig_index, orig_index])
+
+#     merged_indices = []
+#     for start, end in hit_indices:
+#         if merged_indices and merged_indices[-1][1] == start - 1:
+#             merged_indices[-1][1] = end
+#         else:
+#             if [start, end] not in merged_indices:
+#                 merged_indices.append([start, end])
+
+#     return merged_indices if merged_indices else None
+
+def search_by_boundary_mapping(data: SourceMappingData, target: str, start_index: int, end_index: int) -> Optional[Matrix]:
+    original_string = data['originalString'][start_index:end_index+1]
+    pinyin_string = data['pinyinString']
+    boundary = data['boundary']
+    original_indices = data['originalIndices']
+
+    target = target.lower().replace(' ', '')
+    target_pinyin = ''.join(pypinyin.lazy_pinyin(target, style=pypinyin.NORMAL))
+
+    pinyin_length = len(pinyin_string)
+    target_length = len(target_pinyin)
+
+    if not data or not target or pinyin_length < target_length or not len(original_string):
+        return None
+
+    # 检查索引是否在有效范围内
+    if start_index < 0 or end_index >= len(boundary) or start_index > end_index:
+        return None
+
+    start_boundary = boundary[start_index][0]
+    end_boundary = boundary[min(end_index, len(boundary) - 1)][1]
+
+    match_positions = [-1] * target_length
+    match_index = 0
+    for i in range(pinyin_length):
+        if match_index < target_length and pinyin_string[i] == target_pinyin[match_index]:
+            match_positions[match_index] = i
+            match_index += 1
+
+    if match_index < target_length:
+        return None
+
+    dp_table = [[[0, 0, -1, -1] for _ in range(target_length + 1)] for _ in range(pinyin_length + 1)]
+    dp_scores = [0] * (pinyin_length + 1)
+    dp_match_path = [[None for _ in range(target_length)] for _ in range(pinyin_length + 1)]
+
+    for match_index in range(target_length):
+        matched_pinyin_index = match_positions[match_index] + 1
+
+        current_dp_table_item = dp_table[matched_pinyin_index - 1][match_index]
+        current_score = dp_scores[matched_pinyin_index - 1]
+        dp_scores[matched_pinyin_index - 1] = 0
+        dp_table[matched_pinyin_index - 1][match_index] = [0, 0, -1, -1]
+
+        for matched_pinyin_index in range(matched_pinyin_index, pinyin_length + 1):
+            prev_score = current_score
+            prev_matched_characters, prev_matched_letters, prev_boundary_start, prev_boundary_end = current_dp_table_item
+
+            current_dp_table_item = dp_table[matched_pinyin_index][match_index]
+            current_score = dp_scores[matched_pinyin_index]
+
+            is_new_word = (matched_pinyin_index - 1 < len(boundary) and
+                           matched_pinyin_index - 1 == boundary[matched_pinyin_index - 1][1] - end_boundary and
+                           prev_boundary_start != boundary[matched_pinyin_index - 1][0] - start_boundary)
+
+            is_continuation = (prev_matched_characters > 0 and
+                               matched_pinyin_index - 1 < len(boundary) and
+                               prev_boundary_end == boundary[matched_pinyin_index - 1][1] - end_boundary and
+                               matched_pinyin_index > 1 and
+                               pinyin_string[matched_pinyin_index - 2] == target_pinyin[match_index - 1])
+
+            is_equal = matched_pinyin_index <= pinyin_length and pinyin_string[matched_pinyin_index - 1] == target_pinyin[match_index]
+
+            if is_equal and (is_new_word or is_continuation) and (match_index == 0 or prev_score > 0):
+                prev_score += prev_matched_letters * 2 + 1
+                matched_letters_count = prev_matched_letters + 1
+
+                if prev_score >= dp_scores[matched_pinyin_index - 1]:
+                    dp_scores[matched_pinyin_index] = prev_score
+                    dp_table[matched_pinyin_index][match_index] = [
+                        prev_matched_characters + int(is_new_word),
+                        matched_letters_count,
+                        boundary[min(matched_pinyin_index - 1, len(boundary) - 1)][0] - start_boundary,
+                        boundary[min(matched_pinyin_index - 1, len(boundary) - 1)][1] - end_boundary
+                    ]
+
+                    original_string_index = boundary[min(matched_pinyin_index - 1, len(boundary) - 1)][0] - start_boundary
+                    new_matched = prev_score > dp_scores[matched_pinyin_index - 1]
+                    dp_match_path[matched_pinyin_index][match_index] = (
+                        [original_string_index - prev_matched_characters + int(not is_new_word),
+                         original_string_index, matched_letters_count]
+                        if new_matched else dp_match_path[matched_pinyin_index - 1][match_index]
+                    )
+                    continue
+
+            dp_scores[matched_pinyin_index] = dp_scores[matched_pinyin_index - 1]
+            dp_match_path[matched_pinyin_index][match_index] = dp_match_path[matched_pinyin_index - 1][match_index]
+
+            if matched_pinyin_index - 1 < len(boundary):
+                gap = boundary[matched_pinyin_index - 1][0] - start_boundary - dp_table[matched_pinyin_index - 1][match_index][2]
+                is_same_word = lambda: (matched_pinyin_index < len(boundary) and
+                                        boundary[matched_pinyin_index - 1][0] == boundary[min(matched_pinyin_index, len(boundary) - 1)][0])
+                is_within_range = matched_pinyin_index < pinyin_length
+
+                dp_table[matched_pinyin_index][match_index] = (
+                    dp_table[matched_pinyin_index - 1][match_index]
+                    if gap == 0 or (is_within_range and gap == 1 and is_same_word())
+                    else [0, 0, -1, -1]
+                )
+
+    if dp_match_path[pinyin_length][target_length - 1] is None:
+        return None
+
+    hit_indices = []
+    g_index = pinyin_length
+    rest_matched = target_length - 1
+
+    while rest_matched >= 0:
+        if dp_match_path[g_index][rest_matched] is None:
+            return None
+        start, end, matched_letters = dp_match_path[g_index][rest_matched]
+        hit_indices.insert(0, [start + start_index, end + start_index])
+        g_index = original_indices[min(start + start_index, len(original_indices) - 1)] - original_indices[start_index] - 1
+        rest_matched -= matched_letters
+
+    return hit_indices
+
+def search_with_indexof(source: str, target: str) -> Optional[Matrix]:
+    start_index = source.lower().find(target.lower())
+    return [[start_index, start_index + len(target) - 1]] if start_index != -1 else None
+
+def search_sentence_by_boundary_mapping(boundary_mapping: SourceMappingData, sentence: str) -> Optional[Matrix]:
+    if not sentence:
+        return None
+
+    hit_ranges_by_index_of = search_with_indexof(boundary_mapping['originalString'], sentence)
+    if hit_ranges_by_index_of:
+        return hit_ranges_by_index_of
+
+    return search_by_boundary_mapping(boundary_mapping, sentence, 0, len(boundary_mapping['originalString']) - 1)
+
+def search_entry(source: str, target: str) -> Optional[Matrix]:
+    boundary_mapping = extract_boundary_mapping_with_preset_pinyin(source)
+    return search_sentence_by_boundary_mapping(boundary_mapping, target)
+
+def slugify(text):
+    # 将文本转换为小写，并替换非字母数字字符为连字符
+    return re.sub(r'[^\w]+', '-', text.lower()).strip('-')
+
+def sidebar(headings):
+    def sidebar_item(level, text, slug):
+        return Div(A(text, href=f"#{slug}"), cls=f"sidebar-item level-{level}")
+
+    return Div(*(sidebar_item(level, text, slug) for level, text, slug in headings), cls="sidebar")
+
+import re
+def extract_headings(content):
+    headings = []
+    in_code_block = False
+    for line in content.split('\n'):
+        if line.strip().startswith('```'):
+            in_code_block = not in_code_block
+        if not in_code_block and line.startswith('#'):
+            level = len(line.split()[0])
+            text = line.strip('#').strip()
+            slug = slugify(text)
+            headings.append((level, text, slug))
+    return headings
+
+def add_heading_ids(content):
+    lines = content.split('\n')
+    in_code_block = False
+    for i, line in enumerate(lines):
+        if line.strip().startswith('```'):
+            in_code_block = not in_code_block
+        if not in_code_block and line.startswith('#'):
+            level = len(line.split()[0])
+            text = line.strip('#').strip()
+            slug = slugify(text)
+            lines[i] = f'<h{level} id="{slug}">{text}</h{level}>'
+    return '\n'.join(lines)
+
+def navbar():
+    return Div(
+        Div(
+            A("yym68686", href="/", cls="tw-text-xl tw-font-bold tw-text-white tw-hover:text-gray-200"),
+            Div(
+                Input(
+                    type="text",
+                    placeholder="搜索...",
+                    cls="tw-bg-gray-700 tw-bg-opacity-50 tw-text-white tw-placeholder-gray-400 tw-rounded-full tw-px-3 tw-w-64 tw-focus:outline-none tw-focus:ring-2 tw-focus:ring-blue-400 tw-transition-all tw-duration-300 tw-ease-in-out tw-text-sm",
+                    style="height: 28px; line-height: 28px; padding-top: 0; padding-bottom: 0;",
+                    hx_get="/search",
+                    hx_trigger="keyup changed delay:500ms",
+                    hx_target="#search-results",
+                    name="query"
+                ),
+                Div(
+                    id="search-results",
+                    cls="tw-absolute tw-mt-1 tw-w-64 tw-bg-white tw-bg-opacity-90 tw-backdrop-filter tw-backdrop-blur-lg tw-rounded-lg tw-shadow-lg tw-overflow-hidden tw-transition-all tw-duration-300 tw-ease-in-out tw-max-h-0 group-focus-within:tw-max-h-40",
+                    style="top: 30px;"
+                ),
+                cls="tw-relative tw-group",
+                style="height: 30px;"
+            ),
+            Div(
+                A("Home", href="/", cls="tw-text-white tw-hover:text-gray-200"),
+                A("Wiki", href="/wiki", cls="tw-text-white tw-hover:text-gray-200"),
+                cls="tw-space-x-4"
+            ),
+            cls="tw-container tw-mx-auto tw-px-4 tw-py-2 tw-flex tw-justify-between tw-items-center"
+        ),
+        cls="tw-bg-gray-800 tw-bg-opacity-10 tw-backdrop-filter tw-backdrop-blur-lg tw-shadow-lg tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50"
+    )
+
+hdrs = [
+    HighlightJS(langs=['python', 'javascript', 'html', 'css']),
+    Link(href="/static/tailwind.css", rel="stylesheet"),
+    Style('''
+        .layout { display: flex; }
+        .sidebar {
+            # width: 250px;
+            padding: 20px;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .sidebar-item { margin-bottom: 10px; }
+        .level-1 { font-weight: bold; }
+        .level-2 { margin-left: 10px; }
+        .level-3 { margin-left: 20px; }
+    '''),
+    KatexMarkdownJS(),
+]
+app, rt = fast_app(hdrs=hdrs)
+
+from fasthtml.common import *
+from typing import List, Optional
+
+# 假设 search_entry 函数已经定义
+def get_all_md_documents():
+    documents = []
+
+    # 读取post文件夹下的文档
+    post_dir = "post"
+    for post_name in os.listdir(post_dir):
+        post_path = os.path.join(post_dir, post_name)
+        if os.path.isdir(post_path):
+            content, title = get_post_md_content(post_path, reset_image_path=True)
+            documents.append({"title": title, "content": content, "type": "post", "path": post_name})
+
+    # 读取wiki文件夹下的文档
+    wiki_dir = "wiki"
+    for root, dirs, files in os.walk(wiki_dir):
+        for file in files:
+            if file.endswith(".md"):
+                file_path = os.path.join(root, file)
+                content, title = get_wiki_md_content(file_path, reset_image_path=False)
+                relative_path = os.path.relpath(file_path, wiki_dir)
+                documents.append({"title": title, "content": content, "type": "wiki", "path": relative_path})
+
+    return documents
+
+@rt("/search")
+def get(query: str):
+    if not query:
+        return ""
+
+    # # 这里应该是你的实际数据源
+    # data_source = [
+    #     "我爱北京天安门",
+    #     "Hello世界",
+    #     "你好hello世界",
+    #     "我的家在东北松花江上",
+    #     "我是中国人"
+    # ]
+    all_documents = get_all_md_documents()
+    data_source = [item["content"] for item in all_documents]
+
+    results = []
+    for index, item in enumerate(data_source):
+        match = search_entry(item, query)
+        print("match", all_documents[index]["title"], match)
+        if match:
+            results.append((item, match))
+
+    return search_results_template(results, query)
+
+def search_results_template(results: List[tuple], query: str):
+    if not results:
+        return Div("没有找到相关结果", cls="tw-p-4 tw-text-gray-200 tw-text-center tw-italic")
+
+    result_items = [
+        Div(
+            highlight_text(item, match),
+            cls="tw-p-3 tw-border-b tw-border-gray-600 tw-border-opacity-20 hover:tw-bg-white hover:tw-bg-opacity-10 tw-transition-colors tw-duration-200 tw-ease-in-out tw-rounded-lg tw-mb-2"
+        )
+        for item, match in results
+    ]
+
+    return Div(
+        Div(
+            Div(
+                *result_items,
+                cls="tw-rounded-lg tw-overflow-hidden tw-divide-y tw-divide-gray-600 tw-divide-opacity-20"
+            ),
+            cls="tw-p-4 tw-bg-gray-800 tw-bg-opacity-10 tw-backdrop-filter tw-backdrop-blur-lg tw-rounded-xl tw-max-h-80 tw-overflow-y-auto tw-scrollbar-thin tw-scrollbar-thumb-gray-400 tw-scrollbar-track-transparent tw-shadow-lg"
+        ),
+        id="search-results",
+        hx_swap_oob="outerHTML",
+    )
+
+def highlight_text(text: str, matches: List[List[int]]):
+    highlighted = []
+    last_end = 0
+    for start, end in matches:
+        if start > last_end:
+            highlighted.append(text[last_end-10:start])
+        highlighted.append(Span(text[start:end+1], cls="tw-bg-yellow-300 tw-bg-opacity-50 tw-rounded-md tw-px-1"))
+        last_end = end + 1
+    if last_end < len(text):
+        highlighted.append(text[last_end:last_end+10])
+    return Div(*highlighted, cls="tw-text-white tw-text-opacity-90 tw-leading-relaxed")
+
+def get_post_md_content(directory, reset_image_path=False):
+    # 查找所有的 .md 文件
+    file_path = os.path.join(directory, "index.md")
+    content = ""
+    title = ""
+    with open(file_path, "r", encoding="utf-8") as file:
+        content = file.read()
+        title = content.split("\n")[0].replace("#", "").strip()
+        content = content.replace(title, "", 1)
+
+        # 使用正则表达式替换图片路径
+        if reset_image_path:
+            def replace_path(match):
+                return f'![{match.group(1)}]({os.path.join(directory.split("/")[-1], match.group(1).lstrip("./"))})'
+
+            import re
+            pattern = r'!\[.*?\]\((\.?\/assets\/.*?\.png)\)'
+            modified_content = re.sub(pattern, replace_path, content)
+            content = modified_content
+    return content, title
+
+@app.get("/post/{post_name}/index.md")
+def get(post_name:str):
+    return RedirectResponse(url=f"/post/{post_name}")
+
+@app.get('/post/{post_name}')
+def get(post_name: str):
+    content, title = get_post_md_content(f"post/{post_name}", reset_image_path=True)
+    headings = extract_headings(content)
+    content_with_ids = add_heading_ids(content)
+
+    layout = Div(
+        navbar(),  # 添加导航栏
+        Div(
+            sidebar(headings),
+            Div(Div(content_with_ids, cls="marked"), cls="main-content"),
+        )
+    )
+
+    return Div(Titled(title, layout), cls="tw-mt-16")
+
+def get_wiki_md_content(directory, reset_image_path=False):
+    # 查找所有的 .md 文件
+    file_path = directory
+    content = ""
+    title = ""
+    with open(file_path, "r", encoding="utf-8") as file:
+        content = file.read()
+        title = content.split("\n")[0].replace("#", "").strip()
+        content = content.replace(title, "", 1)
+
+        # 使用正则表达式替换图片路径
+        if reset_image_path:
+            def replace_path(match):
+                return f'![{match.group(1)}]({os.path.join(directory.split("/")[-1], match.group(1).lstrip("./"))})'
+
+            import re
+            pattern = r'!\[.*?\]\((\.?\/assets\/.*?\.png)\)'
+            modified_content = re.sub(pattern, replace_path, content)
+            content = modified_content
+    return content, title
+
+@app.get('/wiki/{post_name:path}')
+def get(post_name: str):
+    content, title = get_wiki_md_content(f"wiki/{post_name}", reset_image_path=False)
+    headings = extract_headings(content)
+    content_with_ids = add_heading_ids(content)
+
+    layout = Div(
+        navbar(),  # 添加导航栏
+        Div(
+            sidebar(headings),
+            Div(Div(content_with_ids, cls="marked"), cls="main-content"),
+        )
+    )
+
+    return Div(Titled(title, layout), cls="tw-mt-16")
+
+@app.get('/wiki')
+def get():
+    content, title = get_post_md_content("wiki")
+    return Div(Titled(title, Div(navbar(), Div(content, cls="marked"))), cls="tw-mt-16")
+
+@rt('/')
+def get():
+    content, title = get_post_md_content(".")
+    return Div(Titled(title, Div(navbar(), Div(content, cls="marked"))), cls="tw-mt-16")  # 添加导航栏
+
+from fasthtml.ft import *
+@rt('/navbar_html')
+def get():
+    navbar_ft = navbar()
+    navbar_html = to_xml(navbar_ft)
+    print(navbar_html)
+    return navbar_html
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "__main__:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )
+我想实现搜索结果跳转到对应位置并放置在屏幕中，帮我完善一下代码，用中文回答
