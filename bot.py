@@ -329,8 +329,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                     lastresult = now_result
                 except Exception as e:
                     print('\033[31m')
-                    print("error: edit_message_text:")
-                    traceback.print_exc()
+                    print("error: edit_message_text")
                     print('\033[0m')
                     continue
     except Exception as e:
