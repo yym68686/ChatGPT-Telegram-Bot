@@ -2,13 +2,14 @@
 python-dotenv
 python-telegram-bot[webhooks,rate-limiter]==21.0.1
 
-lxml
 pytz
 msgspec
 PyExecJS
 requests
+html2text
 pdfminer.six
 fake-useragent
 beautifulsoup4
 tiktoken==0.6.0
+lxml[html_clean]
 duckduckgo-search==5.3.1
