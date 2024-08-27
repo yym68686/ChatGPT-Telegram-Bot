@@ -264,6 +264,14 @@ your_webhook_domain.com {
 
 By default, DuckDuckGo search is provided. The official API for Google search needs to be applied for by the user. It can provide real-time information that GPT could not answer before, such as today's trending topics on Weibo, today's weather in a specific location, and the progress of a certain person or news event.
 
+- Why can't I use the search function even though I added the Google search API?
+
+There are two possibilities:
+
+1. Only Large Language Models (LLMs) APIs that support tools use can utilize the search function. Currently, this project only supports the OpenAI and Claude series models' APIs for the search function. Although the Gemini series models' API supports tool use, the developers haven't had time to adapt it yet, but they will complete the adaptation for the Gemini API soon.
+
+2. If you used the APIs of Claude and OpenAI but are unable to use the search function, it might be because the search function is not enabled. You can check whether the search function is enabled by clicking on preferences through the `/info` command. If you still cannot search successfully, please contact the developer.
+
 - How do I switch models?
 
 You can switch between GPT3.5/4/4o, and other models using the "/info" command in the chat window.
@@ -372,12 +380,6 @@ Koyeb's free service can be a bit unstable, so deployment failures are pretty co
 - Why does the default model name reappear after I use CUSTOM_MODELS to delete it, and then check again with the /info command?
 
 If you deployed using `docker-compose.yml`, do not add quotes around the value of `CUSTOM_MODELS`. Incorrect usage: `CUSTOM_MODELS="gpt-4o,-gpt-3.5"`, otherwise it will cause environment variable parsing errors, resulting in the default model name reappearing. The incorrect way will be parsed as deleting the `gpt-3.5"` model, which will cause the default model name `gpt-3.5` not to be deleted. The correct way to write it is: `CUSTOM_MODELS=gpt-4o,-gpt-3.5`.
-
-- Why can't I use the search function even though I added the API?
-
-Only APIs that support tool use can utilize the search function. Currently, this project only supports the OpenAI and Claude series models' APIs for the search function. Although the Gemini series models' API supports tool use, the developers haven't had time to adapt it yet, but they will complete the adaptation for the Gemini API soon.
-
-If you used the APIs of Claude and OpenAI but are unable to use the search function, it might be because the search function is not enabled. You can check whether the search function is enabled by clicking on preferences through the `/info` command. If you still cannot search successfully, please contact the developer.
 
 ## References
 
