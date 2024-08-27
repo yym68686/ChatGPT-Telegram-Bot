@@ -47,7 +47,7 @@ The following is a list of environment variables related to the bot's core setti
 | WEB_HOOK | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
 | API_URL | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
 | GROQ_API_KEY | Groq official API key. | No |
-| GOOGLE_AI_API_KEY | Google AI official API key. | No |
+| GOOGLE_AI_API_KEY | Google AI official API key. Use this environment variable to access the Gemini series models, including Gemini 1.5 pro and Gemini 1.5 flash.| No |
 | claude_api_key | Claude official API key. | No |
 | CLAUDE_API_URL | If you are using the Anthropic official API, you don't need to set this. If you using a third-party Anthropic API, you need to fill in the third-party proxy website. The default is: https://api.anthropic.com/v1/messages | No |
 | NICK | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |
@@ -372,6 +372,12 @@ Koyeb's free service can be a bit unstable, so deployment failures are pretty co
 - Why does the default model name reappear after I use CUSTOM_MODELS to delete it, and then check again with the /info command?
 
 If you deployed using `docker-compose.yml`, do not add quotes around the value of `CUSTOM_MODELS`. Incorrect usage: `CUSTOM_MODELS="gpt-4o,-gpt-3.5"`, otherwise it will cause environment variable parsing errors, resulting in the default model name reappearing. The incorrect way will be parsed as deleting the `gpt-3.5"` model, which will cause the default model name `gpt-3.5` not to be deleted. The correct way to write it is: `CUSTOM_MODELS=gpt-4o,-gpt-3.5`.
+
+- Why can't I use the search function even though I added the API?
+
+Only APIs that support tool use can utilize the search function. Currently, this project only supports the OpenAI and Claude series models' APIs for the search function. Although the Gemini series models' API supports tool use, the developers haven't had time to adapt it yet, but they will complete the adaptation for the Gemini API soon.
+
+If you used the APIs of Claude and OpenAI but are unable to use the search function, it might be because the search function is not enabled. You can check whether the search function is enabled by clicking on preferences through the `/info` command. If you still cannot search successfully, please contact the developer.
 
 ## References
 
