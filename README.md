@@ -401,6 +401,8 @@ We are grateful for the support from the following sponsors:
 
 - @IKUNONHK: 30 USDT
 
+- @miya0v0: 30 USDT
+
 - [@Zeabur](https://zeabur.com?referralCode=yym68686&utm_source=yym68686&utm_campaign=oss): $25
 
 - @Bill_ZKE: 20 USDT
