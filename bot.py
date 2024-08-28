@@ -172,9 +172,10 @@ async def delete_message(update, context, messageid = [], delay=60):
             try:
                 await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=mid)
             except Exception as e:
-                print('\033[31m')
-                print("delete_message error", e)
-                print('\033[0m')
+                pass
+                # print('\033[31m')
+                # print("delete_message error", e)
+                # print('\033[0m')
 
 from telegram.error import Forbidden, TelegramError
 async def is_bot_blocked(bot, user_id: int) -> bool:
