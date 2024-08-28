@@ -268,7 +268,7 @@ By default, DuckDuckGo search is provided. The official API for Google search ne
 
 There are two possibilities:
 
-1. Only Large Language Models (LLMs) APIs that support tools use can utilize the search function. Currently, this project only supports the OpenAI and Claude series models' APIs for the search function. Although the Gemini series models' API supports tool use, the developers haven't had time to adapt it yet, but they will complete the adaptation for the Gemini API soon.
+1. Only Large Language Models (LLMs) APIs that support tools use can utilize the search function. Currently, this project only supports the OpenAI, Claude and Gemini series models' APIs for the search function. The APIs of other model providers are currently not supported for tool use in this project. If you have a model provider you'd like to adapt, you can contact the maintainer.
 
 2. If you used the APIs of Claude and OpenAI but are unable to use the search function, it might be because the search function is not enabled. You can check whether the search function is enabled by clicking on preferences through the `/info` command. If you still cannot search successfully, please contact the developer.
 
