@@ -6,7 +6,7 @@ load_dotenv()
 from utils.i18n import strings
 from datetime import datetime
 from ModelMerge.src.ModelMerge.utils import prompt
-from ModelMerge.src.ModelMerge.models import chatgpt, groq, claude3, gemini, PLUGINS, whisper, DuckChat
+from ModelMerge.src.ModelMerge.models import chatgpt, groq, claude3, gemini, vertex, PLUGINS, whisper, DuckChat
 from ModelMerge.src.ModelMerge.models.base import BaseAPI
 
 from telegram import InlineKeyboardButton
@@ -24,6 +24,10 @@ GET_MODELS = (os.environ.get('GET_MODELS', "False") == "False") == False
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
+
+VERTEX_PRIVATE_KEY = os.environ.get('VERTEX_PRIVATE_KEY', None)
+VERTEX_CLIENT_EMAIL = os.environ.get('VERTEX_CLIENT_EMAIL', None)
+VERTEX_PROJECT_ID = os.environ.get('VERTEX_PROJECT_ID', None)
 
 PASS_HISTORY = os.environ.get('PASS_HISTORY', 9999)
 if type(PASS_HISTORY) == str:
@@ -264,9 +268,9 @@ Users = UserConfig(mode=CHAT_MODE, api_key=API, api_url=API_URL, engine=GPT_ENGI
 temperature = float(os.environ.get('temperature', '0.5'))
 CLAUDE_API = os.environ.get('claude_api_key', None)
 
-ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, whisperBot, duckBot = None, None, None, None, None, None, None
+ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, vertexBot, whisperBot, duckBot = None, None, None, None, None, None, None, None
 def InitEngine(chat_id=None):
-    global Users, ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, whisperBot, duckBot
+    global Users, ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, vertexBot, whisperBot, duckBot
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
     if api_key:
@@ -279,11 +283,13 @@ def InitEngine(chat_id=None):
         groqBot = groq(temperature=temperature)
     if GOOGLE_AI_API_KEY:
         gemini_Bot = gemini(temperature=temperature)
+    if VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID:
+        vertexBot = vertex(temperature=temperature)
 
     duckBot = DuckChat()
 
 def update_language_status(language, chat_id=None):
-    global Users, ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, whisperBot, duckBot
+    global Users
     systemprompt = Users.get_config(chat_id, "systemprompt")
     claude_systemprompt = Users.get_config(chat_id, "claude_systemprompt")
     LAST_LANGUAGE = Users.get_config(chat_id, "language")
@@ -341,7 +347,7 @@ def update_info_message(user_id = None):
     ])
 
 def reset_ENGINE(chat_id, message=None):
-    global ChatGPTbot, claude3Bot, groqBot, gemini_Bot
+    global ChatGPTbot, claude3Bot, groqBot, gemini_Bot, vertexBot
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
     engine = Users.get_config(chat_id, "engine")
@@ -363,6 +369,8 @@ def reset_ENGINE(chat_id, message=None):
         groqBot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
     if GOOGLE_AI_API_KEY and gemini_Bot:
         gemini_Bot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
+    if VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID and vertexBot:
+        vertexBot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
 
 def get_robot(chat_id = None):
     global ChatGPTbot, claude3Bot, groqBot, gemini_Bot, duckBot
@@ -380,6 +388,10 @@ def get_robot(chat_id = None):
         robot = gemini_Bot
         api_key = GOOGLE_AI_API_KEY
         api_url = "https://generativelanguage.googleapis.com/v1beta/models/{model}:{stream}?key={api_key}"
+    elif VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID and "gemini" in engine:
+        robot = vertexBot
+        api_key = VERTEX_PRIVATE_KEY
+        api_url = "https://us-central1-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/us-central1/publishers/google/models/{MODEL_ID}:{stream}"
     elif ChatGPTbot:
         robot = ChatGPTbot
         api_key = Users.get_config(chat_id, "api_key")
@@ -483,7 +495,7 @@ if GROQ_API_KEY:
         "llama-3.1-70b-versatile",
         "llama-3.1-405b-reasoning",
     ])
-if GOOGLE_AI_API_KEY:
+if GOOGLE_AI_API_KEY or (VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID):
     initial_model.extend([
         "gemini-1.5-pro",
         "gemini-1.5-flash",

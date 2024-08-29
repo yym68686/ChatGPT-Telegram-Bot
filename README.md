@@ -2,7 +2,7 @@
 <img src="./assets/logo-3071751.jpg">
 </p>
 
-# 🤖️ ChatGPT Telegram Bot
+# 🤖️ TeleChat
 
 <p align="center">
   <a href="https://t.me/+_01cz9tAkUc1YzZl">
@@ -48,6 +48,9 @@ The following is a list of environment variables related to the bot's core setti
 | API_URL | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
 | GROQ_API_KEY | Groq official API key. | No |
 | GOOGLE_AI_API_KEY | Google AI official API key. Use this environment variable to access the Gemini series models, including Gemini 1.5 pro and Gemini 1.5 flash.| No |
+| VERTEX_PRIVATE_KEY | Description: The private key for the Google Cloud Vertex AI service account. Format: A JSON string containing the service account's private key information. How to obtain: Create a service account in the Google Cloud Console, generate a JSON key file, and set its contents as the value for this environment variable. | No |
+| VERTEX_PROJECT_ID | Description: Your Google Cloud project ID. Format: A string, typically composed of lowercase letters, numbers, and hyphens. How to obtain: You can find your project ID in the project selector of the Google Cloud Console. | No |
+| VERTEX_CLIENT_EMAIL | Description: The email address of the Google Cloud Vertex AI service account. Format: Usually a string in the form of "service-account-name@developer.gserviceaccount.com". How to obtain: Generated when creating the service account, or can be viewed in the service account details under the "IAM & Admin" section of the Google Cloud Console. | No |
 | claude_api_key | Claude official API key. | No |
 | CLAUDE_API_URL | If you are using the Anthropic official API, you don't need to set this. If you using a third-party Anthropic API, you need to fill in the third-party proxy website. The default is: https://api.anthropic.com/v1/messages | No |
 | NICK | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |

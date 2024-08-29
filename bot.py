@@ -15,6 +15,9 @@ from config import (
     PORT,
     BOT_TOKEN,
     GOOGLE_AI_API_KEY,
+    VERTEX_PROJECT_ID,
+    VERTEX_PRIVATE_KEY,
+    VERTEX_CLIENT_EMAIL,
     Users,
     PREFERENCES,
     LANGUAGES,
@@ -147,7 +150,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 messageid = None
 
             if image_url:
-                if "gemini" in engine and GOOGLE_AI_API_KEY:
+                if "gemini" in engine and (GOOGLE_AI_API_KEY or (VERTEX_CLIENT_EMAIL and VERTEX_PRIVATE_KEY and VERTEX_PROJECT_ID)):
                     message = get_image_message(image_url, [{"text": message}], engine)
                 else:
                     message = get_image_message(image_url, [{"type": "text", "text": message}], engine)
@@ -208,7 +211,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         Frequency_Modification = 25
     if message_thread_id or convo_id.startswith("-"):
         Frequency_Modification = 35
-    if "gemini" in model_name and GOOGLE_AI_API_KEY:
+    if "gemini" in model_name and (GOOGLE_AI_API_KEY or (VERTEX_CLIENT_EMAIL and VERTEX_PRIVATE_KEY and VERTEX_PROJECT_ID)):
         Frequency_Modification = 1
 
 
