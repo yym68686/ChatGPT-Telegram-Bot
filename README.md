@@ -60,7 +60,7 @@ The following is a list of environment variables related to the bot's core setti
 | ADMIN_LIST | Set up an admin list. Only admins can use the `/info` command to configure the bot. | No |
 | GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). Even if group members are not on the whitelist, as long as the group ID is in the GROUP_LIST, all members of the group can use the bot. | No |
 | CUSTOM_MODELS | Set up a list of custom model names. Connect the model names with a comma (','). If you need to delete the default model, add a hyphen(-) before the default model name. | No |
-| CHAT_MODE | Introduce multi-user mode, different users' configurations are not shared. When CHAT_MODE is global, all users share the configuration. When CHAT_MODE is multiusers, user configurations are independent of each other. | No |
+| CHAT_MODE | Introduce multi-user mode, different users' configurations are not shared. When CHAT_MODE is `global`, all users share the configuration. When CHAT_MODE is `multiusers`, user configurations are independent of each other. | No |
 | temperature | Specify the temperature for the LLM. Default is `0.5`. | No |
 | GET_MODELS | Specify whether to get supported models via API. Default is `False`. | No |
 | SYSTEMPROMPT | Specify the system prompt. Default is `None`. | No |

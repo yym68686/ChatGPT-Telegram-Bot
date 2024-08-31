@@ -635,7 +635,10 @@ async def start(update, context): # 当用户输入/start时，返回文本
 async def error(update, context):
     traceback_string = traceback.format_exception(None, context.error, context.error.__traceback__)
     if "telegram.error.TimedOut: Timed out" in traceback_string:
-        logger.warning('telegram.error.TimedOut: Timed out')
+        logger.warning('error: telegram.error.TimedOut: Timed out')
+        return
+    if "Message to be replied not found" in traceback_string:
+        logger.warning('error: telegram.error.BadRequest: Message to be replied not found')
         return
     logger.warning('Update "%s" caused error "%s"', update, context.error)
     logger.warning('Error traceback: %s', ''.join(traceback_string))
