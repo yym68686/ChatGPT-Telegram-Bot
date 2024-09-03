@@ -14,6 +14,7 @@ from config import (
     WEB_HOOK,
     PORT,
     BOT_TOKEN,
+    GET_MODELS,
     GOOGLE_AI_API_KEY,
     VERTEX_PROJECT_ID,
     VERTEX_PRIVATE_KEY,
@@ -27,6 +28,7 @@ from config import (
     get_current_lang,
     update_info_message,
     update_menu_buttons,
+    update_initial_model,
     update_models_buttons,
     update_language_status,
     update_first_buttons_message,
@@ -585,6 +587,8 @@ async def reset_chat(update, context):
         reply_markup=remove_keyboard,
         parse_mode='MarkdownV2',
     )
+    if GET_MODELS:
+        update_initial_model()
     await delete_message(update, context, [message.message_id, user_message_id])
 
 @decorators.AdminAuthorization

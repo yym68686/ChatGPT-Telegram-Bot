@@ -508,17 +508,18 @@ if duckBot:
         "Mixtral-8x7B",
     ])
 
-if GET_MODELS:
+def update_initial_model():
+    global initial_model
     try:
         endpoint = BaseAPI(api_url=API_URL)
         endpoint_models_url = endpoint.v1_models
         import requests
-        response = requests.post(
+        response = requests.get(
             endpoint_models_url,
             headers={"Authorization": f"Bearer {API}"},
         )
-        # response = requests.get(endpoint_models_url)
         models = response.json()
+        # print(models)
         models_list = models["data"]
         models_id = [model["id"] for model in models_list]
         set_models = set()
@@ -531,6 +532,9 @@ if GET_MODELS:
     except Exception as e:
         print("error:", e)
         pass
+
+if GET_MODELS:
+    update_initial_model()
 
 CUSTOM_MODELS = os.environ.get('CUSTOM_MODELS', None)
 if CUSTOM_MODELS:
