@@ -405,12 +405,18 @@ def get_robot(chat_id = None):
     return robot, role, api_key, api_url
 
 whitelist = os.environ.get('whitelist', None)
+if whitelist == "":
+    whitelist = None
 if whitelist:
     whitelist = [int(id) for id in whitelist.split(",")]
 ADMIN_LIST = os.environ.get('ADMIN_LIST', None)
+if ADMIN_LIST == "":
+    ADMIN_LIST = None
 if ADMIN_LIST:
     ADMIN_LIST = [int(id) for id in ADMIN_LIST.split(",")]
 GROUP_LIST = os.environ.get('GROUP_LIST', None)
+if GROUP_LIST == "":
+    GROUP_LIST = None
 if GROUP_LIST:
     GROUP_LIST = [id for id in GROUP_LIST.split(",")]
 
