@@ -247,6 +247,33 @@ docker logs -f chatbot
 
 This script is for restarting the Docker image with a single command. It first removes the existing Docker container named "chatbot" if it exists. Then, it runs a new Docker container with the name "chatbot", exposing port 8080 and setting various environment variables. The Docker image used is "yym68686/chatgpt:latest". Finally, it follows the logs of the "chatbot" container.
 
+## 🚀 Source code Local Deployment
+
+Run the robot directly from the source code without using docker, Clone the repository:
+
+```bash
+git clone --recurse-submodules --depth 1 -b main --quiet https://github.com/yym68686/ChatGPT-Telegram-Bot.git
+```
+
+Install Dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Set Environment Variables:
+
+```bash
+export BOT_TOKEN=
+export API=
+```
+
+Run:
+
+```bash
+python bot.py
+```
+
 ## 📄 Q & A
 
 - What is the use of the WEB_HOOK environment variable? How should it be used?
