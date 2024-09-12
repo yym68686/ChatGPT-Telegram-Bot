@@ -205,7 +205,10 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     image_has_send = 0
     model_name = engine
     language = Users.get_config(convo_id, "language")
-    system_prompt = Users.get_config(convo_id, "systemprompt")
+    if "claude" in model_name:
+        system_prompt = Users.get_config(convo_id, "claude_systemprompt")
+    else:
+        system_prompt = Users.get_config(convo_id, "systemprompt")
     plugins = Users.extract_plugins_config(convo_id)
 
     Frequency_Modification = 20
