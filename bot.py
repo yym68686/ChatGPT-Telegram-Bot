@@ -360,7 +360,10 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         systemprompt = Users.get_config(convo_id, "systemprompt")
         if api_key:
             robot.reset(convo_id=convo_id, system_prompt=systemprompt)
-        tmpresult = f"{tmpresult}\n\n`{e}`"
+        if "parse entities" in str(e):
+            sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=tmpresult, disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+        else:
+            tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
     now_result = escape(tmpresult, italic=False)
     if lastresult != now_result and answer_messageid:
