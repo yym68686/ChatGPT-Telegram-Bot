@@ -489,6 +489,8 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
 initial_model = [
     "gpt-4o",
     "gpt-4o-mini",
+    "o1-mini",
+    "o1-preview",
     "claude-3-opus-20240229",
     "claude-3-5-sonnet-20240620",
     # "gpt-4-turbo-2024-04-09",
