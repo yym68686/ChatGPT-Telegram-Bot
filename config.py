@@ -532,6 +532,8 @@ def update_initial_model():
         models_id = [model["id"] for model in models_list]
         set_models = set()
         for model_item in models_id:
+            if "dalle" in model_item or "dall-e" in model_item:
+                continue
             parts = [part for segment in model_item.split("-") for part in segment.split("@")]
             set_models.add(delete_model_digit_tail(parts))
         models_id = list(set_models)
