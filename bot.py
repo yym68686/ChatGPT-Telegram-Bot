@@ -384,7 +384,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
                 if "parse entities" in str(e):
                     sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=tmpresult, disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
 
-    if Users.get_config(convo_id, "FOLLOW_UP"):
+    if Users.get_config(convo_id, "FOLLOW_UP") and tmpresult.strip():
         if title != "":
             info = "\n\n".join(tmpresult.split("\n\n")[1:])
         else:
