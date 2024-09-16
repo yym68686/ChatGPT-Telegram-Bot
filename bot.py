@@ -99,9 +99,14 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             message = voice_text
         if message:
             bot_info = await context.bot.get_me(read_timeout=time_out, write_timeout=time_out, connect_timeout=time_out, pool_timeout=time_out)
+            message_has_nick = False
+            botNick = config.NICK.lower() if config.NICK else None
+            if rawtext.split()[0].lower() == botNick:
+                message_has_nick = True
+
             if update_message.reply_to_message \
             and update_message.from_user.is_bot == False \
-            and update_message.reply_to_message.from_user.username == bot_info.username:
+            and (update_message.reply_to_message.from_user.username == bot_info.username or message_has_nick):
                 if update_message.reply_to_message.from_user.is_bot and Users.get_config(convo_id, "TITLE") == True:
                     message = '\n'.join(reply_to_message_text.split('\n')[1:]) + "\n" + message
                 else:
