@@ -35,7 +35,7 @@ from config import (
 )
 
 from utils.i18n import strings
-from utils.scripts import GetMesageInfo, safe_get
+from utils.scripts import GetMesageInfo, safe_get, is_emoji
 
 from telegram.constants import ChatAction
 from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
@@ -83,6 +83,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
     stop_event.clear()
     message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesageInfo(update, context)
 
+    if len(message) == 1 and is_emoji(message):
+        return
     if has_command == False or len(context.args) > 0:
         if has_command:
             message = ' '.join(context.args)
