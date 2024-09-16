@@ -634,16 +634,16 @@ async def start(update, context): # 当用户输入/start时，返回文本
     message = (
         f"Hi `{user.username}` ! I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions.\n\n"
     )
-    if (len(context.args) == 2):
-        api_url = context.args[0]
-        api_key = context.args[1]
-        Users.set_config(convo_id, "api_key", api_key)
-        Users.set_config(convo_id, "api_url", api_url)
+    # if (len(context.args) == 2):
+    #     api_url = context.args[0]
+    #     api_key = context.args[1]
+    #     Users.set_config(convo_id, "api_key", api_key)
+    #     Users.set_config(convo_id, "api_url", api_url)
 
-    if (len(context.args) == 1):
-        api_key = context.args[0]
-        Users.set_config(convo_id, "api_key", api_key)
-        Users.set_config(convo_id, "api_url", "https://api.openai.com/v1/chat/completions")
+    # if (len(context.args) == 1):
+    #     api_key = context.args[0]
+    #     Users.set_config(convo_id, "api_key", api_key)
+    #     Users.set_config(convo_id, "api_url", "https://api.openai.com/v1/chat/completions")
 
     await update.message.reply_text(escape(message, italic=False), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
