@@ -274,17 +274,17 @@ def InitEngine(chat_id=None):
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
     if api_key:
-        ChatGPTbot = chatgpt(temperature=temperature)
-        SummaryBot = chatgpt(temperature=temperature, use_plugins=False)
+        ChatGPTbot = chatgpt(temperature=temperature, print_log=True)
+        SummaryBot = chatgpt(temperature=temperature, use_plugins=False, print_log=True)
         whisperBot = whisper(api_key=api_key, api_url=api_url)
     if CLAUDE_API:
-        claude3Bot = claude3(temperature=temperature)
+        claude3Bot = claude3(temperature=temperature, print_log=True)
     if GROQ_API_KEY:
         groqBot = groq(temperature=temperature)
     if GOOGLE_AI_API_KEY:
-        gemini_Bot = gemini(temperature=temperature)
+        gemini_Bot = gemini(temperature=temperature, print_log=True)
     if VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID:
-        vertexBot = vertex(temperature=temperature)
+        vertexBot = vertex(temperature=temperature, print_log=True)
 
     duckBot = DuckChat()
 

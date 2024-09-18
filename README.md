@@ -4,6 +4,8 @@
 
 # 🤖️ TeleChat
 
+[English](README.md) | [Chinese](README_CN.md)
+
 <p align="center">
   <a href="https://t.me/+_01cz9tAkUc1YzZl">
     <img src="https://img.shields.io/badge/Join Telegram Group-blue?&logo=telegram">
