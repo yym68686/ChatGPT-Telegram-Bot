@@ -18,15 +18,15 @@
   </a>
 </p>
 
-The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT models, including GPT-3.5/4/4 Turbo/4o, DALL·E 3, Groq Mixtral-8x7b/LLaMA2-70b, Gemini 1.5 Pro/Flash, the official Claude2.1/3/3.5 API and DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). It enables users to engage in efficient conversations and information searches on Telegram.
+ChatGPT Telegram Bot is a powerful Telegram bot that can use various mainstream large language model APIs, including GPT-3.5/4/4 Turbo/4o/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b, and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). It enables users to have efficient conversations and information searches on Telegram.
 
 ## ✨ Features
 
-- **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o, DALL·E 3, Groq Mixtral-8x7b/LLaMA2-70b, Gemini 1.5 Pro/Flash, the official Claude2.1/3/3.5 API and DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). Also supports one-api/new-api. Utilizes a self-developed API request backend [SDK](https://github.com/yym68686/ModelMerge), independent of the OpenAI SDK.
-- **Multi-modal Q&A**: Supports Q&A for voice, audio, images and PDF/TXT/MD/python documents. Users can upload files directly in the chat box for use.
+- **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). Also supports one-api/new-api/[uni-api](https://github.com/yym68686/uni-api). Utilizes self-developed API to request backend [SDK](https://github.com/yym68686/ModelMerge), does not rely on OpenAI SDK.
+- **Multimodal Question Answering**: Supports question answering for voice, audio, images, and PDF/TXT/MD/python documents. Users can directly upload files in the chat box for use.
 - **Group Chat Topic Mode**: Supports enabling topic mode in group chats, isolating APIs, dialogue history, plugin configurations, and preferences between topics.
-- **Rich Plugin System**: Supports web search(DuckDuckGo and Google), URL summarization, arXiv paper summarization, and code interpreter.
-- **User-friendly Interface**: Allows flexible model switching within the chat window and supports streaming output for a typewriter-like effect.
+- **Rich plugin system**: Supports web search (DuckDuckGo and Google), URL summarization, ArXiv paper summarization, and code interpreter.
+- **User-friendly interface**: Allows flexible switching of models within the chat window and supports streaming output similar to a typewriter effect. Supports precise Markdown message rendering, utilizing another of my [projects](https://github.com/yym68686/md2tgmd).
 - **Efficient Message Processing**: Asynchronously processes messages, answers questions in a multi-threaded manner, supports isolated dialogues, and provides unique dialogues for different users.
 - **Long Text Message Handling**: Automatically merges long text messages, breaking through Telegram's single message length limit. When the bot's response exceeds the Telegram limit, it will be split into multiple messages.
 - **Multi-user Dialogue Isolation**: Supports dialogue isolation and configuration isolation, allowing selection between multi-user and single-user modes.
@@ -34,7 +34,6 @@ The ChatGPT Telegram Bot is a powerful Telegram bot that utilizes the latest GPT
 - **Multi-language Interface**: Supports Simplified Chinese, Traditional Chinese, Russian and English interfaces.
 - **Whitelist, Blacklist, and Admin Settings**: Supports setting up whitelists, blacklists, and administrators.
 - **Inline Mode**: Allows users to @ the bot in any chat window to generate answers without needing to ask questions in the bot's chat window.
-- **User-friendly Interface**: Allows flexible model switching within the chat window and supports streaming output for a typewriter-like effect.Supports precise Markdown rendering of messages, utilizing another [project](https://github.com/yym68686/md2tgmd) of mine.
 - **Convenient Deployment**: Supports one-click koyeb, Zeabur, Replit deployment with true zero cost and idiot-proof deployment process. It also supports kuma anti-sleep, as well as Docker and fly.io deployment.
 
 ## 🍃 Environment variables
@@ -276,7 +275,25 @@ Run:
 python bot.py
 ```
 
-## 📄 Q & A
+## 🧩 Plugin
+
+The robot supports multiple plugins, including: DuckDuckGo and Google search, URL summary, ArXiv paper summary, DALLE-3 drawing, and code interpreter, etc. You can enable or disable these plugins by setting environment variables.
+
+- How to develop a plugin?
+
+All the code related to the plugin is in the git submodule ModelMerge within this repository. ModelMerge is an independent repository I developed to handle API requests, conversation history management, and other functionalities. When you clone this repository using the --recurse-submodules parameter, ModelMerge will be automatically downloaded locally. All the plugin code is located in this repository at the relative path `ModelMerge/src/ModelMerge/plugins`. You can add your own plugin code in this directory. The plugin development process is as follows:
+
+1. Create a new Python file in the `ModelMerge/src/ModelMerge/plugins` directory, for example, `myplugin.py`. In the `ModelMerge/src/ModelMerge/plugins/__init__.py` file, import your plugin, for example, `from .myplugin import MyPlugin`.
+
+2. In the `ModelMerge/src/ModelMerge/tools/chatgpt.py` file, add your plugin OpenAI tool format detailed request body to the `function_call_list` variable. The Claude Gemini tool does not require additional writing; you only need to fill in the OpenAI format tool request body. The program will automatically convert to Claude/Gemini tool format when requesting the Gemini or Claude API. `function_call_list` is a dictionary where the key is the name of the plugin, and the value is the request body of the plugin. Please ensure that the key names in the `function_call_list` dictionary are unique and do not duplicate the existing plugin key names.
+
+3. Add key-value pairs to the `PLUGINS` dictionary in `ModelMerge/src/ModelMerge/plugins/config.py`, where the key is the name of the plugin and the value is the environment variable of the plugin and its default value. This default value acts as the switch for the plugin. If the default value is `True`, the plugin is enabled by default. If the default value is `False`, the plugin is disabled by default and needs to be manually enabled by the user in the `/info` command.
+
+4. Finally, in the functions `get_tools_result_async` and `get_tools_result` inside `ModelMerge/src/ModelMerge/plugins/config.py`, add the code for invoking the plugin. When the robot needs to call the plugin, it will call this function. You need to add the plugin invocation code inside this function.
+
+After completing the above steps, your plugin can be used in the bot. 🎉
+
+## 📄 Frequently Asked Questions
 
 - What is the use of the WEB_HOOK environment variable? How should it be used?
 

@@ -18,15 +18,15 @@
   </a>
 </p>
 
-ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，利用了最新的 GPT 模型，包括 GPT-3.5/4/4 Turbo/4o，DALL·E 3，Groq Mixtral-8x7b/LLaMA2-70b，Gemini 1.5 Pro/Flash，官方的 Claude2.1/3/3.5 API 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。它使用户能够在 Telegram 上进行高效的对话和信息搜索。
+ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用多种主流的大语言模型 API，包括 GPT-3.5/4/4 Turbo/4o/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。它使用户能够在 Telegram 上进行高效的对话和信息搜索。
 
 ## ✨ 功能
 
-- **多种AI模型**：支持GPT-3.5/4/4 Turbo/4o、DALL·E 3、Groq Mixtral-8x7b/LLaMA2-70b、Gemini 1.5 Pro/Flash、官方Claude2.1/3/3.5 API和DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。还支持one-api/new-api。利用自研API请求后端[SDK](https://github.com/yym68686/ModelMerge)，独立于OpenAI SDK。
-- **多模态问答**：支持语音、音频、图像和PDF/TXT/MD/python文档的问答。用户可以直接在聊天框中上传文件使用。
+- **多种AI模型**：支持GPT-3.5/4/4 Turbo/4o/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。还支持 one-api/new-api/[uni-api](https://github.com/yym68686/uni-api)。利用自研 API 请求后端 [SDK](https://github.com/yym68686/ModelMerge)，不依赖 OpenAI SDK。
+- **多模态问答**：支持语音、音频、图像和 PDF/TXT/MD/python 文档的问答。用户可以直接在聊天框中上传文件使用。
 - **群聊主题模式**：支持在群聊中启用主题模式，在主题之间隔离API、对话历史、插件配置和偏好设置。
-- **丰富的插件系统**：支持网页搜索（DuckDuckGo和Google）、URL摘要、arXiv论文摘要和代码解释器。
-- **用户友好界面**：允许在聊天窗口内灵活切换模型，并支持流式输出以实现打字机效果。
+- **丰富的插件系统**：支持网页搜索（DuckDuckGo和Google）、URL 总结、ArXiv 论文总结和代码解释器。
+- **用户友好界面**：允许在聊天窗口内灵活切换模型，并支持类似打字机效果的流式输出。支持精确的 Markdown 消息渲染，利用了我的另一个[项目](https://github.com/yym68686/md2tgmd)。
 - **高效消息处理**：异步处理消息，多线程回答问题，支持隔离对话，并为不同用户提供独特对话。
 - **长文本消息处理**: 自动合并长文本消息，突破Telegram的单条消息长度限制。当机器人的回复超过Telegram的限制时，它将被拆分成多条消息。
 - **多用户对话隔离**：支持对话隔离和配置隔离，允许在多用户和单用户模式之间进行选择。
@@ -34,7 +34,6 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，利用了最�
 - **多语言界面**：支持简体中文、繁体中文、俄文和英文界面。
 - **白名单、黑名单和管理员设置**：支持设置白名单、黑名单和管理员。
 - **内联模式**：允许用户在任何聊天窗口中 @ 机器人以生成答案，而无需在机器人的聊天窗口中提问。
-- **用户友好界面**：允许在聊天窗口内灵活切换模型，并支持类似打字机效果的流式输出。支持精确的Markdown消息渲染，利用了我的另一个[项目](https://github.com/yym68686/md2tgmd)。
 - **方便部署**：支持一键部署到 koyeb、Zeabur、Replit，真正零成本和傻瓜式部署流程。还支持 kuma 防休眠，以及 Docker 和 fly.io 部署。
 
 ## 🍃 环境变量
@@ -276,7 +275,25 @@ export API=
 python bot.py
 ```
 
-## 📄 问答
+## 🧩 插件
+
+机器人支持多种插件，包括：DuckDuckGo 和 Google 搜索、URL 摘要、ArXiv 论文摘要、DALLE-3 画图和代码解释器等。您可以通过设置环境变量来启用或禁用这些插件。
+
+- 如何开发插件？
+
+插件相关的代码全部在本仓库git 子模块ModelMerge里面，ModelMerge是我开发的一个独立的仓库，用于处理API请求，对话历史记录管理等功能。当你使用git clone的--recurse-submodules参数克隆本仓库后，ModelMerge会自动下载到本地。插件所有的代码在本仓库中的相对路径为 `ModelMerge/src/ModelMerge/plugins`。你可以在这个目录下添加自己的插件代码。插件开发的流程如下：
+
+1. 在 `ModelMerge/src/ModelMerge/plugins` 目录下创建一个新的 Python 文件，例如 `myplugin.py`。在 `ModelMerge/src/ModelMerge/plugins/__init__.py` 文件中导入你的插件，例如 `from .myplugin import MyPlugin`。
+
+2. 在 `ModelMerge/src/ModelMerge/tools/chatgpt.py` 里面的 `function_call_list` 变量中添加你的插件OpenAI tool格式详细的请求体。Claude Gemini tool 不需要额外编写，你仅需要填写OpenAI格式的tool请求体，程序在请求Gemini或者Claude API的时候，会自动转换为Claude/Gemini tool格式。`function_call_list` 是一个字典，键是插件的名称，值是插件的请求体。请保证`function_call_list` 字典的键名保证唯一性，不能和已有的插件键名重复。
+
+3. 在 `ModelMerge/src/ModelMerge/plugins/config.py` 里面的 `PLUGINS` 字典里面添加键值对，键是插件的名称，值是插件的环境变量及其默认值。这个默认值是插件的开关，如果默认值是`True`，那么插件默认是开启的，如果默认值是 `False`，那么插件默认是关闭的，需要在用户在 `/info` 命令里面手动开启。
+
+4. 最后，在 `ModelMerge/src/ModelMerge/plugins/config.py` 里面的函数 `get_tools_result_async` 和 `get_tools_result` 添加插件调用的代码，当机器人需要调用插件的时候，会调用这个函数。你需要在这个函数里面添加插件的调用代码。
+
+完成上面的步骤，你的插件就可以在机器人中使用了。🎉
+
+## 📄 常见问题
 
 - WEB_HOOK 环境变量有什么用？应该如何使用？
 
