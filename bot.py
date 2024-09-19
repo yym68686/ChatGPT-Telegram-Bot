@@ -465,7 +465,7 @@ async def button_press(update, context):
                 current_data = Users.get_config(convo_id, data)
                 if data == "PASS_HISTORY":
                     if current_data == 0:
-                        current_data = 9999
+                        current_data = config.PASS_HISTORY or 9999
                     else:
                         current_data = 0
                     Users.set_config(convo_id, data, current_data)
