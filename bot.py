@@ -210,6 +210,7 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     modifytime = 0
     time_out = 600
     image_has_send = 0
+    sent_message = None
     model_name = engine
     language = Users.get_config(convo_id, "language")
     if "claude" in model_name:
@@ -404,7 +405,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
             keyboard.append([KeyboardButton(ques)])
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
         await update.message.reply_text(text=escape(tmpresult, italic=False), parse_mode='MarkdownV2', reply_to_message_id=messageid, reply_markup=reply_markup)
-        await context.bot.delete_message(chat_id=chatid, message_id=sent_message.message_id)
+        if sent_message:
+            await context.bot.delete_message(chat_id=chatid, message_id=sent_message.message_id)
 
 @decorators.AdminAuthorization
 @decorators.GroupAuthorization
