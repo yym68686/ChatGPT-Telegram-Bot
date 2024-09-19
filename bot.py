@@ -167,7 +167,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 image_url = file_url
                 message = Document_extract(file_url, image_url, engine) + message
 
-            await getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history, api_key, api_url, engine)
+            await getChatGPT(update_message, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history, api_key, api_url, engine)
     else:
         message = await context.bot.send_message(
             chat_id=chatid,
@@ -202,7 +202,7 @@ async def is_bot_blocked(bot, user_id: int) -> bool:
         # 处理其他可能的错误
         return False  # 如果是其他错误，我们假设机器人未被封禁
 
-async def getChatGPT(update, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=0, api_key=None, api_url=None, engine = None):
+async def getChatGPT(update_message, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history=0, api_key=None, api_url=None, engine = None):
     lastresult = title
     text = message
     result = ""
@@ -210,7 +210,6 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
     modifytime = 0
     time_out = 600
     image_has_send = 0
-    sent_message = None
     model_name = engine
     language = Users.get_config(convo_id, "language")
     if "claude" in model_name:
@@ -369,21 +368,21 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         if api_key:
             robot.reset(convo_id=convo_id, system_prompt=systemprompt)
         if "parse entities" in str(e):
-            sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=tmpresult, disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+            await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=tmpresult, disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
         else:
             tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
     now_result = escape(tmpresult, italic=False)
     if lastresult != now_result and answer_messageid:
         if "Can't parse entities: can't find end of code entity at byte offset" in tmpresult:
-            await update.message.reply_text(tmpresult)
+            await update_message.reply_text(tmpresult)
             print(now_result)
         elif now_result:
             try:
-                sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+                await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
             except Exception as e:
                 if "parse entities" in str(e):
-                    sent_message = await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=tmpresult, disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
+                    await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=tmpresult, disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
 
     if Users.get_config(convo_id, "FOLLOW_UP") and tmpresult.strip():
         if title != "":
@@ -404,9 +403,8 @@ async def getChatGPT(update, context, title, robot, message, chatid, messageid, 
         for ques in result:
             keyboard.append([KeyboardButton(ques)])
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
-        await update.message.reply_text(text=escape(tmpresult, italic=False), parse_mode='MarkdownV2', reply_to_message_id=messageid, reply_markup=reply_markup)
-        if sent_message:
-            await context.bot.delete_message(chat_id=chatid, message_id=sent_message.message_id)
+        await update_message.reply_text(text=escape(tmpresult, italic=False), parse_mode='MarkdownV2', reply_to_message_id=messageid, reply_markup=reply_markup)
+        await context.bot.delete_message(chat_id=chatid, message_id=answer_messageid)
 
 @decorators.AdminAuthorization
 @decorators.GroupAuthorization
