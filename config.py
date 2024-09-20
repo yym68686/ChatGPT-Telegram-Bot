@@ -409,11 +409,18 @@ if whitelist == "":
     whitelist = None
 if whitelist:
     whitelist = [int(id) for id in whitelist.split(",")]
+
+BLACK_LIST = os.environ.get('BLACK_LIST', None)
+if BLACK_LIST == "":
+    BLACK_LIST = None
+if BLACK_LIST:
+    BLACK_LIST = [id for id in BLACK_LIST.split(",")]
+
 ADMIN_LIST = os.environ.get('ADMIN_LIST', None)
 if ADMIN_LIST == "":
     ADMIN_LIST = None
 if ADMIN_LIST:
-    ADMIN_LIST = [int(id) for id in ADMIN_LIST.split(",")]
+    ADMIN_LIST = [id for id in ADMIN_LIST.split(",")]
 GROUP_LIST = os.environ.get('GROUP_LIST', None)
 if GROUP_LIST == "":
     GROUP_LIST = None

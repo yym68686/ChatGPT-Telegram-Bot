@@ -58,6 +58,7 @@ The following is a list of environment variables related to the bot's core setti
 | GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. | No |
 | GOOGLE_CSE_ID | If you need to use Google search, you need to set it together with GOOGLE_API_KEY. | No |
 | whitelist | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. | No |
+| BLACK_LIST | Set which users are prohibited from accessing the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None` | No |
 | ADMIN_LIST | Set up an admin list. Only admins can use the `/info` command to configure the bot. | No |
 | GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). Even if group members are not on the whitelist, as long as the group ID is in the GROUP_LIST, all members of the group can use the bot. | No |
 | CUSTOM_MODELS | Set up a list of custom model names. Connect the model names with a comma (','). If you need to delete the default model, add a hyphen(-) before the default model name. | No |
@@ -65,6 +66,7 @@ The following is a list of environment variables related to the bot's core setti
 | temperature | Specify the temperature for the LLM. Default is `0.5`. | No |
 | GET_MODELS | Specify whether to get supported models via API. Default is `False`. | No |
 | SYSTEMPROMPT | Specify the system prompt. Default is `None`. | No |
+| LANGUAGE | Specifies the default language displayed by the bot, including button display language and dialogue language. The default is `English`. Currently, it only supports setting to the following four languages: `English`, `Simplified Chinese`, `Traditional Chinese`, `Russian`. You can also use the `/info` command to set the display language after the bot is deployed. | No |
 | CONFIG_DIR | Specify storage user profile folder. CONFIG_DIR is the folder for storing user configurations. Each time the bot starts, it reads the configurations from the CONFIG_DIR folder, so users won't lose their previous settings every time they restart. you can achieve configuration persistence by mounting folders using the `-v` parameter when deploying locally with Docker. Default is `user_configs`. | No |
 
 The following is a list of environment variables related to the bot's preference settings:
