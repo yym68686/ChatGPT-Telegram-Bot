@@ -19,16 +19,16 @@ def ban_message(update, convo_id):
 def Authorization(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
-        _, _, _, chatid, _, _, _, _, convo_id, _, _, _ = await GetMesageInfo(update, context)
+        _, _, _, chatid, _, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
         if config.BLACK_LIST and chatid in config.BLACK_LIST:
             message = ban_message(update, convo_id)
-            await context.bot.send_message(chat_id=chatid, text=message, parse_mode='MarkdownV2')
+            await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=message, parse_mode='MarkdownV2')
             return
         if config.whitelist == None or (config.GROUP_LIST and chatid in config.GROUP_LIST):
             return await func(*args, **kwargs)
         if (chatid not in config.whitelist):
             message = ban_message(update, convo_id)
-            await context.bot.send_message(chat_id=chatid, text=message, parse_mode='MarkdownV2')
+            await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=message, parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)
     return wrapper
@@ -37,7 +37,7 @@ def Authorization(func):
 def GroupAuthorization(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
-        _, _, _, chatid, _, _, _, _, convo_id, _, _, _ = await GetMesageInfo(update, context)
+        _, _, _, chatid, _, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
         if config.GROUP_LIST == None:
             return await func(*args, **kwargs)
         if update.effective_chat == None or chatid[0] != "-":
@@ -46,7 +46,7 @@ def GroupAuthorization(func):
             if (config.ADMIN_LIST and chatid in config.ADMIN_LIST):
                 return await func(*args, **kwargs)
             message = ban_message(update, convo_id)
-            await context.bot.send_message(chat_id=chatid, text=message, parse_mode='MarkdownV2')
+            await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=message, parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)
     return wrapper
@@ -55,12 +55,12 @@ def GroupAuthorization(func):
 def AdminAuthorization(func):
     async def wrapper(*args, **kwargs):
         update, context = args[:2]
-        _, _, _, chatid, _, _, _, _, convo_id, _, _, _ = await GetMesageInfo(update, context)
+        _, _, _, chatid, _, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
         if config.ADMIN_LIST == None:
             return await func(*args, **kwargs)
         if (chatid not in config.ADMIN_LIST):
             message = ban_message(update, convo_id)
-            await context.bot.send_message(chat_id=chatid, text=message, parse_mode='MarkdownV2')
+            await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=message, parse_mode='MarkdownV2')
             return
         return await func(*args, **kwargs)
     return wrapper
