@@ -408,7 +408,7 @@ whitelist = os.environ.get('whitelist', None)
 if whitelist == "":
     whitelist = None
 if whitelist:
-    whitelist = [int(id) for id in whitelist.split(",")]
+    whitelist = [id for id in whitelist.split(",")]
 
 BLACK_LIST = os.environ.get('BLACK_LIST', None)
 if BLACK_LIST == "":
