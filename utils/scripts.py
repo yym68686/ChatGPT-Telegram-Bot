@@ -52,7 +52,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-async def GetMesage(update_message, context):
+async def GetMesage(update_message, context, voice=True):
     from ModelMerge.src.ModelMerge.utils.scripts import Document_extract
     image_url = None
     file_url = None
@@ -93,7 +93,7 @@ async def GetMesage(update_message, context):
         if update_message.caption:
             message = rawtext = CutNICK(update_message.caption, update_message)
 
-    if update_message.voice:
+    if voice and update_message.voice:
         voice = update_message.voice.file_id
         voice_text = await get_voice(voice, context)
 
@@ -124,15 +124,15 @@ async def GetMesage(update_message, context):
 
     return message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text
 
-async def GetMesageInfo(update, context):
+async def GetMesageInfo(update, context, voice=True):
     if update.edited_message:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesage(update.edited_message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesage(update.edited_message, context, voice)
         update_message = update.edited_message
     elif update.callback_query:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesage(update.callback_query.message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesage(update.callback_query.message, context, voice)
         update_message = update.callback_query.message
     elif update.message:
-        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesage(update.message, context)
+        message, rawtext, image_url, chatid, messageid, reply_to_message_text, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesage(update.message, context, voice)
         update_message = update.message
     else:
         return None, None, None, None, None, None, None, None, None, None, None, None

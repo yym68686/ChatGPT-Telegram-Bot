@@ -103,7 +103,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             bot_info = await context.bot.get_me(read_timeout=time_out, write_timeout=time_out, connect_timeout=time_out, pool_timeout=time_out)
             message_has_nick = False
             botNick = config.NICK.lower() if config.NICK else None
-            if rawtext.split()[0].lower() == botNick:
+            if rawtext and rawtext.split()[0].lower() == botNick:
                 message_has_nick = True
 
             if update_message.reply_to_message \
