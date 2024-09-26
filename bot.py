@@ -641,11 +641,15 @@ async def start(update, context): # 当用户输入/start时，返回文本
         api_key = context.args[1]
         Users.set_config(convo_id, "api_key", api_key)
         Users.set_config(convo_id, "api_url", api_url)
+        # if GET_MODELS:
+        #     update_initial_model()
 
     if len(context.args) == 1 and context.args[0].startswith("sk-"):
         api_key = context.args[0]
         Users.set_config(convo_id, "api_key", api_key)
         Users.set_config(convo_id, "api_url", "https://api.openai.com/v1/chat/completions")
+        # if GET_MODELS:
+        #     update_initial_model()
 
     await update.message.reply_text(escape(message, italic=False), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
