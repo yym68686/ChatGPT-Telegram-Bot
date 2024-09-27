@@ -319,9 +319,11 @@ By default, DuckDuckGo search is provided. The official API for Google search ne
 
 There are two possibilities:
 
-1. Only Large Language Models (LLMs) APIs that support tools use can utilize the search function. Currently, this project only supports the OpenAI, Claude and Gemini series models' APIs for the search function. The APIs of other model providers are currently not supported for tool use in this project. If you have a model provider you'd like to adapt, you can contact the maintainer.
+1. Only large language model (LLM) APIs that support tool usage can use the search function. Currently, this project only supports the search function for APIs of the OpenAI, Claude, and Gemini series models. APIs from other model providers are not supported for tool usage in this project at the moment. If you have a model provider you wish to adapt, you can contact the maintainer.
 
-2. If you used the APIs of Claude and OpenAI but are unable to use the search function, it might be because the search function is not enabled. You can check whether the search function is enabled by clicking on preferences through the `/info` command. If you still cannot search successfully, please contact the developer.
+2. If you are using the APIs of OpenAI, Claude, and Gemini series models but cannot use the search function, it may be because the search function is not enabled. You can check whether the search function is enabled by clicking on preferences through the `/info` command.
+
+3. If you are using the API of OpenAI, Claude, and Gemini series models, please ensure you are using the official API. If you are using a third-party relay API, the provider may be offering you the API through web scraping. APIs provided through web scraping cannot use tools use, meaning that all plugins of this project cannot be used. If you confirm that you are using the official API and still cannot search successfully, please contact the developer.
 
 - How do I switch models?
 
