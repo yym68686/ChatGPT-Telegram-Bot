@@ -50,7 +50,7 @@ PREFERENCES = {
     "FILE_UPLOAD_MESS"  : (os.environ.get('FILE_UPLOAD_MESS', "True") == "False") == False,
     "FOLLOW_UP"         : (os.environ.get('FOLLOW_UP', "False") == "False") == False,
     "TITLE"             : (os.environ.get('TITLE', "False") == "False") == False,
-    "TYPING"            : (os.environ.get('TYPING', "False") == "False") == False,
+    # "TYPING"            : (os.environ.get('TYPING', "False") == "False") == False,
     "REPLY"             : (os.environ.get('REPLY', "False") == "False") == False,
 }
 

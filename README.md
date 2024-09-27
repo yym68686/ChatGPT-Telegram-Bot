@@ -69,19 +69,19 @@ The following is a list of environment variables related to the bot's core setti
 | LANGUAGE | Specifies the default language displayed by the bot, including button display language and dialogue language. The default is `English`. Currently, it only supports setting to the following four languages: `English`, `Simplified Chinese`, `Traditional Chinese`, `Russian`. You can also use the `/info` command to set the display language after the bot is deployed. | No |
 | CONFIG_DIR | Specify storage user profile folder. CONFIG_DIR is the folder for storing user configurations. Each time the bot starts, it reads the configurations from the CONFIG_DIR folder, so users won't lose their previous settings every time they restart. you can achieve configuration persistence by mounting folders using the `-v` parameter when deploying locally with Docker. Default is `user_configs`. | No |
 
-The following is a list of environment variables related to the bot's preference settings:
+The following is a list of environment variables related to robot preferences. Preferences can also be set after the robot is started by using the `/info` command and clicking the `Preferences` button:
 
 | Variable Name | Description | Required? |
 |---------------|-------------|-----------|
-| PASS_HISTORY | The default is `9999`. The bot remembers the conversation history and considers the context when replying next time. If set to `0`, the bot will forget the conversation history and only consider the current conversation. The value of PASS_HISTORY must be greater than or equal to 0. | No |
-| LONG_TEXT | If the user's input exceeds the Telegram limit and is split into multiple messages sent consecutively in a very short time, the bot will treat these multiple messages as one. Default is `True`. | No |
-| IMAGEQA | Whether to enable image Q&A, the default setting is that the model can answer image content, the default value is `True`. | No |
-| LONG_TEXT_SPLIT | When the bot's response exceeds the Telegram limit, it will be split into multiple messages. Default is `True`. | No |
-| FILE_UPLOAD_MESS | When the file or image is uploaded and the robot has finished processing, the robot will send a message indicating a successful upload. Default is `True`. | No |
-| FOLLOW_UP | Automatically generate several related questions for the user to choose from. Default is `False`. | No |
-| TITLE | Whether to display the model name at the beginning of the bot's reply. Default is `False`. | No |
-| TYPING | Whether to display "typing" status when the bot is replying. Default is `False`. | No |
-| REPLY | Whether the bot's reply should be in "reply" format to the user's message. Default is `False`. | No |
+| PASS_HISTORY | The default value is `9999`. The bot will remember the conversation history and consider the context in the next reply. If set to `0`, the bot will forget the conversation history and only consider the current conversation. The value of PASS_HISTORY must be greater than or equal to 0. It corresponds to the button named `Chat history` in the preferences. | No |
+| LONG_TEXT | If the length of the user's input message exceeds Telegram's limit and multiple messages are sent consecutively in a short period, the bot will treat these multiple messages as one. The default value is `True`. Corresponds to the button named `Long text merge` in the preferences. | No |
+| IMAGEQA | Enable image question answering, the default setting is that the model can answer image content, the default value is `True`. Corresponds to the button named `Image Q&A` in the preferences. | No |
+| LONG_TEXT_SPLIT | When the bot's reply exceeds Telegram's limit, it will be split into multiple messages. The default value is `True`. Corresponds to the button named `Long text split` in the preferences. | No |
+| FILE_UPLOAD_MESS | When a file or image upload is successful and the bot has finished processing, the bot will send a message indicating that the upload was successful. The default value is `True`. This corresponds to the button named `File uploaded message` in the preferences. | No |
+| FOLLOW_UP | Automatically generate multiple related questions for the user to choose from. The default value is `False`. Corresponds to the button named `Question suggestions` in the preferences. | No |
+| TITLE | Whether to display the model name at the beginning of the robot's reply. The default value is `False`. Corresponds to the button named `Model title` in the preferences. | No |
+<!-- | TYPING | Whether to show "typing" status when the bot is replying. The default value is `False`. | No | -->
+| REPLY | Should the robot reply to the user's message in the "reply" format. The default value is `False`. Corresponds to the button named `Reply message` in the preferences. | No |
 
 The following is a list of environment variables related to the bot's plugin settings:
 

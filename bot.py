@@ -151,8 +151,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 message = "\n".join(message_cache[convo_id])
                 message_cache[convo_id] = []
                 time_stamps[convo_id] = []
-            if Users.get_config(convo_id, "TYPING"):
-                await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
+            # if Users.get_config(convo_id, "TYPING"):
+            #     await context.bot.send_chat_action(chat_id=chatid, message_thread_id=message_thread_id, action=ChatAction.TYPING)
             if Users.get_config(convo_id, "TITLE"):
                 title = f"`🤖️ {engine}`\n\n"
             if Users.get_config(convo_id, "REPLY") == False:
