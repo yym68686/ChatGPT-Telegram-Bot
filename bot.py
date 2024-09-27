@@ -244,7 +244,7 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
         # for data in robot.ask_stream(text, convo_id=convo_id, pass_history=pass_history, model=model_name):
             if stop_event.is_set() and convo_id == target_convo_id and answer_messageid < reset_mess_id:
                 return
-            if "🌐" not in data:
+            if "message_search_stage_" not in data:
                 result = result + data
             tmpresult = result
             if re.sub(r"```", '', result.split("\n")[-1]).count("`") % 2 != 0:
@@ -254,9 +254,8 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
             tmpresult = title + tmpresult
             if "claude" in model_name:
                 tmpresult = claude_replace(tmpresult)
-            if "🌐" in data:
-                search_index_string = data.split(" ")[1]
-                tmpresult = strings[search_index_string][get_current_lang(convo_id)]
+            if "message_search_stage_" in data:
+                tmpresult = strings[data][get_current_lang(convo_id)]
             history = robot.conversation[convo_id]
             if safe_get(history, -2, "tool_calls", 0, 'function', 'name') == "generate_image" and not image_has_send and safe_get(history, -1, 'content'):
                 await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)
@@ -349,7 +348,7 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
                 )).message_id
 
             now_result = escape(tmpresult, italic=False)
-            if now_result and (modifytime % Frequency_Modification == 0 and lastresult != now_result) or "🌐" in data:
+            if now_result and (modifytime % Frequency_Modification == 0 and lastresult != now_result) or "message_search_stage_" in data:
                 try:
                     await context.bot.edit_message_text(chat_id=chatid, message_id=answer_messageid, text=now_result, parse_mode='MarkdownV2', disable_web_page_preview=True, read_timeout=time_out, write_timeout=time_out, pool_timeout=time_out, connect_timeout=time_out)
                     lastresult = now_result
