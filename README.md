@@ -80,9 +80,8 @@ The following is a list of environment variables related to robot preferences. P
 | FILE_UPLOAD_MESS | When a file or image upload is successful and the bot has finished processing, the bot will send a message indicating that the upload was successful. The default value is `True`. This corresponds to the button named `File uploaded message` in the preferences. | No |
 | FOLLOW_UP | Automatically generate multiple related questions for the user to choose from. The default value is `False`. Corresponds to the button named `Question suggestions` in the preferences. | No |
 | TITLE | Whether to display the model name at the beginning of the robot's reply. The default value is `False`. Corresponds to the button named `Model title` in the preferences. | No |
-<!-- | TYPING | Whether to show "typing" status when the bot is replying. The default value is `False`. | No | -->
 | REPLY | Should the robot reply to the user's message in the "reply" format. The default value is `False`. Corresponds to the button named `Reply message` in the preferences. | No |
-
+<!-- | TYPING | Whether to show "typing" status when the bot is replying. The default value is `False`. | No | -->
 The following is a list of environment variables related to the bot's plugin settings:
 
 | Variable Name | Description | Required? |
