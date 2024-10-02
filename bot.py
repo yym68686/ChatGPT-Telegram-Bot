@@ -327,18 +327,34 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
 
                 title = ""
                 if lastresult != escape(send_split_message, italic=False):
-                    await context.bot.edit_message_text(
-                        chat_id=chatid,
-                        message_id=answer_messageid,
-                        text=escape(send_split_message, italic=False),
-                        parse_mode='MarkdownV2',
-                        disable_web_page_preview=True,
-                        read_timeout=time_out,
-                        write_timeout=time_out,
-                        pool_timeout=time_out,
-                        connect_timeout=time_out
-                    )
-                    lastresult = escape(send_split_message, italic=False)
+                    try:
+                        await context.bot.edit_message_text(
+                            chat_id=chatid,
+                            message_id=answer_messageid,
+                            text=escape(send_split_message, italic=False),
+                            parse_mode='MarkdownV2',
+                            disable_web_page_preview=True,
+                            read_timeout=time_out,
+                            write_timeout=time_out,
+                            pool_timeout=time_out,
+                            connect_timeout=time_out
+                        )
+                        lastresult = escape(send_split_message, italic=False)
+                    except Exception as e:
+                        if "parse entities" in str(e):
+                            await context.bot.edit_message_text(
+                                chat_id=chatid,
+                                message_id=answer_messageid,
+                                text=send_split_message,
+                                disable_web_page_preview=True,
+                                read_timeout=time_out,
+                                write_timeout=time_out,
+                                pool_timeout=time_out,
+                                connect_timeout=time_out
+                            )
+                            print("error:", send_split_message)
+                        else:
+                            print("error:", str(e))
                 answer_messageid = (await context.bot.send_message(
                     chat_id=chatid,
                     message_thread_id=message_thread_id,
