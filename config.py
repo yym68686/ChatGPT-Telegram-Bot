@@ -77,19 +77,43 @@ claude_systemprompt = os.environ.get('SYSTEMPROMPT', prompt.claude_system_prompt
 
 
 import json
-import fcntl
 from contextlib import contextmanager
 
 CONFIG_DIR = os.environ.get('CONFIG_DIR', 'user_configs')
 
+import os
+from contextlib import contextmanager
+
 @contextmanager
 def file_lock(filename):
-    with open(filename, 'a+') as f:
-        try:
-            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            yield f
-        finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+    if os.name == 'nt':  # Windows系统
+        import msvcrt
+        with open(filename, 'a+') as f:
+            try:
+                msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+                yield f
+            finally:
+                try:
+                    f.seek(0)
+                    msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+                except:
+                    pass  # 如果解锁失败，我们也不能做太多
+    else:  # Unix-like系统
+        import fcntl
+        with open(filename, 'a+') as f:
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                yield f
+            finally:
+                fcntl.flock(f, fcntl.LOCK_UN)
+
+# # 使用示例
+# try:
+#     with file_lock("myfile.txt") as f:
+#         # 在这里进行文件操作
+#         f.write("Some data\n")
+# except IOError:
+#     print("无法获取文件锁，文件可能正被其他进程使用")
 
 def save_user_config(user_id, config):
     if not os.path.exists(CONFIG_DIR):
