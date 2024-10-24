@@ -637,6 +637,8 @@ async def info(update, context):
     await delete_message(update, context, [message.message_id, user_message_id])
 
 @decorators.PrintMessage
+@decorators.GroupAuthorization
+@decorators.Authorization
 async def start(update, context): # 当用户输入/start时，返回文本
     _, _, _, _, _, _, _, _, convo_id, _, _, _ = await GetMesageInfo(update, context)
     user = update.effective_user
