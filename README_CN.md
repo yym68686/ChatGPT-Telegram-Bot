@@ -61,11 +61,11 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 | BLACK_LIST | 设置哪些用户禁止访问机器人，并用 ',' 连接被授权使用机器人的用户ID。默认值是 `None` | 否 |
 | ADMIN_LIST | 设置管理员列表。只有管理员可以使用 `/info` 命令配置机器人。 | 否 |
 | GROUP_LIST | 设置可以使用机器人的群组列表。使用逗号（'，'）连接群组ID。即使群组成员不在白名单中，只要群组ID在GROUP_LIST中，群组的所有成员都可以使用机器人。 | 否 |
-| CUSTOM_MODELS | 设置自定义模型名称列表。使用逗号（','）连接模型名称。如果需要删除默认模型，请在默认模型名称前添加连字符（-）。 | 否 |
+| CUSTOM_MODELS | 设置自定义模型名称列表。使用逗号（','）连接模型名称。如果需要删除默认模型，请在默认模型名称前添加连字符（-）。如果要删除所有默认模型，请使用 `-all`。 | 否 |
 | CHAT_MODE | 引入多用户模式，不同用户的配置不共享。当 CHAT_MODE 为 `global` 时，所有用户共享配置。当 CHAT_MODE 为 `multiusers` 时，用户配置彼此独立。 | 否 |
-| temperature | 指定LLM的温度。默认值是 `0.5`。 | 否 |
+| temperature | 指定 LLM 的温度。默认值是 `0.5`。 | 否 |
 | GET_MODELS | 指定是否通过 API 获取支持的模型。默认值为 `False`。 | 否 |
-| SYSTEMPROMPT | 指定系统提示。默认是 `None`。系统提示的设置仅在 `CHAT_MODE` 为 `global` 时，系统提示的设置才会有效。当 `CHAT_MODE` 为 `multiusers` 时，系统提示的环境变量无论是任何值都不会修改任何用户的系统提示，因为用户不希望自己设置的系统系统被修改为全局系统提示。 | 否 |
+| SYSTEMPROMPT | 指定系统提示，系统提示是字符串，例如：`SYSTEMPROMPT=You are ChatGPT, a large language model trained by OpenAI. Respond conversationally`。默认是 `None`。系统提示的设置仅在 `CHAT_MODE` 为 `global` 时，系统提示的设置才会有效。当 `CHAT_MODE` 为 `multiusers` 时，系统提示的环境变量无论是任何值都不会修改任何用户的系统提示，因为用户不希望自己设置的系统系统被修改为全局系统提示。 | 否 |
 | LANGUAGE | 指定机器人显示的默认语言，包括按钮显示语言和对话语言。默认是 `English`。目前仅支持设置为下面四种语言：`English`，`Simplified Chinese`，`Traditional Chinese`，`Russian`。同时也可以在机器人部署后使用 `/info` 命令设置显示语言 | 否 |
 | CONFIG_DIR | 指定存储用户配置文件夹。CONFIG_DIR 是用于存储用户配置的文件夹。每次机器人启动时，它都会从 CONFIG_DIR 文件夹读取配置，因此用户每次重新启动时不会丢失之前的设置。您可以在本地使用 Docker 部署时，通过使用 `-v` 参数挂载文件夹来实现配置持久化。默认值是 `user_configs`。 | 否 |
 
