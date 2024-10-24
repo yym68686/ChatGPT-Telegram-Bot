@@ -219,6 +219,9 @@ class UserConfig:
                     if key == "api_key" and value != self.api_key:
                         self.users[user_id]["api_key"] = self.api_key
                         update_user_config(user_id, "api_key", self.api_key)
+                    if user_id == "global" and key == "systemprompt" and value != self.systemprompt:
+                        self.users[user_id]["systemprompt"] = self.systemprompt
+                        update_user_config(user_id, "systemprompt", self.systemprompt)
 
     def get_init_preferences(self):
         return {

@@ -65,7 +65,7 @@ The following is a list of environment variables related to the bot's core setti
 | CHAT_MODE | Introduce multi-user mode, different users' configurations are not shared. When CHAT_MODE is `global`, all users share the configuration. When CHAT_MODE is `multiusers`, user configurations are independent of each other. | No |
 | temperature | Specify the temperature for the LLM. Default is `0.5`. | No |
 | GET_MODELS | Specify whether to get supported models via API. Default is `False`. | No |
-| SYSTEMPROMPT | Specify the system prompt. Default is `None`. | No |
+| SYSTEMPROMPT | Specify system prompt. Default is `None`. The setting of the system prompt is only effective when `CHAT_MODE` is `global`. When `CHAT_MODE` is `multiusers`, the system prompt environment variable will not modify any user's system prompt regardless of its value, because users do not want their set system prompt to be changed to the global system prompt. | No |
 | LANGUAGE | Specifies the default language displayed by the bot, including button display language and dialogue language. The default is `English`. Currently, it only supports setting to the following four languages: `English`, `Simplified Chinese`, `Traditional Chinese`, `Russian`. You can also use the `/info` command to set the display language after the bot is deployed. | No |
 | CONFIG_DIR | Specify storage user profile folder. CONFIG_DIR is the folder for storing user configurations. Each time the bot starts, it reads the configurations from the CONFIG_DIR folder, so users won't lose their previous settings every time they restart. you can achieve configuration persistence by mounting folders using the `-v` parameter when deploying locally with Docker. Default is `user_configs`. | No |
 
@@ -494,3 +494,4 @@ Thank you for your support!
 ## License
 
 This project is licensed under GPLv3, which means you are free to copy, distribute, and modify the software, as long as all modifications and derivative works are also released under the same license.
+
