@@ -41,6 +41,7 @@ from utils.scripts import GetMesageInfo, safe_get, is_emoji
 from telegram.constants import ChatAction
 from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler, ContextTypes
+from datetime import timedelta
 
 import asyncio
 lock = asyncio.Lock()
@@ -83,6 +84,17 @@ time_stamps = defaultdict(lambda: [])
 async def command_bot(update, context, language=None, prompt=translator_prompt, title="", has_command=True):
     stop_event.clear()
     message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesageInfo(update, context)
+
+    # 移除已存在的任务（如果有）
+    remove_job_if_exists(convo_id, context)
+
+    # 添加新的定时任务
+    context.job_queue.run_once(
+        scheduled_function,
+        when=timedelta(seconds=RESET_TIME),
+        chat_id=chatid,
+        name=convo_id
+    )
 
     if has_command == False or len(context.args) > 0:
         if has_command:
@@ -592,11 +604,26 @@ async def inlinequery(update: Update, context) -> None:
         await update.inline_query.answer(results)
 
 async def scheduled_function(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """这个函数将每RESET_TIME秒执行一次"""
-    for chat_id in Users.users.keys():
-        if config.ADMIN_LIST and chat_id in config.ADMIN_LIST:
-            continue
-        reset_ENGINE(chat_id)
+    """这个函数将在RESET_TIME秒后执行一次，重置特定用户的对话"""
+    job = context.job
+    chat_id = job.chat_id
+
+    if config.ADMIN_LIST and chat_id in config.ADMIN_LIST:
+        return
+
+    reset_ENGINE(chat_id)
+
+    # 任务执行完毕后自动移除
+    remove_job_if_exists(str(chat_id), context)
+
+def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """如果存在，则移除指定名称的任务"""
+    current_jobs = context.job_queue.get_jobs_by_name(name)
+    if not current_jobs:
+        return False
+    for job in current_jobs:
+        job.schedule_removal()
+    return True
 
 # 定义一个全局变量来存储 chatid
 target_convo_id = None
@@ -786,9 +813,6 @@ if __name__ == '__main__':
         ), handle_file))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
-
-    job_queue = application.job_queue
-    job_queue.run_repeating(scheduled_function, interval=RESET_TIME, first=1)
 
     if WEB_HOOK:
         print("WEB_HOOK:", WEB_HOOK)
