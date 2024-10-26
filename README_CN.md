@@ -68,6 +68,7 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 | SYSTEMPROMPT | 指定系统提示，系统提示是字符串，例如：`SYSTEMPROMPT=You are ChatGPT, a large language model trained by OpenAI. Respond conversationally`。默认是 `None`。系统提示的设置仅在 `CHAT_MODE` 为 `global` 时，系统提示的设置才会有效。当 `CHAT_MODE` 为 `multiusers` 时，系统提示的环境变量无论是任何值都不会修改任何用户的系统提示，因为用户不希望自己设置的系统系统被修改为全局系统提示。 | 否 |
 | LANGUAGE | 指定机器人显示的默认语言，包括按钮显示语言和对话语言。默认是 `English`。目前仅支持设置为下面四种语言：`English`，`Simplified Chinese`，`Traditional Chinese`，`Russian`。同时也可以在机器人部署后使用 `/info` 命令设置显示语言 | 否 |
 | CONFIG_DIR | 指定存储用户配置文件夹。CONFIG_DIR 是用于存储用户配置的文件夹。每次机器人启动时，它都会从 CONFIG_DIR 文件夹读取配置，因此用户每次重新启动时不会丢失之前的设置。您可以在本地使用 Docker 部署时，通过使用 `-v` 参数挂载文件夹来实现配置持久化。默认值是 `user_configs`。 | 否 |
+| RESET_TIME | 指定机器人每隔多少秒重置一次聊天历史记录，每隔 RESET_TIME 秒，机器人会重置一次除了管理员列表外所有用户的聊天历史记录。默认值是 `3600` 秒，最小值是 `60` 秒。 | 否 |
 
 以下是与机器人偏好设置相关的环境变量列表，偏好设置也可以通过机器人启动后使用 `/info` 命令，点击 `偏好设置` 按钮来设置：
 

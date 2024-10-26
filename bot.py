@@ -23,6 +23,7 @@ from config import (
     PREFERENCES,
     LANGUAGES,
     PLUGINS,
+    RESET_TIME,
     get_robot,
     reset_ENGINE,
     get_current_lang,
@@ -39,7 +40,7 @@ from utils.scripts import GetMesageInfo, safe_get, is_emoji
 
 from telegram.constants import ChatAction
 from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
-from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler
+from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler, ContextTypes
 
 import asyncio
 lock = asyncio.Lock()
@@ -590,6 +591,13 @@ async def inlinequery(update: Update, context) -> None:
 
         await update.inline_query.answer(results)
 
+async def scheduled_function(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """这个函数将每RESET_TIME秒执行一次"""
+    for chat_id in Users.users.keys():
+        if config.ADMIN_LIST and chat_id in config.ADMIN_LIST:
+            continue
+        reset_ENGINE(chat_id)
+
 # 定义一个全局变量来存储 chatid
 target_convo_id = None
 reset_mess_id = 9999
@@ -668,6 +676,20 @@ async def start(update, context): # 当用户输入/start时，返回文本
         # if GET_MODELS:
         #     update_initial_model()
 
+    # message = (
+    #     ">Block quotation started\n"
+    #     ">Block quotation continued\n"
+    #     ">Block quotation continued\n"
+    #     ">Block quotation continued\n"
+    #     ">The last line of the block quotation\n"
+    #     "**>The expandable block quotation started right after the previous block quotation\n"
+    #     ">It is separated from the previous block quotation by an empty bold entity\n"
+    #     ">Expandable block quotation continued\n"
+    #     ">Hidden by default part of the expandable block quotation started\n"
+    #     ">Expandable block quotation continued\n"
+    #     ">The last line of the expandable block quotation with the expandability mark||\n"
+    # )
+    # await update.message.reply_text(message, parse_mode='MarkdownV2', disable_web_page_preview=True)
     await update.message.reply_text(escape(message, italic=False), parse_mode='MarkdownV2', disable_web_page_preview=True)
 
 async def error(update, context):
@@ -764,6 +786,9 @@ if __name__ == '__main__':
         ), handle_file))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_error_handler(error)
+
+    job_queue = application.job_queue
+    job_queue.run_repeating(scheduled_function, interval=RESET_TIME, first=1)
 
     if WEB_HOOK:
         print("WEB_HOOK:", WEB_HOOK)
