@@ -400,7 +400,6 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
         else:
             tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
-    # 检测是否存在 svg
     now_result = escape(tmpresult, italic=False)
     if lastresult != now_result and answer_messageid:
         if "Can't parse entities: can't find end of code entity at byte offset" in tmpresult:
