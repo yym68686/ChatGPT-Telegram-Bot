@@ -85,17 +85,6 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
     stop_event.clear()
     message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesageInfo(update, context)
 
-    # 移除已存在的任务（如果有）
-    remove_job_if_exists(convo_id, context)
-
-    # 添加新的定时任务
-    context.job_queue.run_once(
-        scheduled_function,
-        when=timedelta(seconds=RESET_TIME),
-        chat_id=chatid,
-        name=convo_id
-    )
-
     if has_command == False or len(context.args) > 0:
         if has_command:
             message = ' '.join(context.args)
@@ -113,6 +102,18 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if message:
             if len(message) == 1 and is_emoji(message):
                 return
+
+            if pass_history >= 3:
+                # 移除已存在的任务（如果有）
+                remove_job_if_exists(convo_id, context)
+                # 添加新的定时任务
+                context.job_queue.run_once(
+                    scheduled_function,
+                    when=timedelta(seconds=RESET_TIME),
+                    chat_id=chatid,
+                    name=convo_id
+                )
+
             bot_info = await context.bot.get_me(read_timeout=time_out, write_timeout=time_out, connect_timeout=time_out, pool_timeout=time_out)
             message_has_nick = False
             botNick = config.NICK.lower() if config.NICK else None

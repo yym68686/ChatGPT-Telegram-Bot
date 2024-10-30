@@ -3,6 +3,7 @@ import config
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from md2tgmd.src.md2tgmd import escape
 
 from utils.i18n import strings
 from utils.scripts import GetMesageInfo
@@ -13,7 +14,7 @@ def ban_message(update, convo_id):
         f"id: `{update.effective_user.id}`\n\n"
         f"{strings['message_ban'][config.get_current_lang(convo_id)]}\n\n"
     )
-    return message
+    return escape(message, italic=False)
 
 # 判断是否在白名单
 def Authorization(func):
