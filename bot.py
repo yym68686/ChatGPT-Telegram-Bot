@@ -401,6 +401,21 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
         else:
             tmpresult = f"{tmpresult}\n\n`{e}`"
     print(tmpresult)
+
+    # 添加图片URL检测和发送
+    image_extensions = r'https?://[^\s<>"]+?/[^\s<>"]+?\.(webp|jpg|jpeg|png|gif)'
+    image_urls = re.findall(image_extensions, tmpresult, re.IGNORECASE)
+    for img_url in image_urls:
+        try:
+            await context.bot.send_photo(
+                chat_id=chatid,
+                photo=img_url,
+                message_thread_id=message_thread_id,
+                reply_to_message_id=messageid,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send image {img_url}: {str(e)}")
+
     now_result = escape(tmpresult, italic=False)
     if lastresult != now_result and answer_messageid:
         if "Can't parse entities: can't find end of code entity at byte offset" in tmpresult:
