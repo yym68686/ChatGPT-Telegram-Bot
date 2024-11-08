@@ -403,19 +403,20 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
     print(tmpresult)
 
     # 添加图片URL检测和发送
-    image_extensions = r'(https?://[^\s<>\"]+?/[^\s<>\"]+?\.(webp|jpg|jpeg|png|gif)(?:\?[^)\s<>\"]+)?)'
-    image_urls = re.findall(image_extensions, tmpresult, re.IGNORECASE)
-    image_urls_result = [url[0] if isinstance(url, tuple) else url for url in image_urls]
-    if image_urls_result:
-        try:
-            await context.bot.send_photo(
-                chat_id=chatid,
-                photo=image_urls_result[0],
-                message_thread_id=message_thread_id,
-                reply_to_message_id=messageid,
-            )
-        except Exception as e:
-            logger.warning(f"Failed to send image {image_urls_result[0]}: {str(e)}")
+    if image_has_send == 0:
+        image_extensions = r'(https?://[^\s<>\"]+?/[^\s<>\"]+?\.(webp|jpg|jpeg|png|gif)(?:\?[^)\s<>\"]+)?)'
+        image_urls = re.findall(image_extensions, tmpresult, re.IGNORECASE)
+        image_urls_result = [url[0] if isinstance(url, tuple) else url for url in image_urls]
+        if image_urls_result:
+            try:
+                await context.bot.send_photo(
+                    chat_id=chatid,
+                    photo=image_urls_result[0],
+                    message_thread_id=message_thread_id,
+                    reply_to_message_id=messageid,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to send image {image_urls_result[0]}: {str(e)}")
 
     now_result = escape(tmpresult, italic=False)
     if lastresult != now_result and answer_messageid:
