@@ -404,7 +404,7 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
 
     # 添加图片URL检测和发送
     if image_has_send == 0:
-        image_extensions = r'(https?://[^\s<>\"]+?/[^\s<>\"]+?\.(webp|jpg|jpeg|png|gif)(?:\?[^)\s<>\"]+)?)'
+        image_extensions = r'(https?://[^\s<>\"()]+(?:\.(?:webp|jpg|jpeg|png|gif)|/image)[^\s<>\"()]*)'
         image_urls = re.findall(image_extensions, tmpresult, re.IGNORECASE)
         image_urls_result = [url[0] if isinstance(url, tuple) else url for url in image_urls]
         if image_urls_result:
