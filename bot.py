@@ -99,10 +99,19 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             message = prompt + message
         if message == None:
             message = voice_text
-        if message:
-            if len(message) == 1 and is_emoji(message):
-                return
+        # print("message", message)
+        if message and len(message) == 1 and is_emoji(message):
+            return
 
+        message_has_nick = False
+        botNick = config.NICK.lower() if config.NICK else None
+        if rawtext and rawtext.split()[0].lower() == botNick:
+            message_has_nick = True
+
+        if message_has_nick and update_message.reply_to_message and update_message.reply_to_message.caption and not message:
+            message = update_message.reply_to_message.caption
+
+        if message:
             if pass_history >= 3:
                 # 移除已存在的任务（如果有）
                 remove_job_if_exists(convo_id, context)
@@ -115,10 +124,6 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 )
 
             bot_info = await context.bot.get_me(read_timeout=time_out, write_timeout=time_out, connect_timeout=time_out, pool_timeout=time_out)
-            message_has_nick = False
-            botNick = config.NICK.lower() if config.NICK else None
-            if rawtext and rawtext.split()[0].lower() == botNick:
-                message_has_nick = True
 
             if update_message.reply_to_message \
             and update_message.from_user.is_bot == False \
