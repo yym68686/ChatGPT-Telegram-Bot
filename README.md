@@ -101,6 +101,8 @@ One-click deployment:
 
 [![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=docker&image=docker.io/yym68686/chatgpt:latest&name=chatbot)
 
+When deploying with Koyeb, you must add the environment variable `WEB_HOOK`, otherwise the bot will not be able to receive messages. Use a string like `https://appname.koyeb.app` as the value for `WEB_HOOK`, Koyeb will automatically assign a subdomain.
+
 ## Zeabur Remote Deployment
 
 One-click deployment:
@@ -495,4 +497,3 @@ Thank you for your support!
 ## License
 
 This project is licensed under GPLv3, which means you are free to copy, distribute, and modify the software, as long as all modifications and derivative works are also released under the same license.
-
