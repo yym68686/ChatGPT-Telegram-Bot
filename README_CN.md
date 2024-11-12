@@ -49,7 +49,7 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 | API_URL | 如果您使用的是OpenAI官方API，则无需设置此项。如果您使用的是第三方API，则需要填写第三方代理网站。默认值是：https://api.openai.com/v1/chat/completions | 否 |
 | GROQ_API_KEY | Groq官方API密钥。 | 否 |
 | GOOGLE_AI_API_KEY | Google AI 官方 API 密钥。使用此环境变量访问 Gemini 系列模型，包括 Gemini 1.5 pro 和 Gemini 1.5 flash。| 否 |
-| VERTEX_PRIVATE_KEY | 描述: Google Cloud Vertex AI 服务账户的私钥。格式: 包含服务账户私钥信息的 JSON 字符串里面的 private_key 字段的值，请使用双引号包裹私钥。如何获取: 在 Google Cloud 控制台中创建一个服务账户，生成一个 JSON 密钥文件，并将其内容设置为此环境变量的值。 | 否 |
+| VERTEX_PRIVATE_KEY | 描述: Google Cloud Vertex AI 服务账户的私钥。格式: 包含服务账户私钥信息的 JSON 字符串里面的 private_key 字段的值，请使用双引号包裹私钥。如何获取: 在 Google Cloud 控制台中创建一个服务账户，生成一个 JSON 密钥文件，并将其内容里面的 private_key 字段的值使用双引号包裹后设置为此环境变量的值。 | 否 |
 | VERTEX_PROJECT_ID | 描述：您的 Google Cloud 项目 ID。格式：一个字符串，通常由小写字母、数字和连字符组成。如何获取：您可以在 Google Cloud 控制台的项目选择器中找到您的项目 ID。 | 否 |
 | VERTEX_CLIENT_EMAIL | 描述：Google Cloud Vertex AI 服务账户的电子邮件地址。格式：通常是 "service-account-name@developer.gserviceaccount.com" 形式的字符串。获取方式：在创建服务账户时生成，或可以在 Google Cloud 控制台的 "IAM & 管理" 部分的服务账户详细信息中查看。 | 否 |
 | claude_api_key | Claude 官方 API 密钥。 | 否 |
