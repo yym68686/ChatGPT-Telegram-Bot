@@ -108,13 +108,14 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 - [点击fork本仓库](https://github.com/yym68686/ChatGPT-Telegram-Bot/fork)
 - 2、部署时候需要选择以仓库的方式
 - 设置如下：
-- 2.1
-- Run command设置为：
+- 2.1 Run command设置：
 ```bash
 python3 bot.poy
 ```
-- 2.2
-- Exposed ports设置为8080
+- 2.2 Exposed ports设置：
+```bash
+8080
+```
 - 如下图所示：
 ![image](https://github.com/user-attachments/assets/b9a20bc6-4062-43ba-b699-426e19143e38)
 - 3、安装pull自动同步本仓库
