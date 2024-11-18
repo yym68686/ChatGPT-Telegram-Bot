@@ -98,11 +98,28 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 
 ## Koyeb 远程部署
 
-一键部署：
+### 使用docker一键部署：
 
 [![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=docker&image=docker.io/yym68686/chatgpt:latest&name=chatbot)
 
 使用 Koyeb 部署时，必须添加环境变量 `WEB_HOOK`，否则机器人无法接收消息。使用类似 `https://appname.koyeb.app` 的字符串作为 `WEB_HOOK` 的值，Koyeb 会自动分配一个二级域名。
+### 使用仓库模式部署-自动更新：
+- 1、fork本仓库
+- [点击fork本仓库](https://github.com/yym68686/ChatGPT-Telegram-Bot/fork)
+- 2、部署时候需要选择以仓库的方式
+- 设置如下：
+- 2.1 Run command设置：
+```bash
+python3 bot.poy
+```
+- 2.2 Exposed ports设置：
+```bash
+8080
+```
+- 如下图所示：
+![image](https://github.com/user-attachments/assets/b9a20bc6-4062-43ba-b699-426e19143e38)
+- 3、安装pull自动同步本仓库
+- [安装pull](https://github.com/apps/pull)
 
 ## Zeabur 远程部署
 

@@ -97,12 +97,29 @@ The following is a list of environment variables related to the bot's plugin set
 
 ## Koyeb Remote Deployment
 
-One-click deployment:
+### One-click deployment:
 
 [![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=docker&image=docker.io/yym68686/chatgpt:latest&name=chatbot)
 
 When deploying with Koyeb, you must add the environment variable `WEB_HOOK`, otherwise the bot will not be able to receive messages. Use a string like `https://appname.koyeb.app` as the value for `WEB_HOOK`, Koyeb will automatically assign a subdomain.
-
+### Deploy Using Repository Mode - Automatic Updates:
+- 1. Fork this repository
+- [Click to fork this repository](https://github.com/yym68686/ChatGPT-Telegram-Bot/fork)
+- 2. Choose to deploy using the repository method
+- Set it up as follows:
+- 2.1 Run command settings:
+```bash
+python3 bot.poy
+```
+- 2.2 Exposed ports settings:
+```bash
+8080
+```
+- As shown in the image below:
+![image](https://github.com/user-attachments/assets/b9a20bc6-4062-43ba-b699-426e19143e38)
+- 3. Install pull to automatically sync with this repository
+- [Install pull](https://github.com/apps/pull)
+  
 ## Zeabur Remote Deployment
 
 One-click deployment:
