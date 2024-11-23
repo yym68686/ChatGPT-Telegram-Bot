@@ -306,7 +306,7 @@ python bot.py
 
 3. 在 `ModelMerge/src/ModelMerge/plugins/config.py` 里面的 `PLUGINS` 字典里面添加键值对，键是插件的名称，值是插件的环境变量及其默认值。这个默认值是插件的开关，如果默认值是`True`，那么插件默认是开启的，如果默认值是 `False`，那么插件默认是关闭的，需要在用户在 `/info` 命令里面手动开启。
 
-4. 最后，在 `ModelMerge/src/ModelMerge/plugins/config.py` 里面的函数 `get_tools_result_async` 和 `get_tools_result` 添加插件调用的代码，当机器人需要调用插件的时候，会调用这个函数。你需要在这个函数里面添加插件的调用代码。
+4. 最后，在 `ModelMerge/src/ModelMerge/plugins/config.py` 里面的函数 `get_tools_result_async` 添加插件调用的代码，当机器人需要调用插件的时候，会调用这个函数。你需要在这个函数里面添加插件的调用代码。
 
 完成上面的步骤，你的插件就可以在机器人中使用了。🎉
 
