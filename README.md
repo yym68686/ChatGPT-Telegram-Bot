@@ -465,10 +465,10 @@ duckduckgo AI: https://github.com/mrgick/duck_chat
 ## Sponsors
 
 We are grateful for the support from the following sponsors:
-<!-- $300+$280+¥1200+¥300+$30+$25+$20+¥50 -->
+<!-- $300+$380+¥1200+¥300+$30+$25+$20+¥50 -->
 - @fasizhuanqian: 300 USDT
 
-- @ZETA: $280
+- @ZETA: $380
 
 - @yuerbujin: ¥1200
 

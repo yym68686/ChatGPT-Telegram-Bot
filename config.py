@@ -576,6 +576,8 @@ def update_initial_model():
                 continue
             if "moderation" in model_item:
                 continue
+            if "embedding" in model_item:
+                continue
             set_models.add(model_item)
             # parts = [part for segment in model_item.split("-") for part in segment.split("@")]
             # set_models.add(delete_model_digit_tail(parts))

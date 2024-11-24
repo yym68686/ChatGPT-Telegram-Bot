@@ -466,10 +466,10 @@ duckduckgo AI: https://github.com/mrgick/duck_chat
 ## 赞助商
 
 我们感谢以下赞助商的支持：
-<!-- $300+$280+¥1200+¥300+$30+$25+$20+¥50 -->
+<!-- $300+$380+¥1200+¥300+$30+$25+$20+¥50 -->
 - @fasizhuanqian: 300 USDT
 
-- @ZETA: $280
+- @ZETA: $380
 
 - @yuerbujin: ¥1200
 
