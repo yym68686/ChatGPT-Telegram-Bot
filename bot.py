@@ -123,11 +123,17 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     name=convo_id
                 )
 
-            bot_info = await context.bot.get_me(read_timeout=time_out, write_timeout=time_out, connect_timeout=time_out, pool_timeout=time_out)
+            bot_info_username = None
+            try:
+                bot_info = await context.bot.get_me(read_timeout=time_out, write_timeout=time_out, connect_timeout=time_out, pool_timeout=time_out)
+                bot_info_username = bot_info.username
+            except Exception as e:
+                bot_info_username = update_message.reply_to_message.from_user.username
+                print("error:", e)
 
             if update_message.reply_to_message \
             and update_message.from_user.is_bot == False \
-            and (update_message.reply_to_message.from_user.username == bot_info.username or message_has_nick):
+            and (update_message.reply_to_message.from_user.username == bot_info_username or message_has_nick):
                 if update_message.reply_to_message.from_user.is_bot and Users.get_config(convo_id, "TITLE") == True:
                     message = message + "\n" + '\n'.join(reply_to_message_text.split('\n')[1:])
                 else:
@@ -136,7 +142,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                     if reply_to_message_file_content:
                         message = message + "\n" + reply_to_message_file_content
             elif update_message.reply_to_message and update_message.reply_to_message.from_user.is_bot \
-            and update_message.reply_to_message.from_user.username != bot_info.username:
+            and update_message.reply_to_message.from_user.username != bot_info_username:
                 return
 
             robot, role, api_key, api_url = get_robot(convo_id)
