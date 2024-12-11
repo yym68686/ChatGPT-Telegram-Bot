@@ -267,6 +267,8 @@ docker logs -f chatbot
 
 ## 🚀 源代码本地部署
 
+python >= 3.10
+
 直接从源代码运行机器人而不使用docker，克隆仓库：
 
 ```bash

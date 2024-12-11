@@ -266,6 +266,8 @@ This script is for restarting the Docker image with a single command. It first r
 
 ## 🚀 Source code Local Deployment
 
+python >= 3.10
+
 Run the robot directly from the source code without using docker, Clone the repository:
 
 ```bash
