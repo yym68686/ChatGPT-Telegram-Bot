@@ -111,7 +111,7 @@ Click the button below to automatically deploy using the pre-built Docker image 
 
 1. Fork this repository [Click to fork this repository](https://github.com/yym68686/ChatGPT-Telegram-Bot/fork)
 
-2. When deploying, you need to choose the repository method, set `Run command` to `python3 bot.poy`, and set `Exposed ports` to `8080`.
+2. When deploying, you need to choose the repository method, set `Run command` to `python3 bot.py`, and set `Exposed ports` to `8080`.
 
 3. [Install pull](https://github.com/apps/pull) to automatically sync this repository.
 
