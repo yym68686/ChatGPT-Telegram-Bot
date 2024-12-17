@@ -27,7 +27,7 @@ def Authorization(func):
             return
         if config.whitelist == None or (config.GROUP_LIST and chatid in config.GROUP_LIST):
             return await func(*args, **kwargs)
-        if config.whitelist and str(update.effective_user.id) not in config.whitelist:
+        if config.whitelist and update.effective_user and str(update.effective_user.id) not in config.whitelist:
             message = ban_message(update, convo_id)
             await context.bot.send_message(chat_id=chatid, message_thread_id=message_thread_id, text=message, parse_mode='MarkdownV2')
             return
