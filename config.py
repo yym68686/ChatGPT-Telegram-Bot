@@ -310,6 +310,7 @@ def InitEngine(chat_id=None):
         whisperBot = whisper(api_key=api_key, api_url=api_url)
     if CLAUDE_API:
         claude3Bot = claude3(temperature=temperature, print_log=True)
+        SummaryBot = claude3(temperature=temperature, print_log=True)
     if GROQ_API_KEY:
         groqBot = groq(temperature=temperature)
     if GOOGLE_AI_API_KEY:
