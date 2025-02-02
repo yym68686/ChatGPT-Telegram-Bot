@@ -619,7 +619,9 @@ async def inlinequery(update: Update, context) -> None:
     query = update.inline_query.query
     if (query.endswith('.') or query.endswith('。')) and query.strip():
         prompt = "Answer the following questions as concisely as possible:\n\n"
-        result = config.ChatGPTbot.ask(prompt + query, convo_id=chatid, pass_history=0)
+        _, _, _, chatid, _, _, _, _, convo_id, _, _, _ = await GetMesageInfo(update, context)
+        robot, role, api_key, api_url = get_robot(convo_id)
+        result = config.ChatGPTbot.ask(prompt + query, convo_id=convo_id, model=engine, api_url=api_url, api_key=api_key, pass_history=0)
 
         results = [
             InlineQueryResultArticle(
