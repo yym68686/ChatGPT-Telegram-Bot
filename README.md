@@ -295,21 +295,21 @@ python bot.py
 
 ## 🧩 Plugin
 
-The robot supports multiple plugins, including: DuckDuckGo and Google search, URL summary, ArXiv paper summary, DALLE-3 drawing, and code interpreter, etc. You can enable or disable these plugins by setting environment variables.
+This project supports multiple plugins, including: DuckDuckGo and Google search, URL summary, ArXiv paper summary, DALLE-3 drawing, and code interpreter, etc. You can enable or disable these plugins by setting environment variables.
 
 - How to develop a plugin?
 
-All the code related to the plugin is in the git submodule ModelMerge within this repository. ModelMerge is an independent repository I developed to handle API requests, conversation history management, and other functionalities. When you clone this repository using the --recurse-submodules parameter, ModelMerge will be automatically downloaded locally. All the plugin code is located in this repository at the relative path `ModelMerge/src/ModelMerge/plugins`. You can add your own plugin code in this directory. The plugin development process is as follows:
+All the code related to plugins is in the git submodule ModelMerge within this repository. ModelMerge is an independent repository that I developed to handle API requests, conversation history management, and other functions. When you clone this repository using the `--recurse-submodules` parameter with git clone, ModelMerge will be automatically downloaded to your local machine. All the plugin code in this repository is located at the relative path `ModelMerge/src/ModelMerge/plugins`. You can add your own plugin code in this directory. The plugin development process is as follows:
 
-1. Create a new Python file in the `ModelMerge/src/ModelMerge/plugins` directory, for example, `myplugin.py`. In the `ModelMerge/src/ModelMerge/plugins/__init__.py` file, import your plugin, for example, `from .myplugin import MyPlugin`.
+1. Create a new Python file in the `ModelMerge/src/ModelMerge/plugins` directory, for example, `myplugin.py`. Import your plugin in the `ModelMerge/src/ModelMerge/plugins/__init__.py` file, for example, `from .myplugin import MyPlugin`, and add your plugin name to the `__all__` list.
 
-2. In the `ModelMerge/src/ModelMerge/tools/chatgpt.py` file, add your plugin OpenAI tool format detailed request body to the `function_call_list` variable. The Claude Gemini tool does not require additional writing; you only need to fill in the OpenAI format tool request body. The program will automatically convert to Claude/Gemini tool format when requesting the Gemini or Claude API. `function_call_list` is a dictionary where the key is the name of the plugin, and the value is the request body of the plugin. Please ensure that the key names in the `function_call_list` dictionary are unique and do not duplicate the existing plugin key names.
+2. Add your plugin's OpenAI format tool request body conversion code to the `function_call_list` variable in `ModelMerge/src/ModelMerge/plugins/config.py`. You only need to add one line of code to implement the conversion. Claude and Gemini tool request bodies don't need to be written separately, as the program will automatically convert to Claude/Gemini tool format when requesting the Gemini or Claude API. The `function_call_list` is a dictionary where the key is the name of the plugin and the value is the request body of the plugin. Please ensure the key names in the `function_call_list` dictionary are unique and do not duplicate existing plugin key names.
 
-3. Add key-value pairs to the `PLUGINS` dictionary in `ModelMerge/src/ModelMerge/plugins/config.py`, where the key is the name of the plugin and the value is the environment variable of the plugin and its default value. This default value acts as the switch for the plugin. If the default value is `True`, the plugin is enabled by default. If the default value is `False`, the plugin is disabled by default and needs to be manually enabled by the user in the `/info` command.
+3. Add key-value pairs to the `PLUGINS` dictionary in `ModelMerge/src/ModelMerge/plugins/config.py`. The key is the name of the plugin, and the value is the environment variable of the plugin and its default value. This default value is the switch for the plugin; if the default value is `True`, then the plugin is enabled by default. If the default value is `False`, then the plugin is disabled by default and needs to be manually enabled by the user in the `/info` command.
 
-4. Finally, in the functions `get_tools_result_async` inside `ModelMerge/src/ModelMerge/plugins/config.py`, add the code for invoking the plugin. When the robot needs to call the plugin, it will call this function. You need to add the plugin invocation code inside this function.
+4. Finally, add the plugin invocation code in the `get_tools_result_async` function in `ModelMerge/src/ModelMerge/plugins/config.py`. When the robot needs to call a plugin, it will call this function. You need to add the plugin invocation code within this function.
 
-After completing the above steps, your plugin can be used in the bot. 🎉
+After completing the above steps, your plugin will be ready to use. 🎉
 
 ## 📄 Frequently Asked Questions
 

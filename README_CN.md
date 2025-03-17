@@ -296,21 +296,21 @@ python bot.py
 
 ## 🧩 插件
 
-机器人支持多种插件，包括：DuckDuckGo 和 Google 搜索、URL 摘要、ArXiv 论文摘要、DALLE-3 画图和代码解释器等。您可以通过设置环境变量来启用或禁用这些插件。
+本项目支持多种插件，包括：DuckDuckGo 和 Google 搜索、URL 摘要、ArXiv 论文摘要、DALLE-3 画图和代码解释器等。您可以通过设置环境变量来启用或禁用这些插件。
 
 - 如何开发插件？
 
-插件相关的代码全部在本仓库git 子模块ModelMerge里面，ModelMerge是我开发的一个独立的仓库，用于处理API请求，对话历史记录管理等功能。当你使用git clone的--recurse-submodules参数克隆本仓库后，ModelMerge会自动下载到本地。插件所有的代码在本仓库中的相对路径为 `ModelMerge/src/ModelMerge/plugins`。你可以在这个目录下添加自己的插件代码。插件开发的流程如下：
+插件相关的代码全部在本仓库 git 子模块 ModelMerge 里面，ModelMerge 是我开发的一个独立的仓库，用于处理 API 请求，对话历史记录管理等功能。当你使用 git clone 的 --recurse-submodules 参数克隆本仓库后，ModelMerge 会自动下载到本地。插件所有的代码在本仓库中的相对路径为 `ModelMerge/src/ModelMerge/plugins`。你可以在这个目录下添加自己的插件代码。插件开发的流程如下：
 
-1. 在 `ModelMerge/src/ModelMerge/plugins` 目录下创建一个新的 Python 文件，例如 `myplugin.py`。在 `ModelMerge/src/ModelMerge/plugins/__init__.py` 文件中导入你的插件，例如 `from .myplugin import MyPlugin`。
+1. 在 `ModelMerge/src/ModelMerge/plugins` 目录下创建一个新的 Python 文件，例如 `myplugin.py`。在 `ModelMerge/src/ModelMerge/plugins/__init__.py` 文件中导入你的插件，例如 `from .myplugin import MyPlugin`，在 `__all__` 列表中添加你的插件名称。
 
-2. 在 `ModelMerge/src/ModelMerge/tools/chatgpt.py` 里面的 `function_call_list` 变量中添加你的插件OpenAI tool格式详细的请求体。Claude Gemini tool 不需要额外编写，你仅需要填写OpenAI格式的tool请求体，程序在请求Gemini或者Claude API的时候，会自动转换为Claude/Gemini tool格式。`function_call_list` 是一个字典，键是插件的名称，值是插件的请求体。请保证`function_call_list` 字典的键名保证唯一性，不能和已有的插件键名重复。
+2. 在 `ModelMerge/src/ModelMerge/plugins/config.py` 里面的 `function_call_list` 变量中添加你的插件的OpenAI格式的tool请求体转换代码，只需要添加一行代码即可实现转换。Claude Gemini tool 请求体不需要额外编写，程序在请求 Gemini 或者 Claude API 的时候，会自动转换为 Claude/Gemini tool 格式。`function_call_list` 是一个字典，键是插件的名称，值是插件的请求体。请保证`function_call_list` 字典的键名保证唯一性，不能和已有的插件键名重复。
 
 3. 在 `ModelMerge/src/ModelMerge/plugins/config.py` 里面的 `PLUGINS` 字典里面添加键值对，键是插件的名称，值是插件的环境变量及其默认值。这个默认值是插件的开关，如果默认值是`True`，那么插件默认是开启的，如果默认值是 `False`，那么插件默认是关闭的，需要在用户在 `/info` 命令里面手动开启。
 
 4. 最后，在 `ModelMerge/src/ModelMerge/plugins/config.py` 里面的函数 `get_tools_result_async` 添加插件调用的代码，当机器人需要调用插件的时候，会调用这个函数。你需要在这个函数里面添加插件的调用代码。
 
-完成上面的步骤，你的插件就可以在机器人中使用了。🎉
+完成上面的步骤，你的插件就可以使用了。🎉
 
 ## 📄 常见问题
 
