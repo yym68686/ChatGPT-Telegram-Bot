@@ -7,8 +7,9 @@ import utils.decorators as decorators
 
 from md2tgmd.src.md2tgmd import escape, split_code, replace_all
 from ModelMerge.src.ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt
-from ModelMerge.src.ModelMerge.utils.scripts import Document_extract, claude_replace, get_image_message
-
+from ModelMerge.src.ModelMerge.utils.scripts import Document_extract, claude_replace
+from ModelMerge.src.ModelMerge.core.utils import get_engine
+from ModelMerge.src.ModelMerge.core.request import get_image_message, get_text_message
 import config
 from config import (
     WEB_HOOK,
@@ -184,10 +185,13 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 messageid = None
 
             if image_url:
-                if "gemini" in engine and (GOOGLE_AI_API_KEY or (VERTEX_CLIENT_EMAIL and VERTEX_PRIVATE_KEY and VERTEX_PROJECT_ID)):
-                    message = get_image_message(image_url, [{"text": message}], engine)
-                else:
-                    message = get_image_message(image_url, [{"type": "text", "text": message}], engine)
+                message_list = []
+                engine_type, _ = get_engine({"base_url": api_url}, endpoint=None, original_model=engine)
+                image_message = await get_image_message(image_url, engine_type)
+                text_message = await get_text_message(message, engine_type)
+                message_list.append(text_message)
+                message_list.append(image_message)
+                message = message_list
             elif file_url:
                 image_url = file_url
                 message = Document_extract(file_url, image_url, engine) + message

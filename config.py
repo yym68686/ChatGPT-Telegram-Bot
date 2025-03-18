@@ -528,13 +528,9 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
 initial_model = [
     "gpt-4o",
     "gpt-4o-mini",
-    "o1-mini",
-    "o1-preview",
-    "claude-3-opus-20240229",
-    "claude-3-5-sonnet-20241022",
-    # "gpt-4-turbo-2024-04-09",
-    # "gpt-3.5-turbo",
-    # "claude-3-haiku-20240307",
+    "o3-mini",
+    "o1",
+    "claude-3-7-sonnet-20250219",
 ]
 
 if GROQ_API_KEY:
