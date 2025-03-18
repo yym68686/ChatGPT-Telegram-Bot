@@ -3,13 +3,13 @@ python-dotenv
 python-telegram-bot[webhooks,rate-limiter,job-queue]==21.0.1
 
 pytz
-httpx
 pillow
 msgspec
 fastapi
 PyExecJS
 requests
 html2text
+httpx[http2]
 fake-useragent
 beautifulsoup4
 tiktoken==0.6.0
