@@ -417,9 +417,10 @@ def get_robot(chat_id = None):
         api_key = GROQ_API_KEY
         api_url = "https://api.groq.com/openai/v1/chat/completions"
     elif GOOGLE_AI_API_KEY and "gemini" in engine:
-        robot = gemini_Bot
+        robot = ChatGPTbot
         api_key = GOOGLE_AI_API_KEY
         api_url = "https://generativelanguage.googleapis.com/v1beta/models/{model}:{stream}?key={api_key}"
+        api_url = api_url.format(model=engine, stream="streamGenerateContent", api_key=api_key)
     elif VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID and "gemini" in engine:
         robot = vertexBot
         api_key = VERTEX_PRIVATE_KEY
@@ -540,7 +541,8 @@ if GROQ_API_KEY:
     ])
 if GOOGLE_AI_API_KEY or (VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID):
     initial_model.extend([
-        "gemini-1.5-pro",
+        "gemini-2.0-flash",
+        "gemini-2.0-pro-exp-02-05",
         "gemini-1.5-flash",
     ])
 
