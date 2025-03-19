@@ -304,9 +304,7 @@ python bot.py
 
 1. 在 `ModelMerge/src/ModelMerge/plugins` 目录下创建一个新的 Python 文件，例如 `myplugin.py`。通过在函数上面添加 `@register_tool()` 装饰器注册插件。`register_tool` 通过 `from .registry import register_tool` 导入。
 
-2. 最后，在 `ModelMerge/src/ModelMerge/plugins/config.py` 里面的函数 `get_tools_result_async` 添加插件调用的代码，当机器人需要调用插件的时候，会调用这个函数。你需要在这个函数里面添加插件的调用代码。
-
-3. utils/i18n.py 文件中添加插件名字各种语言的翻译。
+4. utils/i18n.py 文件中添加插件名字各种语言的翻译。
 
 完成上面的步骤，你的插件就可以使用了。🎉
 

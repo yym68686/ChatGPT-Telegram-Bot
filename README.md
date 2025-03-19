@@ -303,9 +303,7 @@ All the code related to plugins is in the git submodule ModelMerge within this r
 
 1. Create a new Python file in the `ModelMerge/src/ModelMerge/plugins` directory, for example, `myplugin.py`. Register the plugin by adding the `@register_tool()` decorator above your function. Import `register_tool` via `from .registry import register_tool`.
 
-2. Finally, add the plugin invocation code in the `get_tools_result_async` function in `ModelMerge/src/ModelMerge/plugins/config.py`. When the robot needs to call a plugin, it will call this function. You need to add the plugin invocation code within this function.
-
-3. Add translations for the plugin name in various languages in the utils/i18n.py file.
+2. Add translations for the plugin name in various languages in the utils/i18n.py file.
 
 After completing the above steps, your plugin is ready to use. 🎉
 
