@@ -210,11 +210,34 @@ class UserConfig:
         if not os.path.exists(CONFIG_DIR):
             return
 
+        # 定义旧键名到新键名的映射关系
+        key_mapping = {
+            "SEARCH": "get_search_results",
+            "URL": "get_url_content",
+            "ARXIV": "download_read_arxiv_pdf",
+            "CODE": "run_python_script",
+            "IMAGE": "generate_image",
+            "DATE": "get_date_time_weekday"
+        }
+
         for filename in os.listdir(CONFIG_DIR):
             if filename.endswith('.json'):
                 user_id = filename[:-5]  # 移除 '.json' 后缀
                 user_config = load_user_config(user_id)
                 self.users[user_id] = NestedDict()
+
+                # 检查并进行键名映射转换
+                updated_config = False
+                for old_key, new_key in key_mapping.items():
+                    if old_key in user_config:
+                        user_config[new_key] = user_config.pop(old_key)
+                        updated_config = True
+
+                # 如果配置有更新，保存回文件
+                if updated_config:
+                    save_user_config(user_id, user_config)
+
+                # 正常处理配置项
                 for key, value in user_config.items():
                     self.users[user_id][key] = value
                     if key == "api_url" and value != self.api_url:
@@ -493,10 +516,11 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
             else:
                 strings_array[delete_model_digit_tail(s.split('-'))] = s
 
-    filtered_strings1 = {k:v for k, v in strings_array.items() if len(k) <= 14}
-    # print(filtered_strings1)
-    filtered_strings2 = {k:v for k, v in strings_array.items() if len(k) > 14}
-    # print(filtered_strings2)
+    if not button_text:
+        button_text = {k:{lang:k} for k in strings_array.keys()}
+    filtered_strings1 = {k:v for k, v in strings_array.items() if len(button_text[k][lang]) <= 14}
+    filtered_strings2 = {k:v for k, v in strings_array.items() if len(button_text[k][lang]) > 14}
+
 
     buttons = []
     temp = []

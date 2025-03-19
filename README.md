@@ -87,12 +87,12 @@ The following is a list of environment variables related to the bot's plugin set
 
 | Variable Name | Description | Required? |
 |---------------|-------------|-----------|
-| SEARCH | Whether to enable the search plugin. Default is `True`. | No |
-| URL | Whether to enable the URL summarization plugin. Default is `True`. | No |
-| ARXIV | Whether to enable the arXiv paper summarization plugin. Default is `True`. | No |
-| CODE | Whether to enable the code interpreter plugin. Default is `False`. | No |
-| IMAGE | Whether to enable the image generation plugin. Default is `False`. | No |
-| DATE | Whether to enable the date plugin. Default is `False`. | No |
+| get_search_results | Whether to enable the search plugin. Default is `False`. | No |
+| get_url_content | Whether to enable the URL summarization plugin. Default is `False`. | No |
+| download_read_arxiv_pdf | Whether to enable the arXiv paper summarization plugin. Default is `False`. | No |
+| run_python_script | Whether to enable the code interpreter plugin. Default is `False`. | No |
+| generate_image | Whether to enable the image generation plugin. Default is `False`. | No |
+| get_date_time_weekday | Whether to enable the date plugin. Default is `False`. | No |
 
 
 ## Koyeb Remote Deployment
@@ -301,15 +301,13 @@ This project supports multiple plugins, including: DuckDuckGo and Google search,
 
 All the code related to plugins is in the git submodule ModelMerge within this repository. ModelMerge is an independent repository that I developed to handle API requests, conversation history management, and other functions. When you clone this repository using the `--recurse-submodules` parameter with git clone, ModelMerge will be automatically downloaded to your local machine. All the plugin code in this repository is located at the relative path `ModelMerge/src/ModelMerge/plugins`. You can add your own plugin code in this directory. The plugin development process is as follows:
 
-1. Create a new Python file in the `ModelMerge/src/ModelMerge/plugins` directory, for example, `myplugin.py`. Import your plugin in the `ModelMerge/src/ModelMerge/plugins/__init__.py` file, for example, `from .myplugin import MyPlugin`, and add your plugin name to the `__all__` list.
+1. Create a new Python file in the `ModelMerge/src/ModelMerge/plugins` directory, for example, `myplugin.py`. Register the plugin by adding the `@register_tool()` decorator above your function. Import `register_tool` via `from .registry import register_tool`.
 
-2. Add your plugin's OpenAI format tool request body conversion code to the `function_call_list` variable in `ModelMerge/src/ModelMerge/plugins/config.py`. You only need to add one line of code to implement the conversion. Claude and Gemini tool request bodies don't need to be written separately, as the program will automatically convert to Claude/Gemini tool format when requesting the Gemini or Claude API. The `function_call_list` is a dictionary where the key is the name of the plugin and the value is the request body of the plugin. Please ensure the key names in the `function_call_list` dictionary are unique and do not duplicate existing plugin key names.
+2. Finally, add the plugin invocation code in the `get_tools_result_async` function in `ModelMerge/src/ModelMerge/plugins/config.py`. When the robot needs to call a plugin, it will call this function. You need to add the plugin invocation code within this function.
 
-3. Add key-value pairs to the `PLUGINS` dictionary in `ModelMerge/src/ModelMerge/plugins/config.py`. The key is the name of the plugin, and the value is the environment variable of the plugin and its default value. This default value is the switch for the plugin; if the default value is `True`, then the plugin is enabled by default. If the default value is `False`, then the plugin is disabled by default and needs to be manually enabled by the user in the `/info` command.
+3. Add translations for the plugin name in various languages in the utils/i18n.py file.
 
-4. Finally, add the plugin invocation code in the `get_tools_result_async` function in `ModelMerge/src/ModelMerge/plugins/config.py`. When the robot needs to call a plugin, it will call this function. You need to add the plugin invocation code within this function.
-
-After completing the above steps, your plugin will be ready to use. 🎉
+After completing the above steps, your plugin is ready to use. 🎉
 
 ## 📄 Frequently Asked Questions
 

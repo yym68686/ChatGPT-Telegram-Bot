@@ -136,55 +136,37 @@ strings = {
         "zh-hk": "您沒有權限訪問！",
         "ru": "У вас нет доступа к боту!",
     },
-    "SEARCH": {
+    "get_search_results": {
         "zh": "网络搜索",
         "en": "Web search",
         "zh-hk": "網絡搜索",
         "ru": "Поиск в Интернете",
     },
-    "URL": {
+    "get_url_content": {
         "zh": "网址总结",
         "en": "URL summary",
         "zh-hk": "網址總結",
         "ru": "Сводка по веб-странице",
     },
-    "DATE": {
+    "get_date_time_weekday": {
         "zh": "当前时间",
         "en": "Current time",
         "zh-hk": "當前時間",
         "ru": "Текущее время",
     },
-    "VERSION": {
-        "zh": "版本信息",
-        "en": "Version info",
-        "zh-hk": "版本信息",
-        "ru": "Информация о версии",
-    },
-    "TARVEL": {
-        "zh": "旅行信息",
-        "en": "Travel info",
-        "zh-hk": "旅行信息",
-        "ru": "Информация о поездках",
-    },
-    "FLIGHT": {
-        "zh": "航班价格",
-        "en": "Flight price",
-        "zh-hk": "航班價格",
-        "ru": "Цена на рейс",
-    },
-    "IMAGE": {
+    "generate_image": {
         "zh": "DALL·E 3",
         "en": "DALL·E 3",
         "zh-hk": "DALL·E 3",
         "ru": "DALL·E 3",
     },
-    "CODE": {
+    "run_python_script": {
         "zh": "代码执行",
         "en": "Code execution",
         "zh-hk": "代碼執行",
         "ru": "Выполнение кода",
     },
-    "ARXIV": {
+    "download_read_arxiv_pdf": {
         "zh": "ArXiv 论文",
         "en": "ArXiv paper",
         "zh-hk": "ArXiv 論文",
