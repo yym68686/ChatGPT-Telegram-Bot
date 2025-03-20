@@ -88,7 +88,7 @@ async def GetMesage(update_message, context, voice=True):
 
         if reply_to_message_file:
             reply_to_message_file_url = await get_file_url(reply_to_message_file, context)
-            reply_to_message_file_content = Document_extract(reply_to_message_file_url, reply_to_message_file_url, None)
+            reply_to_message_file_content = await Document_extract(reply_to_message_file_url, reply_to_message_file_url, None)
 
     if update_message.photo:
         photo = update_message.photo[-1]
