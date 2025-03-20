@@ -183,9 +183,9 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if Users.get_config(convo_id, "REPLY") == False:
                 messageid = None
 
+            engine_type, _ = get_engine({"base_url": api_url}, endpoint=None, original_model=engine)
             if image_url:
                 message_list = []
-                engine_type, _ = get_engine({"base_url": api_url}, endpoint=None, original_model=engine)
                 image_message = await get_image_message(image_url, engine_type)
                 text_message = await get_text_message(message, engine_type)
                 message_list.append(text_message)
@@ -193,7 +193,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 message = message_list
             elif file_url:
                 image_url = file_url
-                message = await Document_extract(file_url, image_url, engine) + message
+                message = await Document_extract(file_url, image_url, engine_type) + message
 
             await getChatGPT(update_message, context, title, robot, message, chatid, messageid, convo_id, message_thread_id, pass_history, api_key, api_url, engine)
     else:
@@ -603,7 +603,8 @@ async def handle_file(update, context):
             return
     if image_url == None and file_url:
         image_url = file_url
-    message = await Document_extract(file_url, image_url, engine)
+    engine_type, _ = get_engine({"base_url": api_url}, endpoint=None, original_model=engine)
+    message = await Document_extract(file_url, image_url, engine_type)
 
     robot.add_to_conversation(message, role, convo_id)
 
