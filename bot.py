@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 sys.dont_write_bytecode = True
@@ -690,7 +691,17 @@ async def reset_chat(update, context):
         parse_mode='MarkdownV2',
     )
     if GET_MODELS:
-        update_initial_model()
+        robot, role, api_key, api_url = get_robot()
+        engine = Users.get_config(None, "engine")
+        provider = {
+            "provider": "openai",
+            "base_url": api_url,
+            "api": api_key,
+            "model": [engine],
+            "tools": True,
+            "image": True
+        }
+        update_initial_model(provider)
     await delete_message(update, context, [message.message_id, user_message_id])
 
 @decorators.AdminAuthorization

@@ -7,8 +7,7 @@ from utils.i18n import strings
 from datetime import datetime
 
 from ModelMerge.src.ModelMerge.utils import prompt
-from ModelMerge.src.ModelMerge.models.base import BaseAPI
-from ModelMerge.src.ModelMerge.core.utils import update_initial_model
+from ModelMerge.src.ModelMerge.core.utils import update_initial_model, BaseAPI
 from ModelMerge.src.ModelMerge.models import chatgpt, groq, claude3, gemini, vertex, PLUGINS, whisper, DuckChat
 
 from telegram import InlineKeyboardButton
@@ -22,13 +21,17 @@ if RESET_TIME < 60:
 
 GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4o')
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
+GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
+if os.environ.get('API_URL') == None and GOOGLE_AI_API_KEY and "gemini" in GPT_ENGINE:
+    api_url = "https://generativelanguage.googleapis.com/v1beta/models/{model}:{stream}?key={api_key}"
+    API_URL = api_url.format(model=GPT_ENGINE, stream="streamGenerateContent", api_key=GOOGLE_AI_API_KEY)
+
 API = os.environ.get('API', None)
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
 CHAT_MODE = os.environ.get('CHAT_MODE', "global")
 GET_MODELS = (os.environ.get('GET_MODELS', "False") == "False") == False
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', None)
-GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
 
 VERTEX_PRIVATE_KEY = os.environ.get('VERTEX_PRIVATE_KEY', None)
 VERTEX_CLIENT_EMAIL = os.environ.get('VERTEX_CLIENT_EMAIL', None)
@@ -329,8 +332,8 @@ def InitEngine(chat_id=None):
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
     if api_key or GOOGLE_AI_API_KEY:
-        ChatGPTbot = chatgpt(temperature=temperature, print_log=True)
-        SummaryBot = chatgpt(temperature=temperature, use_plugins=False, print_log=True)
+        ChatGPTbot = chatgpt(temperature=temperature, print_log=True, api_url=api_url, api_key=api_key)
+        SummaryBot = chatgpt(temperature=temperature, use_plugins=False, print_log=True, api_url=api_url, api_key=api_key)
         whisperBot = whisper(api_key=api_key, api_url=api_url)
     if CLAUDE_API:
         claude3Bot = claude3(temperature=temperature, print_log=True)
@@ -392,6 +395,8 @@ def replace_with_asterisk(string, start=10, end=45):
 def update_info_message(user_id = None):
     api_key = Users.get_config(user_id, "api_key")
     api_url = Users.get_config(user_id, "api_url")
+    if GOOGLE_AI_API_KEY and os.environ.get('API_URL') == None:
+        api_url = "https://generativelanguage.googleapis.com/v1beta"
     return "".join([
         f"**🤖 Model:** `{Users.get_config(user_id, 'engine')}`\n\n",
         f"**🔑 API:** `{replace_with_asterisk(api_key)}`\n\n" if api_key else "",
@@ -440,7 +445,7 @@ def get_robot(chat_id = None):
         robot = groqBot
         api_key = GROQ_API_KEY
         api_url = "https://api.groq.com/openai/v1/chat/completions"
-    elif GOOGLE_AI_API_KEY and "gemini" in engine:
+    elif GOOGLE_AI_API_KEY and ("gemini" in engine or os.environ.get('API_URL') == None):
         robot = ChatGPTbot
         api_key = GOOGLE_AI_API_KEY
         api_url = "https://generativelanguage.googleapis.com/v1beta/models/{model}:{stream}?key={api_key}"
