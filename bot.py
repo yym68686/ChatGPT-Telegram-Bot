@@ -184,6 +184,8 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
                 messageid = None
 
             engine_type, _ = get_engine({"base_url": api_url}, endpoint=None, original_model=engine)
+            if robot.__class__.__name__ == "chatgpt":
+                engine_type = "gpt"
             if image_url:
                 message_list = []
                 image_message = await get_image_message(image_url, engine_type)
@@ -604,6 +606,8 @@ async def handle_file(update, context):
     if image_url == None and file_url:
         image_url = file_url
     engine_type, _ = get_engine({"base_url": api_url}, endpoint=None, original_model=engine)
+    if robot.__class__.__name__ == "chatgpt":
+        engine_type = "gpt"
     message = await Document_extract(file_url, image_url, engine_type)
 
     robot.add_to_conversation(message, role, convo_id)
