@@ -7,8 +7,9 @@ from utils.i18n import strings
 from datetime import datetime
 
 from ModelMerge.src.ModelMerge.utils import prompt
-from ModelMerge.src.ModelMerge.models import chatgpt, groq, claude3, gemini, vertex, PLUGINS, whisper, DuckChat
 from ModelMerge.src.ModelMerge.models.base import BaseAPI
+from ModelMerge.src.ModelMerge.core.utils import update_initial_model
+from ModelMerge.src.ModelMerge.models import chatgpt, groq, claude3, gemini, vertex, PLUGINS, whisper, DuckChat
 
 from telegram import InlineKeyboardButton
 
@@ -327,7 +328,7 @@ def InitEngine(chat_id=None):
     global Users, ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, vertexBot, whisperBot, duckBot
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
-    if api_key:
+    if api_key or GOOGLE_AI_API_KEY:
         ChatGPTbot = chatgpt(temperature=temperature, print_log=True)
         SummaryBot = chatgpt(temperature=temperature, use_plugins=False, print_log=True)
         whisperBot = whisper(api_key=api_key, api_url=api_url)
@@ -578,42 +579,32 @@ if duckBot:
         "Mixtral-8x7B",
     ])
 
-def update_initial_model():
-    global initial_model
-    try:
-        endpoint = BaseAPI(api_url=API_URL)
-        endpoint_models_url = endpoint.v1_models
-        import requests
-        response = requests.get(
-            endpoint_models_url,
-            headers={"Authorization": f"Bearer {API}"},
-        )
-        models = response.json()
-        # print(models)
-        models_list = models["data"]
-        models_id = [model["id"] for model in models_list]
-        set_models = set()
-        for model_item in models_id:
-            if "dalle" in model_item or "dall-e" in model_item:
-                continue
-            if "whisper" in model_item:
-                continue
-            if "moderation" in model_item:
-                continue
-            if "embedding" in model_item:
-                continue
-            set_models.add(model_item)
-            # parts = [part for segment in model_item.split("-") for part in segment.split("@")]
-            # set_models.add(delete_model_digit_tail(parts))
-        models_id = list(set_models)
-        # print(models_id)
-        initial_model = models_id
-    except Exception as e:
-        print("error:", e)
-        pass
+def remove_no_text_model(model_list):
+    set_models = set()
+    for model_item in model_list:
+        if "dalle" in model_item or "dall-e" in model_item:
+            continue
+        if "whisper" in model_item:
+            continue
+        if "moderation" in model_item:
+            continue
+        if "embedding" in model_item:
+            continue
+        set_models.add(model_item)
+    return list(set_models)
 
 if GET_MODELS:
-    update_initial_model()
+    robot, role, api_key, api_url = get_robot()
+    engine = Users.get_config(None, "engine")
+    provider = {
+        "provider": "openai",
+        "base_url": api_url,
+        "api": api_key,
+        "model": [engine],
+        "tools": True,
+        "image": True
+    }
+    initial_model = remove_no_text_model(update_initial_model(provider))
 
 CUSTOM_MODELS = os.environ.get('CUSTOM_MODELS', None)
 if CUSTOM_MODELS:
