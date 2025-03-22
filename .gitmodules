@@ -1,6 +1,6 @@
 [submodule "md2tgmd"]
 	path = md2tgmd
 	url = https://github.com/yym68686/md2tgmd.git
-[submodule "ModelMerge"]
-	path = ModelMerge
-	url = https://github.com/yym68686/ModelMerge.git
+[submodule "aient"]
+	path = aient
+	url = https://github.com/yym68686/aient.git

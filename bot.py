@@ -7,9 +7,9 @@ import traceback
 import utils.decorators as decorators
 
 from md2tgmd.src.md2tgmd import escape, split_code, replace_all
-from ModelMerge.src.ModelMerge.utils.prompt import translator_en2zh_prompt, translator_prompt
-from ModelMerge.src.ModelMerge.utils.scripts import Document_extract, claude_replace
-from ModelMerge.src.ModelMerge.core.utils import get_engine, get_image_message, get_text_message
+from aient.src.aient.utils.prompt import translator_en2zh_prompt, translator_prompt
+from aient.src.aient.utils.scripts import Document_extract, claude_replace
+from aient.src.aient.core.utils import get_engine, get_image_message, get_text_message
 import config
 from config import (
     WEB_HOOK,

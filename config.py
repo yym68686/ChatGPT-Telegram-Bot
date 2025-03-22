@@ -6,9 +6,9 @@ load_dotenv()
 from utils.i18n import strings
 from datetime import datetime
 
-from ModelMerge.src.ModelMerge.utils import prompt
-from ModelMerge.src.ModelMerge.core.utils import update_initial_model, BaseAPI
-from ModelMerge.src.ModelMerge.models import chatgpt, groq, claude3, gemini, vertex, PLUGINS, whisper, DuckChat
+from aient.src.aient.utils import prompt
+from aient.src.aient.core.utils import update_initial_model, BaseAPI
+from aient.src.aient.models import chatgpt, groq, claude3, gemini, vertex, PLUGINS, whisper, DuckChat
 
 from telegram import InlineKeyboardButton
 

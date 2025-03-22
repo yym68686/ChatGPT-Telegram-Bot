@@ -22,7 +22,7 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 
 ## ✨ 功能
 
-- **多种AI模型**：支持GPT-3.5/4/4 Turbo/4o/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。还支持 one-api/new-api/[uni-api](https://github.com/yym68686/uni-api)。利用自研 API 请求后端 [SDK](https://github.com/yym68686/ModelMerge)，不依赖 OpenAI SDK。
+- **多种AI模型**：支持GPT-3.5/4/4 Turbo/4o/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。还支持 one-api/new-api/[uni-api](https://github.com/yym68686/uni-api)。利用自研 API 请求后端 [SDK](https://github.com/yym68686/aient)，不依赖 OpenAI SDK。
 - **多模态问答**：支持语音、音频、图像和 PDF/TXT/MD/python 文档的问答。用户可以直接在聊天框中上传文件使用。
 - **群聊主题模式**：支持在群聊中启用主题模式，在主题之间隔离API、对话历史、插件配置和偏好设置。
 - **丰富的插件系统**：支持网页搜索（DuckDuckGo和Google）、URL 总结、ArXiv 论文总结和代码解释器。
@@ -300,9 +300,9 @@ python bot.py
 
 - 如何开发插件？
 
-插件相关的代码全部在本仓库 git 子模块 ModelMerge 里面，ModelMerge 是我开发的一个独立的仓库，用于处理 API 请求，对话历史记录管理等功能。当你使用 git clone 的 --recurse-submodules 参数克隆本仓库后，ModelMerge 会自动下载到本地。插件所有的代码在本仓库中的相对路径为 `ModelMerge/src/ModelMerge/plugins`。你可以在这个目录下添加自己的插件代码。插件开发的流程如下：
+插件相关的代码全部在本仓库 git 子模块 aient 里面，aient 是我开发的一个独立的仓库，用于处理 API 请求，对话历史记录管理等功能。当你使用 git clone 的 --recurse-submodules 参数克隆本仓库后，aient 会自动下载到本地。插件所有的代码在本仓库中的相对路径为 `aient/src/aient/plugins`。你可以在这个目录下添加自己的插件代码。插件开发的流程如下：
 
-1. 在 `ModelMerge/src/ModelMerge/plugins` 目录下创建一个新的 Python 文件，例如 `myplugin.py`。通过在函数上面添加 `@register_tool()` 装饰器注册插件。`register_tool` 通过 `from .registry import register_tool` 导入。
+1. 在 `aient/src/aient/plugins` 目录下创建一个新的 Python 文件，例如 `myplugin.py`。通过在函数上面添加 `@register_tool()` 装饰器注册插件。`register_tool` 通过 `from .registry import register_tool` 导入。
 
 4. utils/i18n.py 文件中添加插件名字各种语言的翻译。
 

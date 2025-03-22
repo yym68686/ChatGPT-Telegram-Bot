@@ -22,7 +22,7 @@ ChatGPT Telegram Bot is a powerful Telegram bot that can use various mainstream 
 
 ## ✨ Features
 
-- **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). Also supports one-api/new-api/[uni-api](https://github.com/yym68686/uni-api). Utilizes self-developed API to request backend [SDK](https://github.com/yym68686/ModelMerge), does not rely on OpenAI SDK.
+- **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). Also supports one-api/new-api/[uni-api](https://github.com/yym68686/uni-api). Utilizes self-developed API to request backend [SDK](https://github.com/yym68686/aient), does not rely on OpenAI SDK.
 - **Multimodal Question Answering**: Supports question answering for voice, audio, images, and PDF/TXT/MD/python documents. Users can directly upload files in the chat box for use.
 - **Group Chat Topic Mode**: Supports enabling topic mode in group chats, isolating APIs, dialogue history, plugin configurations, and preferences between topics.
 - **Rich plugin system**: Supports web search (DuckDuckGo and Google), URL summarization, ArXiv paper summarization, and code interpreter.
@@ -299,9 +299,9 @@ This project supports multiple plugins, including: DuckDuckGo and Google search,
 
 - How to develop a plugin?
 
-All the code related to plugins is in the git submodule ModelMerge within this repository. ModelMerge is an independent repository that I developed to handle API requests, conversation history management, and other functions. When you clone this repository using the `--recurse-submodules` parameter with git clone, ModelMerge will be automatically downloaded to your local machine. All the plugin code in this repository is located at the relative path `ModelMerge/src/ModelMerge/plugins`. You can add your own plugin code in this directory. The plugin development process is as follows:
+All the code related to plugins is in the git submodule aient within this repository. aient is an independent repository that I developed to handle API requests, conversation history management, and other functions. When you clone this repository using the `--recurse-submodules` parameter with git clone, aient will be automatically downloaded to your local machine. All the plugin code in this repository is located at the relative path `aient/src/aient/plugins`. You can add your own plugin code in this directory. The plugin development process is as follows:
 
-1. Create a new Python file in the `ModelMerge/src/ModelMerge/plugins` directory, for example, `myplugin.py`. Register the plugin by adding the `@register_tool()` decorator above your function. Import `register_tool` via `from .registry import register_tool`.
+1. Create a new Python file in the `aient/src/aient/plugins` directory, for example, `myplugin.py`. Register the plugin by adding the `@register_tool()` decorator above your function. Import `register_tool` via `from .registry import register_tool`.
 
 2. Add translations for the plugin name in various languages in the utils/i18n.py file.
 
