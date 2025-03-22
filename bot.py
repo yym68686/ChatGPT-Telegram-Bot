@@ -30,6 +30,7 @@ from config import (
     get_current_lang,
     update_info_message,
     update_menu_buttons,
+    remove_no_text_model,
     update_initial_model,
     update_models_buttons,
     update_language_status,
@@ -692,7 +693,7 @@ async def reset_chat(update, context):
     )
     if GET_MODELS:
         robot, role, api_key, api_url = get_robot()
-        engine = Users.get_config(None, "engine")
+        engine = Users.get_config(convo_id, "engine")
         provider = {
             "provider": "openai",
             "base_url": api_url,
@@ -701,7 +702,7 @@ async def reset_chat(update, context):
             "tools": True,
             "image": True
         }
-        update_initial_model(provider)
+        config.initial_model = remove_no_text_model(update_initial_model(provider))
     await delete_message(update, context, [message.message_id, user_message_id])
 
 @decorators.AdminAuthorization
