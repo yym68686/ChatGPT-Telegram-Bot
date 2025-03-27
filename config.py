@@ -22,9 +22,6 @@ if RESET_TIME < 60:
 GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4o')
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
-if os.environ.get('API_URL') == None and GOOGLE_AI_API_KEY and "gemini" in GPT_ENGINE:
-    api_url = "https://generativelanguage.googleapis.com/v1beta/models/{model}:{stream}?key={api_key}"
-    API_URL = api_url.format(model=GPT_ENGINE, stream="streamGenerateContent", api_key=GOOGLE_AI_API_KEY)
 
 API = os.environ.get('API', None)
 WEB_HOOK = os.environ.get('WEB_HOOK', None)
@@ -326,22 +323,17 @@ Users = UserConfig(mode=CHAT_MODE, api_key=API, api_url=API_URL, engine=GPT_ENGI
 temperature = float(os.environ.get('temperature', '0.5'))
 CLAUDE_API = os.environ.get('claude_api_key', None)
 
-ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, vertexBot, whisperBot, duckBot = None, None, None, None, None, None, None, None
+ChatGPTbot, SummaryBot, groqBot, vertexBot, whisperBot, duckBot = None, None, None, None, None, None
 def InitEngine(chat_id=None):
-    global Users, ChatGPTbot, SummaryBot, claude3Bot, groqBot, gemini_Bot, vertexBot, whisperBot, duckBot
+    global Users, ChatGPTbot, SummaryBot, groqBot, vertexBot, whisperBot, duckBot
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
-    if api_key or GOOGLE_AI_API_KEY:
+    if api_key or GOOGLE_AI_API_KEY or CLAUDE_API:
         ChatGPTbot = chatgpt(temperature=temperature, print_log=True, api_url=api_url, api_key=api_key)
         SummaryBot = chatgpt(temperature=temperature, use_plugins=False, print_log=True, api_url=api_url, api_key=api_key)
         whisperBot = whisper(api_key=api_key, api_url=api_url)
-    if CLAUDE_API:
-        claude3Bot = claude3(temperature=temperature, print_log=True)
-        SummaryBot = claude3(temperature=temperature, print_log=True)
     if GROQ_API_KEY:
         groqBot = groq(temperature=temperature)
-    if GOOGLE_AI_API_KEY:
-        gemini_Bot = gemini(temperature=temperature, print_log=True)
     if VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID:
         vertexBot = vertex(temperature=temperature, print_log=True)
 
@@ -408,7 +400,7 @@ def update_info_message(user_id = None):
     ])
 
 def reset_ENGINE(chat_id, message=None):
-    global ChatGPTbot, claude3Bot, groqBot, gemini_Bot, vertexBot
+    global ChatGPTbot, groqBot, vertexBot
     api_key = Users.get_config(chat_id, "api_key")
     api_url = Users.get_config(chat_id, "api_url")
     engine = Users.get_config(chat_id, "engine")
@@ -424,21 +416,17 @@ def reset_ENGINE(chat_id, message=None):
             ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=claude_systemprompt)
         else:
             ChatGPTbot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
-    if CLAUDE_API and claude3Bot:
-        claude3Bot.reset(convo_id=str(chat_id), system_prompt=claude_systemprompt)
     if GROQ_API_KEY and groqBot:
         groqBot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
-    if GOOGLE_AI_API_KEY and gemini_Bot:
-        gemini_Bot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
     if VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID and vertexBot:
         vertexBot.reset(convo_id=str(chat_id), system_prompt=systemprompt)
 
 def get_robot(chat_id = None):
-    global ChatGPTbot, claude3Bot, groqBot, gemini_Bot, duckBot
+    global ChatGPTbot, groqBot, duckBot
     engine = Users.get_config(chat_id, "engine")
     role = "user"
     if CLAUDE_API and "claude-3" in engine:
-        robot = claude3Bot
+        robot = ChatGPTbot
         api_key = CLAUDE_API
         api_url = "https://api.anthropic.com/v1/messages"
     elif ("mixtral" in engine or "llama" in engine) and GROQ_API_KEY:
@@ -572,9 +560,8 @@ if GROQ_API_KEY:
 if GOOGLE_AI_API_KEY or (VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID):
     initial_model.extend([
         "gemini-2.0-flash",
-        "gemini-2.0-pro-exp-02-05",
+        "gemini-2.5-pro-exp-03-25",
         "gemini-2.0-flash-thinking-exp-01-21",
-        "gemini-1.5-flash",
     ])
 
 if duckBot:
