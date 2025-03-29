@@ -378,9 +378,12 @@ def check_for_updates():
     else:
         return "A new version is available! Please redeploy."
 
-def replace_with_asterisk(string, start=10, end=45):
+def replace_with_asterisk(string):
     if string:
-        return string[:start] + '*' * (end - start - 8) + string[end:]
+        if len(string) <= 4:  # 如果字符串长度小于等于4，则不进行替换
+            return string[0] + '*' * 10
+        else:
+            return string[:10] + '*' * 10 + string[-2:]
     else:
         return None
 
