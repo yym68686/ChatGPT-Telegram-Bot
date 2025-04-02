@@ -35,13 +35,17 @@ from config import (
     update_models_buttons,
     update_language_status,
     update_first_buttons_message,
+    get_all_available_models,
+    get_model_groups,
+    CUSTOM_MODELS_LIST,
+    MODEL_GROUPS,
 )
 
 from utils.i18n import strings
 from utils.scripts import GetMesageInfo, safe_get, is_emoji
 
 from telegram.constants import ChatAction
-from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InputMediaPhoto
+from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InputMediaPhoto, InlineKeyboardButton
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler, ContextTypes
 from datetime import timedelta
 
@@ -510,6 +514,18 @@ async def button_press(update, context):
                 message = await callback_query.edit_message_text(
                     text=escape(info_message + banner),
                     reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id)),
+                    parse_mode='MarkdownV2'
+                )
+            except Exception as e:
+                logger.info(e)
+                pass
+        elif data.endswith("_GROUP"):
+            # Processing a click on a group of models
+            group_name = data[:-6]
+            try:
+                message = await callback_query.edit_message_text(
+                    text=escape(info_message + f"\n\n*Group:* `{group_name}`"),
+                    reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id, group=group_name)),
                     parse_mode='MarkdownV2'
                 )
             except Exception as e:
