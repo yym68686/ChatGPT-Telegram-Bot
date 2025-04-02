@@ -41,7 +41,7 @@ from utils.i18n import strings
 from utils.scripts import GetMesageInfo, safe_get, is_emoji
 
 from telegram.constants import ChatAction
-from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InputMediaPhoto
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler, ContextTypes
 from datetime import timedelta
 
@@ -428,14 +428,32 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
         image_urls_result = [url[0] if isinstance(url, tuple) else url for url in image_urls]
         if image_urls_result:
             try:
-                await context.bot.send_photo(
-                    chat_id=chatid,
-                    photo=image_urls_result[0],
-                    message_thread_id=message_thread_id,
-                    reply_to_message_id=messageid,
-                )
+                # Limit the number of images to 10 (Telegram limit for albums)
+                if len(image_urls_result) > 10:
+                    image_urls_result = image_urls_result[:10]
+                
+                if len(image_urls_result) == 1:
+                    # Sending a single image
+                    await context.bot.send_photo(
+                        chat_id=chatid,
+                        photo=image_urls_result[0],
+                        message_thread_id=message_thread_id,
+                        reply_to_message_id=messageid,
+                    )
+                else:
+                    # We send an album with several images
+                    media_group = []
+                    for img_url in image_urls_result:
+                        media_group.append(InputMediaPhoto(media=img_url))
+                    
+                    await context.bot.send_media_group(
+                        chat_id=chatid,
+                        media=media_group,
+                        message_thread_id=message_thread_id,
+                        reply_to_message_id=messageid,
+                    )
             except Exception as e:
-                logger.warning(f"Failed to send image {image_urls_result[0]}: {str(e)}")
+                logger.warning(f"Failed to send image(s): {str(e)}")
 
     now_result = escape(tmpresult, italic=False)
     if lastresult != now_result and answer_messageid:
