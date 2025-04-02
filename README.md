@@ -459,6 +459,8 @@ No, in the future it will support multiple Bot Tokens.
 
 3. `/reset`: The robot `/reset` command can clear the robot's conversation messages and force the robot to stop generating replies. If you want to reset the system prompt, please use the following command: `/reset your_system_prompt`. However, the `/reset` command will never restore the robot's display language, preferences, plugin settings, model in use, API URL, API key, system prompt, etc.
 
+4. `/model`: The robot `/model` command allows you to quickly switch between AI models without going through the `/info` menu. Simply use `/model model_name` to switch to a specific model. For example: `/model gpt-4o` to switch to GPT-4o or `/model claude-3-opus` to switch to Claude 3 Opus. This command provides a faster way to change models during conversations.
+
 - What to do if Koyeb deployment fails?
 
 Koyeb's free service can be a bit unstable, so deployment failures are pretty common. You might want to try redeploying, and if that doesn't work, consider switching to another platform. 😊
