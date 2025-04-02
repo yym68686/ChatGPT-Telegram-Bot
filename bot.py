@@ -663,6 +663,48 @@ async def inlinequery(update: Update, context) -> None:
 
         await update.inline_query.answer(results)
 
+@decorators.GroupAuthorization
+@decorators.Authorization
+async def change_model(update, context):
+    """Quick model change using the command"""
+    _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
+    
+    if len(context.args) != 1:
+        message = await context.bot.send_message(
+            chat_id=chatid,
+            message_thread_id=message_thread_id,
+            text=escape("Please specify the model name: /model model_name"),
+            parse_mode='MarkdownV2',
+            reply_to_message_id=user_message_id,
+        )
+        return
+    
+    model_name = context.args[0]
+    
+    # Check if the model name is valid (only English letters, numbers, and dashes; not longer than 100 characters)
+    if not re.match(r'^[a-zA-Z0-9\-/\.]+$', model_name) or len(model_name) > 100:
+        message = await context.bot.send_message(
+            chat_id=chatid,
+            message_thread_id=message_thread_id,
+            text=escape("Invalid model name. Use only English letters, numbers, and dashes. Maximum length - 100 characters."),
+            parse_mode='MarkdownV2',
+            reply_to_message_id=user_message_id,
+        )
+        return
+    
+    # Saving the new model in the user's configuration
+    Users.set_config(convo_id, "engine", model_name)
+    
+    # Sending a message about changing the model
+    info_message = update_info_message(convo_id)
+    message = await context.bot.send_message(
+        chat_id=chatid,
+        message_thread_id=message_thread_id,
+        text=escape(f"The model has been successfully changed to: `{model_name}`\n\n{info_message}", italic=False),
+        parse_mode='MarkdownV2',
+        reply_to_message_id=user_message_id,
+    )
+
 async def scheduled_function(context: ContextTypes.DEFAULT_TYPE) -> None:
     """这个函数将在RESET_TIME秒后执行一次，重置特定用户的对话"""
     job = context.job
@@ -811,6 +853,7 @@ async def post_init(application: Application) -> None:
         BotCommand('info', 'Basic information'),
         BotCommand('reset', 'Reset the bot'),
         BotCommand('start', 'Start the bot'),
+        BotCommand('model', 'Change AI model'),
         BotCommand('en2zh', 'Translate to Chinese'),
         BotCommand('zh2en', 'Translate to English'),
     ])
@@ -842,6 +885,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("info", info))
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", reset_chat))
+    application.add_handler(CommandHandler("model", change_model))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese")))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english")))
     application.add_handler(InlineQueryHandler(inlinequery))
