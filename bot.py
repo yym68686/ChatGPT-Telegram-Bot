@@ -290,7 +290,8 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
                 tmpresult = strings[data][get_current_lang(convo_id)]
             history = robot.conversation[convo_id]
             if safe_get(history, -2, "tool_calls", 0, 'function', 'name') == "generate_image" and not image_has_send and safe_get(history, -1, 'content'):
-                await context.bot.send_photo(chat_id=chatid, photo=history[-1]['content'], reply_to_message_id=messageid)
+                image_result = history[-1]['content'].split('\n\n')[1]
+                await context.bot.send_photo(chat_id=chatid, photo=image_result, reply_to_message_id=messageid)
                 image_has_send = 1
             modifytime = modifytime + 1
 
