@@ -24,7 +24,7 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 
 - **多种AI模型**：支持GPT-3.5/4/4 Turbo/4o/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。还支持 one-api/new-api/[uni-api](https://github.com/yym68686/uni-api)。利用自研 API 请求后端 [SDK](https://github.com/yym68686/aient)，不依赖 OpenAI SDK。
 - **多模态问答**：支持语音、音频、图像和 PDF/TXT/MD/python 文档的问答。用户可以直接在聊天框中上传文件使用。
-- **群聊主题模式**：支持在群聊中启用主题模式，在主题之间隔离API、对话历史、插件配置和偏好设置。
+- **群聊主题模式**: 支持在群聊中启用主题模式，在主题之间隔离API、对话历史、插件配置和偏好设置。
 - **丰富的插件系统**：支持网页搜索（DuckDuckGo和Google）、URL 总结、ArXiv 论文总结和代码解释器。
 - **用户友好界面**：允许在聊天窗口内灵活切换模型，并支持类似打字机效果的流式输出。支持精确的 Markdown 消息渲染，利用了我的另一个[项目](https://github.com/yym68686/md2tgmd)。
 - **高效消息处理**：异步处理消息，多线程回答问题，支持隔离对话，并为不同用户提供独特对话。
@@ -35,6 +35,7 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 - **白名单、黑名单和管理员设置**：支持设置白名单、黑名单和管理员。
 - **内联模式**：允许用户在任何聊天窗口中 @ 机器人以生成答案，而无需在机器人的聊天窗口中提问。
 - **方便部署**：支持一键部署到 koyeb、Zeabur、Replit，真正零成本和傻瓜式部署流程。还支持 kuma 防休眠，以及 Docker 和 fly.io 部署。
+- **模型分组系统**: 将AI模型组织成逻辑组，便于选择。模型可以按提供商（GPT、Claude等）或按功能进行分组。没有明确指定组的模型会自动放入"OTHERS"组。这使得模型选择更直观，特别是当有很多模型可用时。
 
 ## 🍃 环境变量
 
@@ -44,7 +45,7 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 |---------------|-------------|-----------|
 | BOT_TOKEN | Telegram 机器人令牌。 在 [BotFather](https://t.me/BotFather) 上创建一个机器人以获取 BOT_TOKEN。 | **是** |
 | API | OpenAI 或第三方 API 密钥。 | 否 |
-| GPT_ENGINE | 设置默认的QA模型；默认是：`gpt-4o`。此项可以使用机器人的“info”命令自由切换，原则上不需要设置。 | 否 |
+| GPT_ENGINE | 设置默认的QA模型；默认是：`gpt-4o`。此项可以使用机器人的"info"命令自由切换，原则上不需要设置。 | 否 |
 | WEB_HOOK | 每当电报机器人收到用户消息时，消息将被传递到 WEB_HOOK，机器人将在此监听并及时处理收到的消息。 | 否 |
 | API_URL | 如果您使用的是OpenAI官方API，则无需设置此项。如果您使用的是第三方API，则需要填写第三方代理网站。默认值是：https://api.openai.com/v1/chat/completions | 否 |
 | GROQ_API_KEY | Groq官方API密钥。 | 否 |
@@ -61,7 +62,7 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 | BLACK_LIST | 设置哪些用户禁止访问机器人，并用 ',' 连接被授权使用机器人的用户ID。默认值是 `None` | 否 |
 | ADMIN_LIST | 设置管理员列表。只有管理员可以使用 `/info` 命令配置机器人。 | 否 |
 | GROUP_LIST | 设置可以使用机器人的群组列表。使用逗号（'，'）连接群组ID。即使群组成员不在白名单中，只要群组ID在GROUP_LIST中，群组的所有成员都可以使用机器人。 | 否 |
-| CUSTOM_MODELS | 设置自定义模型名称列表。使用逗号（','）连接模型名称。如果需要删除默认模型，请在默认模型名称前添加连字符（-）。如果要删除所有默认模型，请使用 `-all`。 | 否 |
+| CUSTOM_MODELS | 设置自定义模型名称列表。使用逗号（','）连接模型名称。如果需要删除默认模型，请在默认模型名称前添加连字符（-）。如果要删除所有默认模型，请使用 `-all`。要创建模型组，使用分号（';'）分隔组，使用冒号（':'）定义组名及其模型，例如：`CUSTOM_MODELS=-all,command,grok-2;GPT:gpt-4o,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet;OTHERS`。没有特定组的模型将自动放入"OTHERS"组。 | 否 |
 | CHAT_MODE | 引入多用户模式，不同用户的配置不共享。当 CHAT_MODE 为 `global` 时，所有用户共享配置。当 CHAT_MODE 为 `multiusers` 时，用户配置彼此独立。 | 否 |
 | temperature | 指定 LLM 的温度。默认值是 `0.5`。 | 否 |
 | GET_MODELS | 指定是否通过 API 获取支持的模型。默认值为 `False`。 | 否 |
@@ -81,8 +82,8 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 | FILE_UPLOAD_MESS | 当文件或图像上传成功并且机器人处理完成时，机器人将发送一条消息，提示上传成功。默认值为 `True`。对应于偏好设置里面的名为 `文件上传成功提示消息` 的按钮。 | 否 |
 | FOLLOW_UP | 自动生成多个相关问题供用户选择。默认值为 `False`。对应于偏好设置里面的名为 `猜你想问` 的按钮。 | 否 |
 | TITLE | 是否在机器人回复的开头显示模型名称。默认值为 `False`。对应于偏好设置里面的名为 `模型标题` 的按钮。 | 否 |
-<!-- | TYPING | 是否在机器人回复时显示“正在输入”状态。默认值为 `False`。 | 否 | -->
-| REPLY | 机器人是否应以“回复”格式回复用户的消息。默认值为 `False`。对应于偏好设置里面的名为 `回复消息` 的按钮。 | 否 |
+<!-- | TYPING | 是否在机器人回复时显示"正在输入"状态。默认值为 `False`。 | 否 | -->
+| REPLY | 机器人是否应以"回复"格式回复用户的消息。默认值为 `False`。对应于偏好设置里面的名为 `回复消息` 的按钮。 | 否 |
 
 以下是与机器人插件设置相关的环境变量列表：
 
@@ -139,10 +140,10 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 pip install -r requirements.txt > /dev/null && python3 bot.py
 ```
 
-在工具侧边栏中选择“Secrets”，添加机器人所需的环境变量，其中：
+在工具侧边栏中选择"Secrets"，添加机器人所需的环境变量，其中：
 
 - WEB_HOOK: Replit 会自动为您分配一个域名，填写 `https://appname.username.repl.co`
-- 记得打开“始终开启”
+- 记得打开"始终开启"
 
 点击屏幕顶部的运行按钮来运行机器人。
 
@@ -156,7 +157,7 @@ pip install -r requirements.txt > /dev/null && python3 bot.py
 flyctl launch --image yym68686/chatgpt:latest
 ```
 
-在提示时输入应用程序的名称，并选择“否”以初始化 Postgresql 或 Redis。
+在提示时输入应用程序的名称，并选择"否"以初始化 Postgresql 或 Redis。
 
 按照提示进行部署。官方控制面板将提供一个二级域名，可用于访问服务。
 
@@ -263,7 +264,7 @@ yym68686/chatgpt:latest
 docker logs -f chatbot
 ```
 
-该脚本用于通过单个命令重启Docker镜像。它首先删除名为“chatbot”的现有Docker容器（如果存在）。然后，它运行一个名为“chatbot”的新Docker容器，暴露端口8080并设置各种环境变量。使用的Docker镜像是“yym68686/chatgpt:latest”。最后，它跟踪“chatbot”容器的日志。
+该脚本用于通过单个命令重启Docker镜像。它首先删除名为"chatbot"的现有Docker容器（如果存在）。然后，它运行一个名为"chatbot"的新Docker容器，暴露端口8080并设置各种环境变量。使用的Docker镜像是"yym68686/chatgpt:latest"。最后，它跟踪"chatbot"容器的日志。
 
 ## 🚀 源代码本地部署
 
@@ -338,9 +339,28 @@ your_webhook_domain.com {
 
 3. 如果您使用了 OpenAI、Claude 和 Gemini 系列模型的 API，请确保你使用的是官方 API，如果你使用的是第三方中转 API，提供商可能通过网页逆向的方式向你提供 API，通过网页逆向的方式提供 API 无法使用 tools use，即不能使用本项目所有的插件。如果你确认你使用的是官方 API，仍然无法成功搜索，请联系开发人员。
 
-- 我如何切换模型？
+- 如何切换模型？
 
 您可以在聊天窗口中使用 "/info" 命令在 GPT3.5/4/4o 和其他模型之间切换。
+
+- 如何将模型组织成组？
+
+你可以使用`CUSTOM_MODELS`环境变量，通过特殊语法来组织模型：
+1. 使用分号（`;`）分隔不同的组
+2. 使用冒号（`:`）定义组名及其包含的模型
+3. 组内的模型使用逗号（`,`）分隔
+
+例如：
+```
+CUSTOM_MODELS=-all;GPT:gpt-4o,gpt-4,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet,claude-3-haiku;Gemini:gemini-1.5-pro,gemini-1.0-pro;command,grok-2
+```
+
+这创建了三个组："GPT"、"Claude"和"Gemini"，每个组包含各自的模型。模型"command"和"grok-2"没有明确的组，所以它们会自动放入"OTHERS"组。
+
+如果想创建一个空的"OTHERS"组（即使没有未分组的模型），可以在最后添加"OTHERS"：
+```
+CUSTOM_MODELS=-all;GPT:gpt-4o;Claude:claude-3-opus;OTHERS
+```
 
 - 它可以在一个群组中部署吗？
 
@@ -435,9 +455,11 @@ PASS_HISTORY的数量严格等于对话历史中的消息数量。推荐值是2�
 
 1. `/info`: 机器人 `/info` 命令可以查看机器人的配置信息，包括当前使用的模型、API URL、API 密钥等。它还可以更改机器人的显示语言、偏好设置和插件设置。
 
-2. `/start`：机器人 `/start` 命令可以查看机器人的使用说明、使用方法和功能介绍。您可以使用 `/start` 命令设置 API 密钥。如果您有官方的 OpenAI API 密钥，请使用以下命令：`/start your_api_key`。如果您使用的是第三方 API 密钥，请使用以下命令：`/start https://your_api_url your_api_key`。
+2. `/start`: 机器人 `/start` 命令可以查看机器人的使用说明、使用方法和功能介绍。您可以使用 `/start` 命令设置 API 密钥。如果您有官方的 OpenAI API 密钥，请使用以下命令：`/start your_api_key`。如果您使用的是第三方 API 密钥，请使用以下命令：`/start https://your_api_url your_api_key`。
 
-3. `/reset`：机器人 `/reset` 命令可以清除机器人的对话消息，并强制机器人停止生成回复。如果你想重置系统提示，请使用以下命令：`/reset your_system_prompt`。但是，`/reset` 命令永远不会恢复机器人的显示语言、偏好设置、插件设置、使用中的模型、API URL、API 密钥、系统提示等。
+3. `/reset`: 机器人 `/reset` 命令可以清除机器人的对话消息，并强制机器人停止生成回复。如果你想重置系统提示，请使用以下命令：`/reset your_system_prompt`。但是，`/reset` 命令永远不会恢复机器人的显示语言、偏好设置、插件设置、使用中的模型、API URL、API 密钥、系统提示等。
+
+4. `/model`: 机器人的 `/model` 命令允许你快速切换AI模型，无需通过 `/info` 菜单。只需使用 `/model model_name` 即可切换到特定模型。例如：`/model gpt-4o` 切换到GPT-4o或 `/model claude-3-opus` 切换到Claude 3 Opus。这个命令提供了在对话过程中更快捷的模型切换方式。
 
 - 如果 Koyeb 部署失败怎么办？
 
@@ -446,6 +468,8 @@ Koyeb 的免费服务可能有点不稳定，所以部署失败是很常见的�
 - 为什么我使用 CUSTOM_MODELS 删除默认模型名称后，再使用 /info 命令检查时它又重新出现了？
 
 如果你使用 `docker-compose.yml` 部署，不要在 `CUSTOM_MODELS` 的值周围添加引号。错误用法：`CUSTOM_MODELS="gpt-4o,-gpt-3.5"`，否则会导致环境变量解析错误，导致默认模型名称再次出现。错误的方式会被解析为删除 `gpt-3.5"` 模型，这将导致默认模型名称 `gpt-3.5` 未被删除。正确的写法是：`CUSTOM_MODELS=gpt-4o,-gpt-3.5`。
+
+对于模型组也是如此。错误写法：`CUSTOM_MODELS="GPT:gpt-4o;Claude:claude-3-opus"`。正确写法：`CUSTOM_MODELS=GPT:gpt-4o;Claude:claude-3-opus`。如果你的组名或模型名包含特殊字符，请注意正确转义。
 
 ## 参考文献
 
