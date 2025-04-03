@@ -687,12 +687,28 @@ async def change_model(update, context):
     
     model_name = context.args[0]
     
-    # Check if the model name is valid (only English letters, numbers, and dashes; not longer than 100 characters)
-    if not re.match(r'^[a-zA-Z0-9\-/\.]+$', model_name) or len(model_name) > 100:
+    # Check if the model name is valid (allowing all common model name characters)
+    if not re.match(r'^[a-zA-Z0-9\-_\./:\\@+]+$', model_name) or len(model_name) > 100:
         message = await context.bot.send_message(
             chat_id=chatid,
             message_thread_id=message_thread_id,
-            text=escape("Invalid model name. Use only English letters, numbers, and dashes. Maximum length - 100 characters."),
+            text=escape("Invalid model name. The model name should only contain standard characters and be no longer than 100 characters."),
+            parse_mode='MarkdownV2',
+            reply_to_message_id=user_message_id,
+        )
+        return
+    
+    # Get all available models from initial_model and MODEL_GROUPS
+    available_models = get_all_available_models()
+    for group_name, models in get_model_groups().items():
+        available_models.extend(models)
+    
+    # Check if the requested model is in the available models list
+    if model_name not in available_models:
+        message = await context.bot.send_message(
+            chat_id=chatid,
+            message_thread_id=message_thread_id,
+            text=escape(f"Model `{model_name}` is not available. Please use one of the models from the list in the /info menu."),
             parse_mode='MarkdownV2',
             reply_to_message_id=user_message_id,
         )
