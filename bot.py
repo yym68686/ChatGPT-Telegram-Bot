@@ -676,7 +676,7 @@ async def change_model(update, context):
     _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
     lang = get_current_lang(convo_id)
     
-    if len(context.args) != 1:
+    if not context.args:
         message = await context.bot.send_message(
             chat_id=chatid,
             message_thread_id=message_thread_id,
@@ -686,10 +686,11 @@ async def change_model(update, context):
         )
         return
     
-    model_name = context.args[0]
+    # Объединяем все аргументы в одно имя модели
+    model_name = ' '.join(context.args)
     
     # Check if the model name is valid (allowing all common model name characters)
-    if not re.match(r'^[a-zA-Z0-9\-_\./:\\@+]+$', model_name) or len(model_name) > 100:
+    if not re.match(r'^[a-zA-Z0-9\-_\./:\\@+\s]+$', model_name) or len(model_name) > 100:
         message = await context.bot.send_message(
             chat_id=chatid,
             message_thread_id=message_thread_id,
@@ -703,6 +704,10 @@ async def change_model(update, context):
     available_models = get_all_available_models()
     for group_name, models in get_model_groups().items():
         available_models.extend(models)
+    
+    # Добавляем отладочный вывод
+    print(f"Requested model: '{model_name}'")
+    print(f"Available models: {available_models}")
     
     # Check if the requested model is in the available models list
     if model_name not in available_models:
