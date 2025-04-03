@@ -436,26 +436,17 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
                 if len(image_urls_result) > 10:
                     image_urls_result = image_urls_result[:10]
                 
-                if len(image_urls_result) == 1:
-                    # Sending a single image
-                    await context.bot.send_photo(
-                        chat_id=chatid,
-                        photo=image_urls_result[0],
-                        message_thread_id=message_thread_id,
-                        reply_to_message_id=messageid,
-                    )
-                else:
-                    # We send an album with several images
-                    media_group = []
-                    for img_url in image_urls_result:
-                        media_group.append(InputMediaPhoto(media=img_url))
-                    
-                    await context.bot.send_media_group(
-                        chat_id=chatid,
-                        media=media_group,
-                        message_thread_id=message_thread_id,
-                        reply_to_message_id=messageid,
-                    )
+                # We send an album with all images
+                media_group = []
+                for img_url in image_urls_result:
+                    media_group.append(InputMediaPhoto(media=img_url))
+                
+                await context.bot.send_media_group(
+                    chat_id=chatid,
+                    media=media_group,
+                    message_thread_id=message_thread_id,
+                    reply_to_message_id=messageid,
+                )
             except Exception as e:
                 logger.warning(f"Failed to send image(s): {str(e)}")
 
@@ -524,7 +515,7 @@ async def button_press(update, context):
             group_name = data[:-6]
             try:
                 message = await callback_query.edit_message_text(
-                    text=escape(info_message + f"\n\n*Group:* `{group_name}`"),
+                    text=escape(info_message + f"\n\n**Group:** `{group_name}`"),
                     reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id, group=group_name)),
                     parse_mode='MarkdownV2'
                 )
@@ -712,11 +703,10 @@ async def change_model(update, context):
     Users.set_config(convo_id, "engine", model_name)
     
     # Sending a message about changing the model
-    info_message = update_info_message(convo_id)
     message = await context.bot.send_message(
         chat_id=chatid,
         message_thread_id=message_thread_id,
-        text=escape(f"The model has been successfully changed to: `{model_name}`\n\n{info_message}", italic=False),
+        text=escape(f"The model has been successfully changed to: `{model_name}`", italic=False),
         parse_mode='MarkdownV2',
         reply_to_message_id=user_message_id,
     )
