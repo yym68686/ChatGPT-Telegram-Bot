@@ -433,8 +433,7 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
         if image_urls_result:
             try:
                 # Limit the number of images to 10 (Telegram limit for albums)
-                if len(image_urls_result) > 10:
-                    image_urls_result = image_urls_result[:10]
+                image_urls_result = image_urls_result[:10]
                 
                 # We send an album with all images
                 media_group = []
