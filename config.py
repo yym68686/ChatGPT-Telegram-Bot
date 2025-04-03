@@ -715,35 +715,28 @@ def get_current_lang(chatid=None):
 
 def update_models_buttons(chatid=None, group=None):
     lang = get_current_lang(chatid)
+    back_button_data = "BACK"  # Default value
     
     if group and group in MODEL_GROUPS:
         # Showing models in the selected group
         models_in_group = MODEL_GROUPS[group]
         buttons = create_buttons(models_in_group, Suffix="_MODELS")
-        # Add back button to return to model groups
-        buttons.append(
-            [
-                InlineKeyboardButton(strings['button_back'][lang], callback_data="MODELS"),
-            ],
-        )
+        back_button_data = "MODELS"  # To return to model groups
     elif MODEL_GROUPS and not group:
         # Showing groups
         buttons = create_buttons(list(MODEL_GROUPS.keys()), Suffix="_GROUP")
-        # Add back button to return to main menu
-        buttons.append(
-            [
-                InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
-            ],
-        )
+        back_button_data = "BACK"  # To return to the main menu
     else:
         # Showing all models (if there are no groups)
         buttons = create_buttons(initial_model, Suffix="_MODELS")
-        # Add back button to return to main menu
-        buttons.append(
-            [
-                InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
-            ],
-        )
+        back_button_data = "BACK"  # To return to the main menu
+    
+    # Adding a “Back” button with appropriate callback_data
+    buttons.append(
+        [
+            InlineKeyboardButton(strings['button_back'][lang], callback_data=back_button_data),
+        ],
+    )
     
     return buttons
 
