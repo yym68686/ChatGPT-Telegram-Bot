@@ -514,7 +514,7 @@ async def button_press(update, context):
             group_name = data[:-6]
             try:
                 message = await callback_query.edit_message_text(
-                    text=escape(info_message + f"\n\n**Group:** `{group_name}`"),
+                    text=escape(info_message + f"\n\n**{strings['group_title'][get_current_lang(convo_id)]}:** `{group_name}`"),
                     reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id, group=group_name)),
                     parse_mode='MarkdownV2'
                 )
@@ -674,12 +674,13 @@ async def inlinequery(update: Update, context) -> None:
 async def change_model(update, context):
     """Quick model change using the command"""
     _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
+    lang = get_current_lang(convo_id)
     
     if len(context.args) != 1:
         message = await context.bot.send_message(
             chat_id=chatid,
             message_thread_id=message_thread_id,
-            text=escape("Please specify the model name: /model model_name"),
+            text=escape(strings['model_command_usage'][lang]),
             parse_mode='MarkdownV2',
             reply_to_message_id=user_message_id,
         )
@@ -692,7 +693,7 @@ async def change_model(update, context):
         message = await context.bot.send_message(
             chat_id=chatid,
             message_thread_id=message_thread_id,
-            text=escape("Invalid model name. The model name should only contain standard characters and be no longer than 100 characters."),
+            text=escape(strings['model_name_invalid'][lang]),
             parse_mode='MarkdownV2',
             reply_to_message_id=user_message_id,
         )
@@ -708,7 +709,7 @@ async def change_model(update, context):
         message = await context.bot.send_message(
             chat_id=chatid,
             message_thread_id=message_thread_id,
-            text=escape(f"Model `{model_name}` is not available. Please use one of the models from the list in the /info menu."),
+            text=escape(strings['model_not_available'][lang].format(model_name=model_name)),
             parse_mode='MarkdownV2',
             reply_to_message_id=user_message_id,
         )
@@ -721,7 +722,7 @@ async def change_model(update, context):
     message = await context.bot.send_message(
         chat_id=chatid,
         message_thread_id=message_thread_id,
-        text=escape(f"The model has been successfully changed to: `{model_name}`", italic=False),
+        text=escape(strings['model_changed'][lang].format(model_name=model_name), italic=False),
         parse_mode='MarkdownV2',
         reply_to_message_id=user_message_id,
     )
