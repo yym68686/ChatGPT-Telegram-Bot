@@ -686,7 +686,7 @@ async def change_model(update, context):
         )
         return
     
-    # Объединяем все аргументы в одно имя модели
+    # Combine all arguments into one model name
     model_name = ' '.join(context.args)
     
     # Check if the model name is valid (allowing all common model name characters)
@@ -705,7 +705,7 @@ async def change_model(update, context):
     for group_name, models in get_model_groups().items():
         available_models.extend(models)
     
-    # Добавляем отладочный вывод
+    # Add debug output
     print(f"Requested model: '{model_name}'")
     print(f"Available models: {available_models}")
     
