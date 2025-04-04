@@ -59,6 +59,12 @@ strings = {
         "zh-hk": "🇷🇺 俄語",
         "ru": "🇷🇺 Русский",
     },
+    "OTHERS": {
+        "zh": "其他模型",
+        "en": "Other Models",
+        "zh-hk": "其他模型",
+        "ru": "Другие модели",
+    },
     "PASS_HISTORY": {
         "zh": "历史记录",
         "en": "Chat history",
