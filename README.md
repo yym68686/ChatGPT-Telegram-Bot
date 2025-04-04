@@ -93,7 +93,7 @@ The following is a list of environment variables related to the bot's plugin set
 | download_read_arxiv_pdf | Whether to enable the arXiv paper summarization plugin. Default is `False`. | No |
 | run_python_script | Whether to enable the code interpreter plugin. Default is `False`. | No |
 | generate_image | Whether to enable the image generation plugin. Default is `False`. | No |
-| get_date_time_weekday | Whether to enable the date plugin. Default is `False`. | No |
+| get_time | Whether to enable the date plugin. Default is `False`. | No |
 
 
 ## Koyeb Remote Deployment

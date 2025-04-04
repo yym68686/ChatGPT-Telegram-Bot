@@ -214,14 +214,14 @@ class UserConfig:
         if not os.path.exists(CONFIG_DIR):
             return
 
-        # 定义旧键名到新键名的映射关系
+        # 定义旧键名到新键名的映射关系 old_key -> new_key
         key_mapping = {
             "SEARCH": "get_search_results",
             "URL": "get_url_content",
             "ARXIV": "download_read_arxiv_pdf",
             "CODE": "run_python_script",
             "IMAGE": "generate_image",
-            "DATE": "get_date_time_weekday"
+            "get_date_time_weekday": "get_time"
         }
 
         for filename in os.listdir(CONFIG_DIR):
@@ -518,8 +518,8 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
 
     if not button_text:
         button_text = {k:{lang:k} for k in strings_array.keys()}
-    filtered_strings1 = {k:v for k, v in strings_array.items() if len(button_text[k][lang]) <= 14}
-    filtered_strings2 = {k:v for k, v in strings_array.items() if len(button_text[k][lang]) > 14}
+    filtered_strings1 = {k:v for k, v in strings_array.items() if k in button_text and len(button_text[k][lang]) <= 14}
+    filtered_strings2 = {k:v for k, v in strings_array.items() if k in button_text and len(button_text[k][lang]) > 14}
 
 
     buttons = []
@@ -612,10 +612,10 @@ CUSTOM_MODELS = os.environ.get('CUSTOM_MODELS', None)
 if CUSTOM_MODELS:
     # We split the line into parts at the semicolon
     parts = CUSTOM_MODELS.split(';')
-    
+
     # Temporary storage of models without a group
     ungrouped_models = []
-    
+
     # We process the first part separately (it may contain flags and models without a group)
     first_part = parts[0].split(',') if parts else []
     for item in first_part:
@@ -626,16 +626,16 @@ if CUSTOM_MODELS:
             if not item.startswith('-'):
                 ungrouped_models.append(item)
             print(f"Added to CUSTOM_MODELS_LIST from first part: {item}")
-    
+
     # Counter of created groups (except OTHERS)
     group_count = 0
-    
+
     # We process the remaining parts (groups)
     for i in range(1, len(parts)):
         part = parts[i].strip()
         if not part:
             continue
-            
+
         # We search for the colon, which separates the group name and the list of models
         colon_pos = part.find(':')
         if colon_pos == -1:
@@ -647,18 +647,18 @@ if CUSTOM_MODELS:
                     ungrouped_models.append(model)
                     print(f"Added to CUSTOM_MODELS_LIST from part {i} without colon: {model}")
             continue
-            
+
         # We extract the group name and the list of models
         group_name = part[:colon_pos].strip()
         models_part = part[colon_pos+1:].strip()
-        
+
         # Create debug string for this group
         print(f"Processing group: {group_name} with models: {models_part}")
-        
+
         # We create a group
         MODEL_GROUPS[group_name] = []
         group_count += 1
-        
+
         # We add models to the group
         for model in models_part.split(','):
             model = model.strip()
@@ -666,7 +666,7 @@ if CUSTOM_MODELS:
                 MODEL_GROUPS[group_name].append(model)
                 CUSTOM_MODELS_LIST.append(model)
                 print(f"Added to group {group_name} and CUSTOM_MODELS_LIST: {model}")
-    
+
     # Create an OTHERS group only if there are other groups and models without a group
     if group_count > 0 and ungrouped_models:
         MODEL_GROUPS["OTHERS"] = ungrouped_models
@@ -731,7 +731,7 @@ def get_current_lang(chatid=None):
 def update_models_buttons(chatid=None, group=None):
     lang = get_current_lang(chatid)
     back_button_data = "BACK"  # Default value
-    
+
     if group and group in MODEL_GROUPS:
         # Showing models in the selected group
         models_in_group = MODEL_GROUPS[group]
@@ -740,43 +740,43 @@ def update_models_buttons(chatid=None, group=None):
     elif MODEL_GROUPS and not group:
         # Showing groups
         groups_list = list(MODEL_GROUPS.keys())
-        
+
         # Creating buttons manually
         buttons = []
         temp = []
-        
+
         for g in groups_list:
             # For the OTHERS group we use the localized name
             if g == "OTHERS":
                 display_name = strings["OTHERS"][lang]
             else:
                 display_name = g
-                
+
             button = InlineKeyboardButton(display_name, callback_data=g + "_GROUP")
             temp.append(button)
-            
+
             # Two buttons in a row
             if len(temp) == 2:
                 buttons.append(temp)
                 temp = []
-        
+
         # Add the remaining buttons
         if temp:
             buttons.append(temp)
-            
+
         back_button_data = "BACK"  # To return to the main menu
     else:
         # Showing all models (if there are no groups)
         buttons = create_buttons(initial_model, Suffix="_MODELS")
         back_button_data = "BACK"  # To return to the main menu
-    
+
     # Adding a "Back" button with appropriate callback_data
     buttons.append(
         [
             InlineKeyboardButton(strings['button_back'][lang], callback_data=back_button_data),
         ],
     )
-    
+
     return buttons
 
 def update_first_buttons_message(chatid=None):

@@ -154,7 +154,7 @@ strings = {
         "zh-hk": "網址總結",
         "ru": "Сводка по веб-странице",
     },
-    "get_date_time_weekday": {
+    "get_time": {
         "zh": "当前时间",
         "en": "Current time",
         "zh-hk": "當前時間",
