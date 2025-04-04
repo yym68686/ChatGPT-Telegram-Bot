@@ -105,9 +105,9 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 
 点击下面的按钮可以自动使用构建好的 docker 镜像一键部署：
 
-[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=docker&image=docker.io/yym68686/chatgpt:latest&name=chatbot)
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?name=chatgpt&type=docker&image=docker.io%2Fyym68686%2Fchatgpt%3Alatest&instance_type=free&regions=was&instances_min=0&autoscaling_sleep_idle_delay=300&env%5BAPI%5D=&env%5BAPI_URL%5D=&env%5BBOT_TOKEN%5D=&env%5BWEB_HOOK%5D=https%3A%2F%2F%7B%7B+KOYEB_PUBLIC_DOMAIN+%7D%7D%2F)
 
-⚠️ 注意：使用 Koyeb 部署时，必须添加环境变量 `WEB_HOOK`，否则机器人无法接收消息。使用类似 `https://appname.koyeb.app` 的字符串作为 `WEB_HOOK` 的值，Koyeb 会自动分配一个二级域名。
+在环境变量里面补全 BOT_TOKEN，API，API_URL 后直接点击部署按钮即可。WEB_HOOK 环境变量维持默认即可，不用修改，Koyeb 会自动分配一个二级域名。
 
 ### 仓库部署
 

@@ -104,9 +104,9 @@ There are two ways to deploy on Koyeb, one is to use the one-click deployment wi
 
 Click the button below to automatically deploy using the pre-built Docker image with one click:
 
-[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=docker&image=docker.io/yym68686/chatgpt:latest&name=chatbot)
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?name=chatgpt&type=docker&image=docker.io%2Fyym68686%2Fchatgpt%3Alatest&instance_type=free&regions=was&instances_min=0&autoscaling_sleep_idle_delay=300&env%5BAPI%5D=&env%5BAPI_URL%5D=&env%5BBOT_TOKEN%5D=&env%5BWEB_HOOK%5D=https%3A%2F%2F%7B%7B+KOYEB_PUBLIC_DOMAIN+%7D%7D%2F)
 
-⚠️ Note: When deploying with Koyeb, you must add the environment variable `WEB_HOOK`, otherwise the bot will not be able to receive messages. Use a string like `https://appname.koyeb.app` as the value for `WEB_HOOK`, Koyeb will automatically assign a subdomain.
+In the environment variables, fill in BOT_TOKEN, API, API_URL, and click the deploy button. WEB_HOOK environment variable can be left as is, and Koyeb will automatically assign a subdomain.
 
 ### Repository deployment
 
