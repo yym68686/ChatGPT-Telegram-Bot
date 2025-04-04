@@ -3,8 +3,11 @@ import subprocess
 from dotenv import load_dotenv
 load_dotenv()
 
+import re
 from utils.i18n import strings
 from datetime import datetime
+
+# We expose variables for access from other modules
 
 from aient.src.aient.utils import prompt
 from aient.src.aient.core.utils import update_initial_model, BaseAPI
@@ -601,36 +604,140 @@ if GET_MODELS:
     }
     initial_model = remove_no_text_model(update_initial_model(provider))
 
+# Structure for storing model groups
+MODEL_GROUPS = {}
+CUSTOM_MODELS_LIST = []
+
 CUSTOM_MODELS = os.environ.get('CUSTOM_MODELS', None)
 if CUSTOM_MODELS:
-    CUSTOM_MODELS_LIST = [id for id in CUSTOM_MODELS.split(",")]
-    # print("CUSTOM_MODELS_LIST", CUSTOM_MODELS_LIST)
-else:
-    CUSTOM_MODELS_LIST = None
+    # We split the line into parts at the semicolon
+    parts = CUSTOM_MODELS.split(';')
+    
+    # Create virtual OTHERS group for models without explicit group
+    MODEL_GROUPS["OTHERS"] = []
+    
+    # We process the first part separately (it may contain flags and models without a group)
+    first_part = parts[0].split(',') if parts else []
+    for item in first_part:
+        item = item.strip()
+        if item:
+            CUSTOM_MODELS_LIST.append(item)
+            # Add to OTHERS group if it's not a flag
+            if not item.startswith('-'):
+                MODEL_GROUPS["OTHERS"].append(item)
+            print(f"Added to CUSTOM_MODELS_LIST from first part: {item}")
+    
+    # We process the remaining parts (groups)
+    for i in range(1, len(parts)):
+        part = parts[i].strip()
+        if not part:
+            continue
+            
+        # We search for the colon, which separates the group name and the list of models
+        colon_pos = part.find(':')
+        if colon_pos == -1:
+            # If there is no colon, just add everything as models to OTHERS group
+            for model in part.split(','):
+                model = model.strip()
+                if model:
+                    CUSTOM_MODELS_LIST.append(model)
+                    MODEL_GROUPS["OTHERS"].append(model)
+                    print(f"Added to CUSTOM_MODELS_LIST and OTHERS group from part {i} without colon: {model}")
+            continue
+            
+        # We extract the group name and the list of models
+        group_name = part[:colon_pos].strip()
+        models_part = part[colon_pos+1:].strip()
+        
+        # Create debug string for this group
+        print(f"Processing group: {group_name} with models: {models_part}")
+        
+        # We create a group
+        MODEL_GROUPS[group_name] = []
+        
+        # We add models to the group
+        for model in models_part.split(','):
+            model = model.strip()
+            if model:
+                MODEL_GROUPS[group_name].append(model)
+                CUSTOM_MODELS_LIST.append(model)
+                print(f"Added to group {group_name} and CUSTOM_MODELS_LIST: {model}")
+
+# Remove OTHERS group if it's empty
+if "OTHERS" in MODEL_GROUPS and not MODEL_GROUPS["OTHERS"]:
+    del MODEL_GROUPS["OTHERS"]
+
+print("Final CUSTOM_MODELS_LIST:", CUSTOM_MODELS_LIST)
+print("Final MODEL_GROUPS:", MODEL_GROUPS)
+
+# We remove duplicates in the list of models
+CUSTOM_MODELS_LIST = list(dict.fromkeys(CUSTOM_MODELS_LIST))
+print("After removing duplicates, CUSTOM_MODELS_LIST:", CUSTOM_MODELS_LIST)
+
+# We remove models if there are deletion flags
 if CUSTOM_MODELS_LIST:
-    delete_models = [model[1:] for model in CUSTOM_MODELS_LIST if model[0] == "-"]
+    delete_models = [model[1:] for model in CUSTOM_MODELS_LIST if model.startswith('-')]
     for target in delete_models:
         if target == "all":
             initial_model = []
             break
-        for model in initial_model:
+        for model in list(initial_model):  # We create a copy of the list for safe deletion
             if target in model:
                 initial_model.remove(model)
 
-    initial_model.extend([model for model in CUSTOM_MODELS_LIST if model not in initial_model and model[0] != "-"])
+    # We add only models, not groups and not deletion flags
+    for model in CUSTOM_MODELS_LIST:
+        if not model.startswith('-') and model not in MODEL_GROUPS.keys() and model not in initial_model:
+            initial_model.append(model)
+            print(f"Added to initial_model: {model}")
+
+# We output information about groups for debugging
+print("MODEL_GROUPS:", MODEL_GROUPS)
+for group, models in MODEL_GROUPS.items():
+    print(f"Group {group}: {len(models)} models - {models}")
+print("Final initial_model:", initial_model)
+
+# Function to get all available models (with groups)
+def get_all_available_models():
+    return initial_model
+
+# Function to get all model groups
+def get_model_groups():
+    return MODEL_GROUPS
+
+# Function to get models in a specific group
+def get_models_in_group(group_name):
+    return MODEL_GROUPS.get(group_name, [])
 
 def get_current_lang(chatid=None):
     current_lang = Users.get_config(chatid, "language")
     return LANGUAGES_TO_CODE[current_lang]
 
-def update_models_buttons(chatid=None):
+def update_models_buttons(chatid=None, group=None):
     lang = get_current_lang(chatid)
-    buttons = create_buttons(initial_model, Suffix="_MODELS")
+    back_button_data = "BACK"  # Default value
+    
+    if group and group in MODEL_GROUPS:
+        # Showing models in the selected group
+        models_in_group = MODEL_GROUPS[group]
+        buttons = create_buttons(models_in_group, Suffix="_MODELS")
+        back_button_data = "MODELS"  # To return to model groups
+    elif MODEL_GROUPS and not group:
+        # Showing groups
+        buttons = create_buttons(list(MODEL_GROUPS.keys()), Suffix="_GROUP")
+        back_button_data = "BACK"  # To return to the main menu
+    else:
+        # Showing all models (if there are no groups)
+        buttons = create_buttons(initial_model, Suffix="_MODELS")
+        back_button_data = "BACK"  # To return to the main menu
+    
+    # Adding a “Back” button with appropriate callback_data
     buttons.append(
         [
-            InlineKeyboardButton(strings['button_back'][lang], callback_data="BACK"),
+            InlineKeyboardButton(strings['button_back'][lang], callback_data=back_button_data),
         ],
     )
+    
     return buttons
 
 def update_first_buttons_message(chatid=None):

@@ -24,6 +24,7 @@ ChatGPT Telegram Bot is a powerful Telegram bot that can use various mainstream 
 
 - **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). Also supports one-api/new-api/[uni-api](https://github.com/yym68686/uni-api). Utilizes self-developed API to request backend [SDK](https://github.com/yym68686/aient), does not rely on OpenAI SDK.
 - **Multimodal Question Answering**: Supports question answering for voice, audio, images, and PDF/TXT/MD/python documents. Users can directly upload files in the chat box for use.
+- **Model Grouping System**: Organize AI models into logical groups for easier selection. Models can be grouped by provider (GPT, Claude, etc.) or by capability. Models without an explicit group are automatically placed in an "OTHERS" group. This makes model selection more intuitive, especially when many models are available.
 - **Group Chat Topic Mode**: Supports enabling topic mode in group chats, isolating APIs, dialogue history, plugin configurations, and preferences between topics.
 - **Rich plugin system**: Supports web search (DuckDuckGo and Google), URL summarization, ArXiv paper summarization, and code interpreter.
 - **User-friendly interface**: Allows flexible switching of models within the chat window and supports streaming output similar to a typewriter effect. Supports precise Markdown message rendering, utilizing another of my [projects](https://github.com/yym68686/md2tgmd).
@@ -61,7 +62,7 @@ The following is a list of environment variables related to the bot's core setti
 | BLACK_LIST | Set which users are prohibited from accessing the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None` | No |
 | ADMIN_LIST | Set up an admin list. Only admins can use the `/info` command to configure the bot. | No |
 | GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). Even if group members are not on the whitelist, as long as the group ID is in the GROUP_LIST, all members of the group can use the bot. | No |
-| CUSTOM_MODELS | Set a list of custom model names. Use commas (',') to connect model names. If you need to remove a default model, add a hyphen (-) before the default model name. To remove all default models, use `-all`. | No |
+| CUSTOM_MODELS | Set a list of custom model names. Use commas (',') to connect model names. If you need to remove a default model, add a hyphen (-) before the default model name. To remove all default models, use `-all`. To create model groups, use semicolons (';') to separate groups and use colon (':') to define group name with its models, e.g., `CUSTOM_MODELS=-all,command,grok-2;GPT:gpt-4o,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet;OTHERS`. Models without specific groups will be automatically placed in the "OTHERS" group. | No |
 | CHAT_MODE | Introduce multi-user mode, different users' configurations are not shared. When CHAT_MODE is `global`, all users share the configuration. When CHAT_MODE is `multiusers`, user configurations are independent of each other. | No |
 | temperature | Specify the temperature of the LLM. The default value is `0.5`. | No |
 | GET_MODELS | Specify whether to get supported models via API. Default is `False`. | No |
@@ -220,6 +221,7 @@ services:
       - BOT_TOKEN=
       - API=
       - API_URL=
+      - CUSTOM_MODELS=-all;GPT:gpt-4o,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet
     volumes:
       - ./user_configs:/home/user_configs
     ports:
@@ -389,6 +391,25 @@ All other models use the official context length settings, for example, the `gpt
 
 You can use the `CUSTOM_MODELS` environment variable to complete it. For example, if you want to add gpt-4o and remove the gpt-3.5 model from the model list, please set `CUSTOM_MODELS` to `gpt-4o,-gpt-3.5`. If you want to delete all default models at once, you can set `CUSTOM_MODELS` to `-all,gpt-4o`.
 
+- How do I organize models into groups?
+
+You can use the `CUSTOM_MODELS` environment variable with a special syntax:
+1. Use semicolons (`;`) to separate groups
+2. Use a colon (`:`) to define a group name and its models
+3. List models within a group separated by commas (`,`)
+
+For example:
+```
+CUSTOM_MODELS=-all;GPT:gpt-4o,gpt-4,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet,claude-3-haiku;Gemini:gemini-1.5-pro,gemini-1.0-pro;command,grok-2
+```
+
+This creates three groups: "GPT", "Claude", and "Gemini", each containing their respective models. The models "command" and "grok-2" have no explicit group, so they'll automatically be placed in the "OTHERS" group.
+
+To include an empty "OTHERS" group even if there are no ungrouped models, add "OTHERS" at the end:
+```
+CUSTOM_MODELS=-all;GPT:gpt-4o;Claude:claude-3-opus;OTHERS
+```
+
 - How does conversation isolation specifically work?
 
 Conversations are always isolated based on different windows, not different users. This means that within the same group chat window, the same topic, and the same private chat window, it is considered the same conversation. CHAT_MODE only affects whether configurations are isolated. In multi-user mode, each user's plugin configurations, preferences, etc., are independent and do not affect each other. In single-user mode, all users share the same plugin configurations and preferences. However, conversation history is always isolated. Conversation isolation is to protect user privacy, ensuring that users' conversation history, plugin configurations, preferences, etc., are not visible to other users.
@@ -438,6 +459,8 @@ No, in the future it will support multiple Bot Tokens.
 
 3. `/reset`: The robot `/reset` command can clear the robot's conversation messages and force the robot to stop generating replies. If you want to reset the system prompt, please use the following command: `/reset your_system_prompt`. However, the `/reset` command will never restore the robot's display language, preferences, plugin settings, model in use, API URL, API key, system prompt, etc.
 
+4. `/model`: The robot `/model` command allows you to quickly switch between AI models without going through the `/info` menu. Simply use `/model model_name` to switch to a specific model. For example: `/model gpt-4o` to switch to GPT-4o or `/model claude-3-opus` to switch to Claude 3 Opus. This command provides a faster way to change models during conversations.
+
 - What to do if Koyeb deployment fails?
 
 Koyeb's free service can be a bit unstable, so deployment failures are pretty common. You might want to try redeploying, and if that doesn't work, consider switching to another platform. 😊
@@ -445,6 +468,8 @@ Koyeb's free service can be a bit unstable, so deployment failures are pretty co
 - Why does the default model name reappear after I use CUSTOM_MODELS to delete it, and then check again with the /info command?
 
 If you deployed using `docker-compose.yml`, do not add quotes around the value of `CUSTOM_MODELS`. Incorrect usage: `CUSTOM_MODELS="gpt-4o,-gpt-3.5"`, otherwise it will cause environment variable parsing errors, resulting in the default model name reappearing. The incorrect way will be parsed as deleting the `gpt-3.5"` model, which will cause the default model name `gpt-3.5` not to be deleted. The correct way to write it is: `CUSTOM_MODELS=gpt-4o,-gpt-3.5`.
+
+The same applies to model groups. Incorrect: `CUSTOM_MODELS="GPT:gpt-4o;Claude:claude-3-opus"`. Correct: `CUSTOM_MODELS=GPT:gpt-4o;Claude:claude-3-opus`. If your group names or model names contain special characters, be careful with escaping.
 
 ## References
 

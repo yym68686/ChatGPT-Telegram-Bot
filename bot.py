@@ -35,13 +35,17 @@ from config import (
     update_models_buttons,
     update_language_status,
     update_first_buttons_message,
+    get_all_available_models,
+    get_model_groups,
+    CUSTOM_MODELS_LIST,
+    MODEL_GROUPS,
 )
 
 from utils.i18n import strings
 from utils.scripts import GetMesageInfo, safe_get, is_emoji
 
 from telegram.constants import ChatAction
-from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from telegram import BotCommand, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InputMediaPhoto, InlineKeyboardButton
 from telegram.ext import CommandHandler, MessageHandler, ApplicationBuilder, filters, CallbackQueryHandler, Application, AIORateLimiter, InlineQueryHandler, ContextTypes
 from datetime import timedelta
 
@@ -428,14 +432,22 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
         image_urls_result = [url[0] if isinstance(url, tuple) else url for url in image_urls]
         if image_urls_result:
             try:
-                await context.bot.send_photo(
+                # Limit the number of images to 10 (Telegram limit for albums)
+                image_urls_result = image_urls_result[:10]
+                
+                # We send an album with all images
+                media_group = []
+                for img_url in image_urls_result:
+                    media_group.append(InputMediaPhoto(media=img_url))
+                
+                await context.bot.send_media_group(
                     chat_id=chatid,
-                    photo=image_urls_result[0],
+                    media=media_group,
                     message_thread_id=message_thread_id,
                     reply_to_message_id=messageid,
                 )
             except Exception as e:
-                logger.warning(f"Failed to send image {image_urls_result[0]}: {str(e)}")
+                logger.warning(f"Failed to send image(s): {str(e)}")
 
     now_result = escape(tmpresult, italic=False)
     if lastresult != now_result and answer_messageid:
@@ -492,6 +504,18 @@ async def button_press(update, context):
                 message = await callback_query.edit_message_text(
                     text=escape(info_message + banner),
                     reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id)),
+                    parse_mode='MarkdownV2'
+                )
+            except Exception as e:
+                logger.info(e)
+                pass
+        elif data.endswith("_GROUP"):
+            # Processing a click on a group of models
+            group_name = data[:-6]
+            try:
+                message = await callback_query.edit_message_text(
+                    text=escape(info_message + f"\n\n**{strings['group_title'][get_current_lang(convo_id)]}:** `{group_name}`"),
+                    reply_markup=InlineKeyboardMarkup(update_models_buttons(convo_id, group=group_name)),
                     parse_mode='MarkdownV2'
                 )
             except Exception as e:
@@ -645,6 +669,69 @@ async def inlinequery(update: Update, context) -> None:
 
         await update.inline_query.answer(results)
 
+@decorators.GroupAuthorization
+@decorators.Authorization
+async def change_model(update, context):
+    """Quick model change using the command"""
+    _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
+    lang = get_current_lang(convo_id)
+    
+    if not context.args:
+        message = await context.bot.send_message(
+            chat_id=chatid,
+            message_thread_id=message_thread_id,
+            text=escape(strings['model_command_usage'][lang]),
+            parse_mode='MarkdownV2',
+            reply_to_message_id=user_message_id,
+        )
+        return
+    
+    # Combine all arguments into one model name
+    model_name = ' '.join(context.args)
+    
+    # Check if the model name is valid (allowing all common model name characters)
+    if not re.match(r'^[a-zA-Z0-9\-_\./:\\@+\s]+$', model_name) or len(model_name) > 100:
+        message = await context.bot.send_message(
+            chat_id=chatid,
+            message_thread_id=message_thread_id,
+            text=escape(strings['model_name_invalid'][lang]),
+            parse_mode='MarkdownV2',
+            reply_to_message_id=user_message_id,
+        )
+        return
+    
+    # Get all available models from initial_model and MODEL_GROUPS
+    available_models = get_all_available_models()
+    for group_name, models in get_model_groups().items():
+        available_models.extend(models)
+    
+    # Add debug output
+    print(f"Requested model: '{model_name}'")
+    print(f"Available models: {available_models}")
+    
+    # Check if the requested model is in the available models list
+    if model_name not in available_models:
+        message = await context.bot.send_message(
+            chat_id=chatid,
+            message_thread_id=message_thread_id,
+            text=escape(strings['model_not_available'][lang].format(model_name=model_name)),
+            parse_mode='MarkdownV2',
+            reply_to_message_id=user_message_id,
+        )
+        return
+    
+    # Saving the new model in the user's configuration
+    Users.set_config(convo_id, "engine", model_name)
+    
+    # Sending a message about changing the model
+    message = await context.bot.send_message(
+        chat_id=chatid,
+        message_thread_id=message_thread_id,
+        text=escape(strings['model_changed'][lang].format(model_name=model_name), italic=False),
+        parse_mode='MarkdownV2',
+        reply_to_message_id=user_message_id,
+    )
+
 async def scheduled_function(context: ContextTypes.DEFAULT_TYPE) -> None:
     """这个函数将在RESET_TIME秒后执行一次，重置特定用户的对话"""
     job = context.job
@@ -793,6 +880,7 @@ async def post_init(application: Application) -> None:
         BotCommand('info', 'Basic information'),
         BotCommand('reset', 'Reset the bot'),
         BotCommand('start', 'Start the bot'),
+        BotCommand('model', 'Change AI model'),
         BotCommand('en2zh', 'Translate to Chinese'),
         BotCommand('zh2en', 'Translate to English'),
     ])
@@ -824,6 +912,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("info", info))
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", reset_chat))
+    application.add_handler(CommandHandler("model", change_model))
     application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese")))
     application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english")))
     application.add_handler(InlineQueryHandler(inlinequery))
