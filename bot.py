@@ -434,12 +434,12 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
             try:
                 # Limit the number of images to 10 (Telegram limit for albums)
                 image_urls_result = image_urls_result[:10]
-                
+
                 # We send an album with all images
                 media_group = []
                 for img_url in image_urls_result:
                     media_group.append(InputMediaPhoto(media=img_url))
-                
+
                 await context.bot.send_media_group(
                     chat_id=chatid,
                     media=media_group,
@@ -473,7 +473,7 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
             "{}"
             "</infomation>"
         ).format(info)
-        result = (await config.SummaryBot.ask_async(prompt, convo_id=convo_id, pass_history=0, api_url=api_url, api_key=api_key)).split('\n')
+        result = (await config.SummaryBot.ask_async(prompt, convo_id=convo_id, model=model_name, pass_history=0, api_url=api_url, api_key=api_key)).split('\n')
         keyboard = []
         result = [i for i in result if i.strip() and len(i) > 5]
         print(result)
@@ -675,7 +675,7 @@ async def change_model(update, context):
     """Quick model change using the command"""
     _, _, _, chatid, user_message_id, _, _, message_thread_id, convo_id, _, _, _ = await GetMesageInfo(update, context)
     lang = get_current_lang(convo_id)
-    
+
     if not context.args:
         message = await context.bot.send_message(
             chat_id=chatid,
@@ -685,10 +685,10 @@ async def change_model(update, context):
             reply_to_message_id=user_message_id,
         )
         return
-    
+
     # Combine all arguments into one model name
     model_name = ' '.join(context.args)
-    
+
     # Check if the model name is valid (allowing all common model name characters)
     if not re.match(r'^[a-zA-Z0-9\-_\./:\\@+\s]+$', model_name) or len(model_name) > 100:
         message = await context.bot.send_message(
@@ -699,16 +699,16 @@ async def change_model(update, context):
             reply_to_message_id=user_message_id,
         )
         return
-    
+
     # Get all available models from initial_model and MODEL_GROUPS
     available_models = get_all_available_models()
     for group_name, models in get_model_groups().items():
         available_models.extend(models)
-    
+
     # Add debug output
     print(f"Requested model: '{model_name}'")
     print(f"Available models: {available_models}")
-    
+
     # Check if the requested model is in the available models list
     if model_name not in available_models:
         message = await context.bot.send_message(
@@ -719,10 +719,10 @@ async def change_model(update, context):
             reply_to_message_id=user_message_id,
         )
         return
-    
+
     # Saving the new model in the user's configuration
     Users.set_config(convo_id, "engine", model_name)
-    
+
     # Sending a message about changing the model
     message = await context.bot.send_message(
         chat_id=chatid,
