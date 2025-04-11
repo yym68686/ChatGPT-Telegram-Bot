@@ -603,6 +603,22 @@ if GET_MODELS:
         "image": True
     }
     initial_model = remove_no_text_model(update_initial_model(provider))
+    if ChatGPTbot:
+        robot = ChatGPTbot
+        api_key = Users.get_config(None, "api_key")
+        api_url = Users.get_config(None, "api_url")
+        api_url = BaseAPI(api_url=api_url).chat_url
+        provider = {
+            "provider": "openai",
+            "base_url": api_url,
+            "api": api_key,
+            "model": [engine],
+            "tools": True,
+            "image": True
+        }
+        gpt_initial_model = remove_no_text_model(update_initial_model(provider))
+        # print("gpt_initial_model", gpt_initial_model)
+        initial_model = list(set(gpt_initial_model + initial_model))
 
 # Structure for storing model groups
 MODEL_GROUPS = {}
@@ -682,12 +698,12 @@ if CUSTOM_MODELS:
 if "OTHERS" in MODEL_GROUPS and not MODEL_GROUPS["OTHERS"]:
     del MODEL_GROUPS["OTHERS"]
 
-print("Final CUSTOM_MODELS_LIST:", CUSTOM_MODELS_LIST)
-print("Final MODEL_GROUPS:", MODEL_GROUPS)
+# print("Final CUSTOM_MODELS_LIST:", CUSTOM_MODELS_LIST)
+# print("Final MODEL_GROUPS:", MODEL_GROUPS)
 
 # We remove duplicates in the list of models
 CUSTOM_MODELS_LIST = list(dict.fromkeys(CUSTOM_MODELS_LIST))
-print("After removing duplicates, CUSTOM_MODELS_LIST:", CUSTOM_MODELS_LIST)
+# print("After removing duplicates, CUSTOM_MODELS_LIST:", CUSTOM_MODELS_LIST)
 
 # We remove models if there are deletion flags
 if CUSTOM_MODELS_LIST:
@@ -707,10 +723,10 @@ if CUSTOM_MODELS_LIST:
             print(f"Added to initial_model: {model}")
 
 # We output information about groups for debugging
-print("MODEL_GROUPS:", MODEL_GROUPS)
+# print("MODEL_GROUPS:", MODEL_GROUPS)
 for group, models in MODEL_GROUPS.items():
     print(f"Group {group}: {len(models)} models - {models}")
-print("Final initial_model:", initial_model)
+# print("Final initial_model:", initial_model)
 
 # Function to get all available models (with groups)
 def get_all_available_models():
