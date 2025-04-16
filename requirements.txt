@@ -9,6 +9,7 @@ fastapi
 PyExecJS
 requests
 html2text
+httpx-socks
 httpx[http2]
 fake-useragent
 beautifulsoup4
