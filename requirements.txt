@@ -6,14 +6,12 @@ pytz
 pillow
 msgspec
 fastapi
-PyExecJS
 requests
 html2text
 httpx-socks
 httpx[http2]
 fake-useragent
 beautifulsoup4
-tiktoken==0.6.0
 lxml-html-clean
 pdfminer.six==20240706
 duckduckgo-search==5.3.1

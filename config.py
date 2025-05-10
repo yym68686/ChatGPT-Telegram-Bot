@@ -553,8 +553,8 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
 initial_model = [
     "gpt-4o",
     "gpt-4o-mini",
-    "o3-mini",
-    "o1",
+    "o4-mini",
+    "o3",
     "claude-3-7-sonnet-20250219",
 ]
 
