@@ -6,6 +6,7 @@ pytz
 pillow
 msgspec
 fastapi
+chardet
 requests
 html2text
 httpx-socks
