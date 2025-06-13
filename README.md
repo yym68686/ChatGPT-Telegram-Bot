@@ -44,7 +44,7 @@ The following is a list of environment variables related to the bot's core setti
 | Variable Name | Description | Required? |
 |---------------|-------------|-----------|
 | BOT_TOKEN | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. | **Yes** |
-| API | OpenAI or third-party API key. | No |
+| API | OpenAI or third-party API key. | **Yes** |
 | GPT_ENGINE | Set the default QA model; the default is:`gpt-4o`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
 | WEB_HOOK | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
 | API_URL | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |

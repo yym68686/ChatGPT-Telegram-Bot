@@ -44,7 +44,7 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 | 变量名称 | 描述 | 是否必需? |
 |---------------|-------------|-----------|
 | BOT_TOKEN | Telegram 机器人令牌。 在 [BotFather](https://t.me/BotFather) 上创建一个机器人以获取 BOT_TOKEN。 | **是** |
-| API | OpenAI 或第三方 API 密钥。 | 否 |
+| API | OpenAI 或第三方 API 密钥。 | 是 |
 | GPT_ENGINE | 设置默认的QA模型；默认是：`gpt-4o`。此项可以使用机器人的"info"命令自由切换，原则上不需要设置。 | 否 |
 | WEB_HOOK | 每当电报机器人收到用户消息时，消息将被传递到 WEB_HOOK，机器人将在此监听并及时处理收到的消息。 | 否 |
 | API_URL | 如果您使用的是OpenAI官方API，则无需设置此项。如果您使用的是第三方API，则需要填写第三方代理网站。默认值是：https://api.openai.com/v1/chat/completions | 否 |
