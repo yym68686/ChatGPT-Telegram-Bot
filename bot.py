@@ -189,6 +189,7 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
             if Users.get_config(convo_id, "REPLY") == False:
                 messageid = None
 
+            print(f"DEBUG: api_url is {api_url!r}, type is {type(api_url)}")
             engine_type, _ = get_engine({"base_url": api_url}, endpoint=None, original_model=engine)
             if robot.__class__.__name__ == "chatgpt":
                 engine_type = "gpt"

@@ -452,6 +452,7 @@ def get_robot(chat_id = None):
         robot = ChatGPTbot
         api_key = Users.get_config(chat_id, "api_key")
         api_url = Users.get_config(chat_id, "api_url")
+        print(f"DEBUG get_robot: Retrieved api_url is {api_url!r} (type: {type(api_url)})")
         api_url = BaseAPI(api_url=api_url).chat_url
     else:
         robot = duckBot
