@@ -555,7 +555,7 @@ initial_model = [
     "gpt-4o-mini",
     "o4-mini",
     "o3",
-    "claude-3-7-sonnet-20250219",
+    "claude-sonnet-4-20250514",
 ]
 
 if GROQ_API_KEY:
@@ -565,9 +565,8 @@ if GROQ_API_KEY:
     ])
 if GOOGLE_AI_API_KEY or (VERTEX_PRIVATE_KEY and VERTEX_CLIENT_EMAIL and VERTEX_PROJECT_ID):
     initial_model.extend([
-        "gemini-2.0-flash",
-        "gemini-2.5-pro-exp-03-25",
-        "gemini-2.0-flash-thinking-exp-01-21",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
     ])
 
 if duckBot:
