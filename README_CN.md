@@ -18,11 +18,11 @@
   </a>
 </p>
 
-ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用多种主流的大语言模型 API，包括 GPT-3.5/4/4 Turbo/4o/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。它使用户能够在 Telegram 上进行高效的对话和信息搜索。
+ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用多种主流的大语言模型 API，包括 GPT-3.5/4/4 Turbo/4o/5/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。它使用户能够在 Telegram 上进行高效的对话和信息搜索。
 
 ## ✨ 功能
 
-- **多种AI模型**：支持GPT-3.5/4/4 Turbo/4o/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。还支持 one-api/new-api/[uni-api](https://github.com/yym68686/uni-api)。利用自研 API 请求后端 [SDK](https://github.com/yym68686/aient)，不依赖 OpenAI SDK。
+- **多种AI模型**：支持GPT-3.5/4/4 Turbo/4o/5/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。还支持 one-api/new-api/[uni-api](https://github.com/yym68686/uni-api)。利用自研 API 请求后端 [SDK](https://github.com/yym68686/aient)，不依赖 OpenAI SDK。
 - **多模态问答**：支持语音、音频、图像和 PDF/TXT/MD/python 文档的问答。用户可以直接在聊天框中上传文件使用。
 - **群聊主题模式**: 支持在群聊中启用主题模式，在主题之间隔离API、对话历史、插件配置和偏好设置。
 - **丰富的插件系统**：支持网页搜索（DuckDuckGo和Google）、URL 总结、ArXiv 论文总结和代码解释器。
@@ -45,7 +45,7 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 |---------------|-------------|-----------|
 | BOT_TOKEN | Telegram 机器人令牌。 在 [BotFather](https://t.me/BotFather) 上创建一个机器人以获取 BOT_TOKEN。 | **是** |
 | API | OpenAI 或第三方 API 密钥。 | 是 |
-| GPT_ENGINE | 设置默认的QA模型；默认是：`gpt-4o`。此项可以使用机器人的"info"命令自由切换，原则上不需要设置。 | 否 |
+| GPT_ENGINE | 设置默认的QA模型；默认是：`gpt-5`。此项可以使用机器人的"info"命令自由切换，原则上不需要设置。 | 否 |
 | WEB_HOOK | 每当电报机器人收到用户消息时，消息将被传递到 WEB_HOOK，机器人将在此监听并及时处理收到的消息。 | 否 |
 | API_URL | 如果您使用的是OpenAI官方API，则无需设置此项。如果您使用的是第三方API，则需要填写第三方代理网站。默认值是：https://api.openai.com/v1/chat/completions | 否 |
 | GROQ_API_KEY | Groq官方API密钥。 | 否 |
@@ -62,7 +62,7 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 | BLACK_LIST | 设置哪些用户禁止访问机器人，并用 ',' 连接被授权使用机器人的用户ID。默认值是 `None` | 否 |
 | ADMIN_LIST | 设置管理员列表。只有管理员可以使用 `/info` 命令配置机器人。 | 否 |
 | GROUP_LIST | 设置可以使用机器人的群组列表。使用逗号（'，'）连接群组ID。即使群组成员不在白名单中，只要群组ID在GROUP_LIST中，群组的所有成员都可以使用机器人。 | 否 |
-| CUSTOM_MODELS | 设置自定义模型名称列表。使用逗号（','）连接模型名称。如果需要删除默认模型，请在默认模型名称前添加连字符（-）。如果要删除所有默认模型，请使用 `-all`。要创建模型组，使用分号（';'）分隔组，使用冒号（':'）定义组名及其模型，例如：`CUSTOM_MODELS=-all,command,grok-2;GPT:gpt-4o,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet;OTHERS`。没有特定组的模型将自动放入"OTHERS"组。 | 否 |
+| CUSTOM_MODELS | 设置自定义模型名称列表。使用逗号（','）连接模型名称。如果需要删除默认模型，请在默认模型名称前添加连字符（-）。如果要删除所有默认模型，请使用 `-all`。要创建模型组，使用分号（';'）分隔组，使用冒号（':'）定义组名及其模型，例如：`CUSTOM_MODELS=-all,command,grok-2;GPT:gpt-5,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet;OTHERS`。没有特定组的模型将自动放入"OTHERS"组。 | 否 |
 | CHAT_MODE | 引入多用户模式，不同用户的配置不共享。当 CHAT_MODE 为 `global` 时，所有用户共享配置。当 CHAT_MODE 为 `multiusers` 时，用户配置彼此独立。 | 否 |
 | temperature | 指定 LLM 的温度。默认值是 `0.5`。 | 否 |
 | GET_MODELS | 指定是否通过 API 获取支持的模型。默认值为 `False`。 | 否 |
@@ -286,8 +286,7 @@ pip install -r requirements.txt
 设置环境变量：
 
 ```bash
-export BOT_TOKEN=
-export API=
+./configure_env.sh
 ```
 
 运行：
@@ -353,14 +352,14 @@ your_webhook_domain.com {
 
 例如：
 ```
-CUSTOM_MODELS=-all;GPT:gpt-4o,gpt-4,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet,claude-3-haiku;Gemini:gemini-1.5-pro,gemini-1.0-pro;command,grok-2
+CUSTOM_MODELS=-all;GPT:gpt-5,gpt-4,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet,claude-3-haiku;Gemini:gemini-1.5-pro,gemini-1.0-pro;command,grok-2
 ```
 
 这创建了三个组："GPT"、"Claude"和"Gemini"，每个组包含各自的模型。模型"command"和"grok-2"没有明确的组，所以它们会自动放入"OTHERS"组。
 
 如果想创建一个空的"OTHERS"组（即使没有未分组的模型），可以在最后添加"OTHERS"：
 ```
-CUSTOM_MODELS=-all;GPT:gpt-4o;Claude:claude-3-opus;OTHERS
+CUSTOM_MODELS=-all;GPT:gpt-5;Claude:claude-3-opus;OTHERS
 ```
 
 - 它可以在一个群组中部署吗？
@@ -405,11 +404,11 @@ web_hook 不是强制性的环境变量。你只需要设置域名（必须与 W
 
 - 历史会保留多少条消息？
 
-所有其他模型使用官方上下文长度设置，例如，`gpt-3.5-turbo-16k` 的上下文是 16k，`gpt-4o` 的上下文是 128k，`Claude3/3.5` 的上下文是 200k。此限制是为了节省用户成本，因为大多数场景不需要高上下文。
+所有其他模型使用官方上下文长度设置，例如，`gpt-3.5-turbo-16k` 的上下文是 16k，`gpt-5` 的上下文是 128k，`Claude3/3.5` 的上下文是 200k。此限制是为了节省用户成本，因为大多数场景不需要高上下文。
 
 - 如何从模型列表中删除默认模型名称？
 
-你可以使用 `CUSTOM_MODELS` 环境变量来完成它。例如，如果你想添加 gpt-4o 并从模型列表中移除 gpt-3.5 模型，请将 `CUSTOM_MODELS` 设置为 `gpt-4o,-gpt-3.5`。如果你想一次性删除所有默认模型，你可以将 `CUSTOM_MODELS` 设置为 `-all,gpt-4o`。
+你可以使用 `CUSTOM_MODELS` 环境变量来完成它。例如，如果你想添加 gpt-5 并从模型列表中移除 gpt-3.5 模型，请将 `CUSTOM_MODELS` 设置为 `gpt-5,-gpt-3.5`。如果你想一次性删除所有默认模型，你可以将 `CUSTOM_MODELS` 设置为 `-all,gpt-5`。
 
 - 对话隔离具体是如何工作的？
 
@@ -460,7 +459,7 @@ PASS_HISTORY的数量严格等于对话历史中的消息数量。推荐值是2�
 
 3. `/reset`: 机器人 `/reset` 命令可以清除机器人的对话消息，并强制机器人停止生成回复。如果你想重置系统提示，请使用以下命令：`/reset your_system_prompt`。但是，`/reset` 命令永远不会恢复机器人的显示语言、偏好设置、插件设置、使用中的模型、API URL、API 密钥、系统提示等。
 
-4. `/model`: 机器人的 `/model` 命令允许你快速切换AI模型，无需通过 `/info` 菜单。只需使用 `/model model_name` 即可切换到特定模型。例如：`/model gpt-4o` 切换到GPT-4o或 `/model claude-3-opus` 切换到Claude 3 Opus。这个命令提供了在对话过程中更快捷的模型切换方式。
+4. `/model`: 机器人的 `/model` 命令允许你快速切换AI模型，无需通过 `/info` 菜单。只需使用 `/model model_name` 即可切换到特定模型。例如：`/model gpt-5` 切换到GPT-5或 `/model claude-3-opus` 切换到Claude 3 Opus。这个命令提供了在对话过程中更快捷的模型切换方式。
 
 - 如果 Koyeb 部署失败怎么办？
 
@@ -468,9 +467,9 @@ Koyeb 的免费服务可能有点不稳定，所以部署失败是很常见的�
 
 - 为什么我使用 CUSTOM_MODELS 删除默认模型名称后，再使用 /info 命令检查时它又重新出现了？
 
-如果你使用 `docker-compose.yml` 部署，不要在 `CUSTOM_MODELS` 的值周围添加引号。错误用法：`CUSTOM_MODELS="gpt-4o,-gpt-3.5"`，否则会导致环境变量解析错误，导致默认模型名称再次出现。错误的方式会被解析为删除 `gpt-3.5"` 模型，这将导致默认模型名称 `gpt-3.5` 未被删除。正确的写法是：`CUSTOM_MODELS=gpt-4o,-gpt-3.5`。
+如果你使用 `docker-compose.yml` 部署，不要在 `CUSTOM_MODELS` 的值周围添加引号。错误用法：`CUSTOM_MODELS="gpt-5,-gpt-3.5"`，否则会导致环境变量解析错误，导致默认模型名称再次出现。错误的方式会被解析为删除 `gpt-3.5"` 模型，这将导致默认模型名称 `gpt-3.5` 未被删除。正确的写法是：`CUSTOM_MODELS=gpt-5,-gpt-3.5`。
 
-对于模型组也是如此。错误写法：`CUSTOM_MODELS="GPT:gpt-4o;Claude:claude-3-opus"`。正确写法：`CUSTOM_MODELS=GPT:gpt-4o;Claude:claude-3-opus`。如果你的组名或模型名包含特殊字符，请注意正确转义。
+对于模型组也是如此。错误写法：`CUSTOM_MODELS="GPT:gpt-5;Claude:claude-3-opus"`。正确写法：`CUSTOM_MODELS=GPT:gpt-5;Claude:claude-3-opus`。如果你的组名或模型名包含特殊字符，请注意正确转义。
 
 ## 参考文献
 

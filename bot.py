@@ -255,7 +255,7 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
     plugins = Users.extract_plugins_config(convo_id)
 
     Frequency_Modification = 20
-    if "gpt-4o" in model_name:
+    if "gpt-5" in model_name:
         Frequency_Modification = 25
     if message_thread_id or convo_id.startswith("-"):
         Frequency_Modification = 35

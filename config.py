@@ -22,7 +22,7 @@ RESET_TIME = int(os.environ.get('RESET_TIME', '3600'))
 if RESET_TIME < 60:
     RESET_TIME = 60
 
-GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-4o')
+GPT_ENGINE = os.environ.get('GPT_ENGINE', 'gpt-5')
 API_URL = os.environ.get('API_URL', 'https://api.openai.com/v1/chat/completions')
 GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY', None)
 
@@ -176,7 +176,7 @@ class UserConfig:
         language="English",
         api_url="https://api.openai.com/v1/chat/completions",
         api_key=None,
-        engine="gpt-4o",
+        engine="gpt-5",
         mode="global",
         preferences=None,
         plugins=None,
@@ -551,6 +551,7 @@ def create_buttons(strings, plugins_status=False, lang="English", button_text=No
     return buttons
 
 initial_model = [
+    "gpt-5",
     "gpt-4o",
     "gpt-4o-mini",
     "o4-mini",

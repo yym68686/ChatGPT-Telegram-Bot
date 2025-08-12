@@ -18,11 +18,11 @@
   </a>
 </p>
 
-ChatGPT Telegram Bot is a powerful Telegram bot that can use various mainstream large language model APIs, including GPT-3.5/4/4 Turbo/4o/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b, and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). It enables users to have efficient conversations and information searches on Telegram.
+ChatGPT Telegram Bot is a powerful Telegram bot that can use various mainstream large language model APIs, including GPT-3.5/4/4 Turbo/4o/5/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b, and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). It enables users to have efficient conversations and information searches on Telegram.
 
 ## ✨ Features
 
-- **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). Also supports one-api/new-api/[uni-api](https://github.com/yym68686/uni-api). Utilizes self-developed API to request backend [SDK](https://github.com/yym68686/aient), does not rely on OpenAI SDK.
+- **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o/5/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). Also supports one-api/new-api/[uni-api](https://github.com/yym68686/uni-api). Utilizes self-developed API to request backend [SDK](https://github.com/yym68686/aient), does not rely on OpenAI SDK.
 - **Multimodal Question Answering**: Supports question answering for voice, audio, images, and PDF/TXT/MD/python documents. Users can directly upload files in the chat box for use.
 - **Model Grouping System**: Organize AI models into logical groups for easier selection. Models can be grouped by provider (GPT, Claude, etc.) or by capability. Models without an explicit group are automatically placed in an "OTHERS" group. This makes model selection more intuitive, especially when many models are available.
 - **Group Chat Topic Mode**: Supports enabling topic mode in group chats, isolating APIs, dialogue history, plugin configurations, and preferences between topics.
@@ -45,7 +45,7 @@ The following is a list of environment variables related to the bot's core setti
 |---------------|-------------|-----------|
 | BOT_TOKEN | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. | **Yes** |
 | API | OpenAI or third-party API key. | **Yes** |
-| GPT_ENGINE | Set the default QA model; the default is:`gpt-4o`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
+| GPT_ENGINE | Set the default QA model; the default is:`gpt-5`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
 | WEB_HOOK | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
 | API_URL | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
 | GROQ_API_KEY | Groq official API key. | No |
@@ -62,7 +62,7 @@ The following is a list of environment variables related to the bot's core setti
 | BLACK_LIST | Set which users are prohibited from accessing the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None` | No |
 | ADMIN_LIST | Set up an admin list. Only admins can use the `/info` command to configure the bot. | No |
 | GROUP_LIST | Set up a list of groups that can use the bot. Connect the group IDs with a comma (','). Even if group members are not on the whitelist, as long as the group ID is in the GROUP_LIST, all members of the group can use the bot. | No |
-| CUSTOM_MODELS | Set a list of custom model names. Use commas (',') to connect model names. If you need to remove a default model, add a hyphen (-) before the default model name. To remove all default models, use `-all`. To create model groups, use semicolons (';') to separate groups and use colon (':') to define group name with its models, e.g., `CUSTOM_MODELS=-all,command,grok-2;GPT:gpt-4o,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet;OTHERS`. Models without specific groups will be automatically placed in the "OTHERS" group. | No |
+| CUSTOM_MODELS | Set a list of custom model names. Use commas (',') to connect model names. If you need to remove a default model, add a hyphen (-) before the default model name. To remove all default models, use `-all`. To create model groups, use semicolons (';') to separate groups and use colon (':') to define group name with its models, e.g., `CUSTOM_MODELS=-all,command,grok-2;GPT:gpt-5,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet;OTHERS`. Models without specific groups will be automatically placed in the "OTHERS" group. | No |
 | CHAT_MODE | Introduce multi-user mode, different users' configurations are not shared. When CHAT_MODE is `global`, all users share the configuration. When CHAT_MODE is `multiusers`, user configurations are independent of each other. | No |
 | temperature | Specify the temperature of the LLM. The default value is `0.5`. | No |
 | GET_MODELS | Specify whether to get supported models via API. Default is `False`. | No |
@@ -221,7 +221,7 @@ services:
       - BOT_TOKEN=
       - API=
       - API_URL=
-      - CUSTOM_MODELS=-all;GPT:gpt-4o,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet
+      - CUSTOM_MODELS=-all;GPT:gpt-5,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet
     volumes:
       - ./user_configs:/home/user_configs
     ports:
@@ -282,11 +282,10 @@ Install Dependencies:
 pip install -r requirements.txt
 ```
 
-Set Environment Variables:
+Configure Environment Variables:
 
 ```bash
-export BOT_TOKEN=
-export API=
+./configure_env.sh
 ```
 
 Run:
@@ -385,11 +384,11 @@ In a group chat scenario, if the environment variable `NICK` is not set, the bot
 
 - How many messages will the history keep?
 
-All other models use the official context length settings, for example, the `gpt-3.5-turbo-16k` context is 16k, the `gpt-4o` context is 128k, and the `Claude3/3.5` context is 200k. This limitation is implemented to save user costs, as most scenarios do not require a high context.
+All other models use the official context length settings, for example, the `gpt-3.5-turbo-16k` context is 16k, the `gpt-5` context is 128k, and the `Claude3/3.5` context is 200k. This limitation is implemented to save user costs, as most scenarios do not require a high context.
 
 - How to delete the default model name from the model list?
 
-You can use the `CUSTOM_MODELS` environment variable to complete it. For example, if you want to add gpt-4o and remove the gpt-3.5 model from the model list, please set `CUSTOM_MODELS` to `gpt-4o,-gpt-3.5`. If you want to delete all default models at once, you can set `CUSTOM_MODELS` to `-all,gpt-4o`.
+You can use the `CUSTOM_MODELS` environment variable to complete it. For example, if you want to add gpt-5 and remove the gpt-3.5 model from the model list, please set `CUSTOM_MODELS` to `gpt-5,-gpt-3.5`. If you want to delete all default models at once, you can set `CUSTOM_MODELS` to `-all,gpt-5`.
 
 - How do I organize models into groups?
 
@@ -400,14 +399,14 @@ You can use the `CUSTOM_MODELS` environment variable with a special syntax:
 
 For example:
 ```
-CUSTOM_MODELS=-all;GPT:gpt-4o,gpt-4,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet,claude-3-haiku;Gemini:gemini-1.5-pro,gemini-1.0-pro;command,grok-2
+CUSTOM_MODELS=-all;GPT:gpt-5,gpt-4,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet,claude-3-haiku;Gemini:gemini-1.5-pro,gemini-1.0-pro;command,grok-2
 ```
 
 This creates three groups: "GPT", "Claude", and "Gemini", each containing their respective models. The models "command" and "grok-2" have no explicit group, so they'll automatically be placed in the "OTHERS" group.
 
 To include an empty "OTHERS" group even if there are no ungrouped models, add "OTHERS" at the end:
 ```
-CUSTOM_MODELS=-all;GPT:gpt-4o;Claude:claude-3-opus;OTHERS
+CUSTOM_MODELS=-all;GPT:gpt-5;Claude:claude-3-opus;OTHERS
 ```
 
 - How does conversation isolation specifically work?
@@ -459,7 +458,7 @@ No, in the future it will support multiple Bot Tokens.
 
 3. `/reset`: The robot `/reset` command can clear the robot's conversation messages and force the robot to stop generating replies. If you want to reset the system prompt, please use the following command: `/reset your_system_prompt`. However, the `/reset` command will never restore the robot's display language, preferences, plugin settings, model in use, API URL, API key, system prompt, etc.
 
-4. `/model`: The robot `/model` command allows you to quickly switch between AI models without going through the `/info` menu. Simply use `/model model_name` to switch to a specific model. For example: `/model gpt-4o` to switch to GPT-4o or `/model claude-3-opus` to switch to Claude 3 Opus. This command provides a faster way to change models during conversations.
+4. `/model`: The robot `/model` command allows you to quickly switch between AI models without going through the `/info` menu. Simply use `/model model_name` to switch to a specific model. For example: `/model gpt-5` to switch to GPT-5 or `/model claude-3-opus` to switch to Claude 3 Opus. This command provides a faster way to change models during conversations.
 
 - What to do if Koyeb deployment fails?
 
@@ -467,9 +466,9 @@ Koyeb's free service can be a bit unstable, so deployment failures are pretty co
 
 - Why does the default model name reappear after I use CUSTOM_MODELS to delete it, and then check again with the /info command?
 
-If you deployed using `docker-compose.yml`, do not add quotes around the value of `CUSTOM_MODELS`. Incorrect usage: `CUSTOM_MODELS="gpt-4o,-gpt-3.5"`, otherwise it will cause environment variable parsing errors, resulting in the default model name reappearing. The incorrect way will be parsed as deleting the `gpt-3.5"` model, which will cause the default model name `gpt-3.5` not to be deleted. The correct way to write it is: `CUSTOM_MODELS=gpt-4o,-gpt-3.5`.
+If you deployed using `docker-compose.yml`, do not add quotes around the value of `CUSTOM_MODELS`. Incorrect usage: `CUSTOM_MODELS="gpt-5,-gpt-3.5"`, otherwise it will cause environment variable parsing errors, resulting in the default model name reappearing. The incorrect way will be parsed as deleting the `gpt-3.5"` model, which will cause the default model name `gpt-3.5` not to be deleted. The correct way to write it is: `CUSTOM_MODELS=gpt-5,-gpt-3.5`.
 
-The same applies to model groups. Incorrect: `CUSTOM_MODELS="GPT:gpt-4o;Claude:claude-3-opus"`. Correct: `CUSTOM_MODELS=GPT:gpt-4o;Claude:claude-3-opus`. If your group names or model names contain special characters, be careful with escaping.
+The same applies to model groups. Incorrect: `CUSTOM_MODELS="GPT:gpt-5;Claude:claude-3-opus"`. Correct: `CUSTOM_MODELS=GPT:gpt-5;Claude:claude-3-opus`. If your group names or model names contain special characters, be careful with escaping.
 
 ## References
 
