@@ -1,7 +1,7 @@
-import os
 import re
 import sys
 sys.dont_write_bytecode = True
+import base64
 import logging
 import traceback
 import utils.decorators as decorators
@@ -276,6 +276,24 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
                 return
             if "message_search_stage_" not in data:
                 result = result + data
+            image_match = re.search(r"!\[image\]\(data:image\/png;base64,([a-zA-Z0-9+/=]+)\)", result)
+            if image_match and image_has_send == 0:
+                base64_str = image_match.group(1)
+                try:
+                    img_url = base64.b64decode(base64_str)
+                    media_group = []
+                    media_group.append(InputMediaPhoto(media=img_url))
+                    await context.bot.send_media_group(
+                        chat_id=chatid,
+                        media=media_group,
+                        message_thread_id=message_thread_id,
+                        reply_to_message_id=messageid,
+                    )
+                    result = result.replace(image_match.group(0), "")
+                    image_has_send = 1
+                except Exception as e:
+                    logger.warning(f"Could not process base64 image: {e}")
+                continue
             tmpresult = result
             if re.sub(r"```", '', result.split("\n")[-1]).count("`") % 2 != 0:
                 tmpresult = result + "`"
