@@ -782,7 +782,7 @@ async def reset_chat(update, context):
             "tools": True,
             "image": True
         }
-        config.initial_model = remove_no_text_model(update_initial_model(provider))
+        config.initial_model = remove_no_text_model(await update_initial_model(provider))
     await delete_message(update, context, [message.message_id, user_message_id])
 
 @decorators.AdminAuthorization
