@@ -3,4 +3,4 @@
 	url = https://github.com/yym68686/md2tgmd.git
 [submodule "aient"]
 	path = aient
-	url = https://github.com/yym68686/aient.git
+	url = https://github.com/yym68686/aient

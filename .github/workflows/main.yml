@@ -1,3 +1,4 @@
+
 name: Docker Build and Publish Docker Image
 
 on:
@@ -5,10 +6,19 @@ on:
     branches:
       - main
     paths:
-      - Dockerfile.build
-      - requirements.txt
-      - setup.sh
+      - main.py
+      - utils.py
+      - core/**
+      - core
+      - Dockerfile
+      - .dockerignore
+      - pyproject.toml
+      - docker-compose.yml
       - .github/workflows/main.yml
+      - .gitmodules
+      - Dockerfile.build
+      - uv.lock
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -17,6 +27,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        token: ${{ secrets.PACK_TOKEN }}
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
@@ -30,6 +43,35 @@ jobs:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.PACK_TOKEN }}
+
+    - name: Get and Bump Version
+      id: bump_version
+      run: |
+        VERSION=$(grep "^version = " pyproject.toml | awk -F'"' '{print $2}')
+        echo "Current version: $VERSION"
+        IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
+        PATCH=$((VERSION_PARTS[2] + 1))
+        NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH"
+        echo "New version: $NEW_VERSION"
+        sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Commit version bump
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add pyproject.toml
+        git commit -m "📖 Bump version to ${{ steps.bump_version.outputs.new_version }} [skip ci]"
+        git push
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v2.7.0
       with:
@@ -37,4 +79,8 @@ jobs:
         file: Dockerfile.build
         platforms: linux/amd64,linux/arm64
         push: true
-        tags: yym68686/chatgpt:latest
+        tags: |
+          yym68686/chatgpt:latest
+          yym68686/chatgpt:${{ steps.bump_version.outputs.new_version }}
+          ghcr.io/${{ github.repository_owner }}/chatgpt:latest
+          ghcr.io/${{ github.repository_owner }}/chatgpt:${{ steps.bump_version.outputs.new_version }}

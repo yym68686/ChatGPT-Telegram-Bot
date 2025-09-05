@@ -1,0 +1,47 @@
+# Git files
+.git/
+.gitignore
+.gitmodules
+
+# Docker files
+Dockerfile
+Dockerfile.*
+docker-compose*.yml
+.dockerignore
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Test files
+test/
+tests/
+aient/test/
+md2tgmd/test/
+
+# Documentation
+README.md
+README_CN.md
+README_*.md
+
+# Config files not needed in container
+fly.toml
+.python-version
+LICENSE
+.env.example
+.env
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE and environment specific
+.vscode/
+.github/
+
+# User configs and assets
+user_configs/
+assets/

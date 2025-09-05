@@ -18,11 +18,11 @@
   </a>
 </p>
 
-ChatGPT Telegram Bot is a powerful Telegram bot that can use various mainstream large language model APIs, including GPT-3.5/4/4 Turbo/4o/5/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b, and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). It enables users to have efficient conversations and information searches on Telegram.
+ChatGPT Telegram Bot is a powerful Telegram bot that supports OpenAI-compatible large language model APIs. It enables users to have efficient conversations and information searches on Telegram. For support of other models from providers such as Anthropic, Gemini, Vertex AI, Azure, AWS, XAI, Cohere, Groq, Cloudflare, OpenRouter, etc., please use my other project, [uni-api](https://github.com/yym68686/uni-api), to integrate them. This helps reduce maintenance costs. Thank you for your understanding.
 
 ## ✨ Features
 
-- **Multiple AI Models**: Supports GPT-3.5/4/4 Turbo/4o/5/o1, DALL·E 3, Claude2.1/3/3.5 API, Gemini 1.5 Pro/Flash, Vertex AI (Claude series/Gemini series), Groq Mixtral-8x7b/LLaMA2-70b and DuckDuckGo (gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B). Also supports one-api/new-api/[uni-api](https://github.com/yym68686/uni-api). Utilizes self-developed API to request backend [SDK](https://github.com/yym68686/aient), does not rely on OpenAI SDK.
+- **Multiple AI Models**: Supports APIs compatible with the OpenAI format. For other models from providers such as Anthropic, Gemini, Vertex AI, Azure, AWS, XAI, Cohere, Groq, Cloudflare, OpenRouter, etc., please integrate them using [uni-api](https://github.com/yym68686/uni-api). Also supports one-api/new-api. Utilizes self-developed API to request backend [SDK](https://github.com/yym68686/aient), does not rely on OpenAI SDK.
 - **Multimodal Question Answering**: Supports question answering for voice, audio, images, and PDF/TXT/MD/python documents. Users can directly upload files in the chat box for use.
 - **Model Grouping System**: Organize AI models into logical groups for easier selection. Models can be grouped by provider (GPT, Claude, etc.) or by capability. Models without an explicit group are automatically placed in an "OTHERS" group. This makes model selection more intuitive, especially when many models are available.
 - **Group Chat Topic Mode**: Supports enabling topic mode in group chats, isolating APIs, dialogue history, plugin configurations, and preferences between topics.
@@ -44,17 +44,10 @@ The following is a list of environment variables related to the bot's core setti
 | Variable Name | Description | Required? |
 |---------------|-------------|-----------|
 | BOT_TOKEN | Telegram bot token. Create a bot on [BotFather](https://t.me/BotFather) to get the BOT_TOKEN. | **Yes** |
-| API | OpenAI or third-party API key. | **Yes** |
-| GPT_ENGINE | Set the default QA model; the default is:`gpt-5`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
+| API_KEY | OpenAI or third-party API key. | **Yes** |
+| MODEL | Set the default QA model; the default is:`gpt-5`. This item can be freely switched using the bot's "info" command, and it doesn't need to be set in principle. | No |
 | WEB_HOOK | Whenever the telegram bot receives a user message, the message will be passed to WEB_HOOK, where the bot will listen to it and process the received messages in a timely manner. | No |
-| API_URL | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
-| GROQ_API_KEY | Groq official API key. | No |
-| GOOGLE_AI_API_KEY | Google AI official API key. Use this environment variable to access the Gemini series models, including Gemini 1.5 pro and Gemini 1.5 flash.| No |
-| VERTEX_PRIVATE_KEY | Description: Private key for Google Cloud Vertex AI service account. Format: The value of the private_key field inside the JSON string containing the service account private key information, please use double quotes to enclose the private key. How to obtain: Create a service account in the Google Cloud Console, generate a JSON key file, and set the value of the private_key field inside its content, enclosed in double quotes, as the value of this environment variable. | No |
-| VERTEX_PROJECT_ID | Description: Your Google Cloud project ID. Format: A string, typically composed of lowercase letters, numbers, and hyphens. How to obtain: You can find your project ID in the project selector of the Google Cloud Console. | No |
-| VERTEX_CLIENT_EMAIL | Description: The email address of the Google Cloud Vertex AI service account. Format: Usually a string in the form of "service-account-name@developer.gserviceaccount.com". How to obtain: Generated when creating the service account, or can be viewed in the service account details under the "IAM & Admin" section of the Google Cloud Console. | No |
-| claude_api_key | Claude official API key. | No |
-| CLAUDE_API_URL | If you are using the Anthropic official API, you don't need to set this. If you using a third-party Anthropic API, you need to fill in the third-party proxy website. The default is: https://api.anthropic.com/v1/messages | No |
+| BASE_URL | If you are using the OpenAI official API, you don't need to set this. If you using a third-party API, you need to fill in the third-party proxy website. The default is: https://api.openai.com/v1/chat/completions | No |
 | NICK | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |
 | GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. | No |
 | GOOGLE_CSE_ID | If you need to use Google search, you need to set it together with GOOGLE_API_KEY. | No |
@@ -104,9 +97,9 @@ There are two ways to deploy on Koyeb, one is to use the one-click deployment wi
 
 Click the button below to automatically deploy using the pre-built Docker image with one click:
 
-[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?name=chatgpt&type=docker&image=docker.io%2Fyym68686%2Fchatgpt%3Alatest&instance_type=free&regions=was&instances_min=0&autoscaling_sleep_idle_delay=300&env%5BAPI%5D=&env%5BAPI_URL%5D=&env%5BBOT_TOKEN%5D=&env%5BWEB_HOOK%5D=https%3A%2F%2F%7B%7B+KOYEB_PUBLIC_DOMAIN+%7D%7D%2F)
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?name=chatgpt&type=docker&image=docker.io%2Fyym68686%2Fchatgpt%3Alatest&instance_type=free&regions=was&instances_min=0&autoscaling_sleep_idle_delay=300&env%5BAPI%5D=&env%5BBASE_URL%5D=&env%5BBOT_TOKEN%5D=&env%5BWEB_HOOK%5D=https%3A%2F%2F%7B%7B+KOYEB_PUBLIC_DOMAIN+%7D%7D%2F)
 
-In the environment variables, fill in BOT_TOKEN, API, API_URL, and click the deploy button. WEB_HOOK environment variable can be left as is, and Koyeb will automatically assign a subdomain.
+In the environment variables, fill in BOT_TOKEN, API, BASE_URL, and click the deploy button. WEB_HOOK environment variable can be left as is, and Koyeb will automatically assign a subdomain.
 
 ### Repository deployment
 
@@ -204,7 +197,7 @@ Start the container
 docker run -p 80:8080 --name chatbot -dit \
     -e BOT_TOKEN=your_telegram_bot_token \
     -e API= \
-    -e API_URL= \
+    -e BASE_URL= \
     -v ./user_configs:/home/user_configs \
     yym68686/chatgpt:latest
 ```
@@ -220,7 +213,7 @@ services:
     environment:
       - BOT_TOKEN=
       - API=
-      - API_URL=
+      - BASE_URL=
       - CUSTOM_MODELS=-all;GPT:gpt-5,gpt-3.5-turbo;Claude:claude-3-opus,claude-3-sonnet
     volumes:
       - ./user_configs:/home/user_configs
@@ -255,7 +248,7 @@ docker rm -f chatbot
 docker run -p 8080:8080 -dit --name chatbot \
 -e BOT_TOKEN= \
 -e API= \
--e API_URL= \
+-e BASE_URL= \
 -e GOOGLE_API_KEY= \
 -e GOOGLE_CSE_ID= \
 -e claude_api_key= \
@@ -358,9 +351,9 @@ Another possibility is that the GROUP_LIST set is not the current group chat ID.
 
 If whitelist is not set, everyone can use the bot. If whitelist is set, only users in the whitelist can use the bot. If GROUP_LIST is set, only groups in the GROUP_LIST can use the bot. If both whitelist and GROUP_LIST are set, everyone in the group can use the bot, but only users in the whitelist can privately chat with the bot. If ADMIN_LIST is set, only users in the ADMIN_LIST can use the /info command to change the bot's settings. If ADMIN_LIST is not set, everyone can use the /info command to change the bot's configuration. GROUP_LIST can also contain channels, channel IDs start with a minus sign followed by a string of numbers.
 
-- How should I set the API_URL?
+- How should I set the BASE_URL?
 
-The API_URL supports all suffixes, including: https://api.openai.com/v1/chat/completions, https://api.openai.com/v1, and https://api.openai.com/. The bot will automatically allocate different endpoints based on different uses.
+The BASE_URL supports all suffixes, including: https://api.openai.com/v1/chat/completions, https://api.openai.com/v1, and https://api.openai.com/. The bot will automatically allocate different endpoints based on different uses.
 
 - Is it necessary to configure the web_hook environment variable?
 

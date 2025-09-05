@@ -18,11 +18,11 @@
   </a>
 </p>
 
-ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用多种主流的大语言模型 API，包括 GPT-3.5/4/4 Turbo/4o/5/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。它使用户能够在 Telegram 上进行高效的对话和信息搜索。
+ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，支持兼容 OpenAI 格式的大语言模型 API。它使用户能够在 Telegram 上进行高效的对话和信息搜索。对于 Anthropic, Gemini, Vertex AI, Azure, AWS, xai, Cohere, Groq, Cloudflare, OpenRouter 等其他提供商的模型的支持，请使用我的另一个项目 [uni-api](https://github.com/yym68686/uni-api) 进行集成，以减少维护成本，感谢您的理解。
 
 ## ✨ 功能
 
-- **多种AI模型**：支持GPT-3.5/4/4 Turbo/4o/5/o1，DALL·E 3，Claude2.1/3/3.5 API，Gemini 1.5 Pro/Flash，Vertex AI（Claude系列/Gemini系列），Groq Mixtral-8x7b/LLaMA2-70b 和 DuckDuckGo(gpt-4o-mini, claude-3-haiku, Meta-Llama-3.1-70B, Mixtral-8x7B)。还支持 one-api/new-api/[uni-api](https://github.com/yym68686/uni-api)。利用自研 API 请求后端 [SDK](https://github.com/yym68686/aient)，不依赖 OpenAI SDK。
+- **多种AI模型**：支持兼容 OpenAI 格式的 API。对于 Anthropic, Gemini, Vertex AI, Azure, AWS, xai, Cohere, Groq, Cloudflare, OpenRouter 等其他提供商的模型，请使用 [uni-api](https://github.com/yym68686/uni-api) 进行集成。同时支持 one-api/new-api。利用自研 API 请求后端 [SDK](https://github.com/yym68686/aient)，不依赖 OpenAI SDK。
 - **多模态问答**：支持语音、音频、图像和 PDF/TXT/MD/python 文档的问答。用户可以直接在聊天框中上传文件使用。
 - **群聊主题模式**: 支持在群聊中启用主题模式，在主题之间隔离API、对话历史、插件配置和偏好设置。
 - **丰富的插件系统**：支持网页搜索（DuckDuckGo和Google）、URL 总结、ArXiv 论文总结和代码解释器。
@@ -44,17 +44,10 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 | 变量名称 | 描述 | 是否必需? |
 |---------------|-------------|-----------|
 | BOT_TOKEN | Telegram 机器人令牌。 在 [BotFather](https://t.me/BotFather) 上创建一个机器人以获取 BOT_TOKEN。 | **是** |
-| API | OpenAI 或第三方 API 密钥。 | 是 |
-| GPT_ENGINE | 设置默认的QA模型；默认是：`gpt-5`。此项可以使用机器人的"info"命令自由切换，原则上不需要设置。 | 否 |
+| API_KEY | OpenAI 或第三方 API 密钥。 | 是 |
+| MODEL | 设置默认的QA模型；默认是：`gpt-5`。此项可以使用机器人的"info"命令自由切换，原则上不需要设置。 | 否 |
 | WEB_HOOK | 每当电报机器人收到用户消息时，消息将被传递到 WEB_HOOK，机器人将在此监听并及时处理收到的消息。 | 否 |
-| API_URL | 如果您使用的是OpenAI官方API，则无需设置此项。如果您使用的是第三方API，则需要填写第三方代理网站。默认值是：https://api.openai.com/v1/chat/completions | 否 |
-| GROQ_API_KEY | Groq官方API密钥。 | 否 |
-| GOOGLE_AI_API_KEY | Google AI 官方 API 密钥。使用此环境变量访问 Gemini 系列模型，包括 Gemini 1.5 pro 和 Gemini 1.5 flash。| 否 |
-| VERTEX_PRIVATE_KEY | 描述: Google Cloud Vertex AI 服务账户的私钥。格式: 包含服务账户私钥信息的 JSON 字符串里面的 private_key 字段的值，请使用双引号包裹私钥。如何获取: 在 Google Cloud 控制台中创建一个服务账户，生成一个 JSON 密钥文件，并将其内容里面的 private_key 字段的值使用双引号包裹后设置为此环境变量的值。 | 否 |
-| VERTEX_PROJECT_ID | 描述：您的 Google Cloud 项目 ID。格式：一个字符串，通常由小写字母、数字和连字符组成。如何获取：您可以在 Google Cloud 控制台的项目选择器中找到您的项目 ID。 | 否 |
-| VERTEX_CLIENT_EMAIL | 描述：Google Cloud Vertex AI 服务账户的电子邮件地址。格式：通常是 "service-account-name@developer.gserviceaccount.com" 形式的字符串。获取方式：在创建服务账户时生成，或可以在 Google Cloud 控制台的 "IAM & 管理" 部分的服务账户详细信息中查看。 | 否 |
-| claude_api_key | Claude 官方 API 密钥。 | 否 |
-| CLAUDE_API_URL | 如果您使用的是Anthropic官方API，则无需设置此项。如果您使用的是第三方Anthropic API，则需要填写第三方代理网站。默认值是：https://api.anthropic.com/v1/messages | 否 |
+| BASE_URL | 如果您使用的是OpenAI官方API，则无需设置此项。如果您使用的是第三方API，则需要填写第三方代理网站。默认值是：https://api.openai.com/v1/chat/completions | 否 |
 | NICK | 默认是空的，NICK 是机器人的名字。机器人只会在用户输入的消息以 NICK 开头时才会响应，否则机器人会响应任何消息。特别是在群聊中，如果没有 NICK，机器人会回复所有消息。 | 否 |
 | GOOGLE_API_KEY | 如果你需要使用谷歌搜索，你需要设置它。如果你不设置这个环境变量，机器人将默认提供duckduckgo搜索。 | No |
 | GOOGLE_CSE_ID | 如果你需要使用谷歌搜索，你需要和 GOOGLE_API_KEY 一起设置。 | 否 |
@@ -106,9 +99,9 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，可以使用�
 
 点击下面的按钮可以自动使用构建好的 docker 镜像一键部署：
 
-[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?name=chatgpt&type=docker&image=docker.io%2Fyym68686%2Fchatgpt%3Alatest&instance_type=free&regions=was&instances_min=0&autoscaling_sleep_idle_delay=300&env%5BAPI%5D=&env%5BAPI_URL%5D=&env%5BBOT_TOKEN%5D=&env%5BWEB_HOOK%5D=https%3A%2F%2F%7B%7B+KOYEB_PUBLIC_DOMAIN+%7D%7D%2F)
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?name=chatgpt&type=docker&image=docker.io%2Fyym68686%2Fchatgpt%3Alatest&instance_type=free&regions=was&instances_min=0&autoscaling_sleep_idle_delay=300&env%5BAPI%5D=&env%5BBASE_URL%5D=&env%5BBOT_TOKEN%5D=&env%5BWEB_HOOK%5D=https%3A%2F%2F%7B%7B+KOYEB_PUBLIC_DOMAIN+%7D%7D%2F)
 
-在环境变量里面补全 BOT_TOKEN，API，API_URL 后直接点击部署按钮即可。WEB_HOOK 环境变量维持默认即可，不用修改，Koyeb 会自动分配一个二级域名。
+在环境变量里面补全 BOT_TOKEN，API，BASE_URL 后直接点击部署按钮即可。WEB_HOOK 环境变量维持默认即可，不用修改，Koyeb 会自动分配一个二级域名。
 
 ### 仓库部署
 
@@ -206,7 +199,7 @@ https://api.telegram.org/bot<token>/getWebhookInfo
 docker run -p 80:8080 --name chatbot -dit \
     -e BOT_TOKEN=your_telegram_bot_token \
     -e API= \
-    -e API_URL= \
+    -e BASE_URL= \
     -v ./user_configs:/home/user_configs \
     yym68686/chatgpt:latest
 ```
@@ -222,7 +215,7 @@ services:
     environment:
       - BOT_TOKEN=
       - API=
-      - API_URL=
+      - BASE_URL=
     volumes:
       - ./user_configs:/home/user_configs
     ports:
@@ -242,8 +235,7 @@ docker-compose -f docker-compose-uni-api.yml up -d
 将存储库中的Docker镜像打包并上传到Docker Hub
 
 ```bash
-docker build --no-cache -t chatgpt:latest -f Dockerfile.build --platform linux/amd64 .
-docker tag chatgpt:latest yym68686/chatgpt:latest
+docker buildx build --platform linux/amd64,linux/arm64 -t yym68686/chatgpt:latest -f Dockerfile.build --no-cache --push .
 docker push yym68686/chatgpt:latest
 ```
 
@@ -256,7 +248,7 @@ docker rm -f chatbot
 docker run -p 8080:8080 -dit --name chatbot \
 -e BOT_TOKEN= \
 -e API= \
--e API_URL= \
+-e BASE_URL= \
 -e GOOGLE_API_KEY= \
 -e GOOGLE_CSE_ID= \
 -e claude_api_key= \
@@ -378,9 +370,9 @@ CUSTOM_MODELS=-all;GPT:gpt-5;Claude:claude-3-opus;OTHERS
 
 如果未设置白名单，所有人都可以使用机器人。如果设置了白名单，只有白名单中的用户可以使用机器人。如果设置了GROUP_LIST，只有GROUP_LIST中的群组可以使用机器人。如果同时设置了白名单和GROUP_LIST，群组中的所有人都可以使用机器人，但只有白名单中的用户可以私聊机器人。如果设置了ADMIN_LIST，只有ADMIN_LIST中的用户可以使用/info命令来更改机器人的设置。如果未设置ADMIN_LIST，所有人都可以使用/info命令来更改机器人的配置。GROUP_LIST 也可以包含频道，频道ID以减号开头，后跟一串数字。
 
-- 我应该如何设置 API_URL？
+- 我应该如何设置 BASE_URL？
 
-API_URL 支持所有后缀，包括：https://api.openai.com/v1/chat/completions、https://api.openai.com/v1 和 https://api.openai.com/。机器人将根据不同的用途自动分配不同的端点。
+BASE_URL 支持所有后缀，包括：https://api.openai.com/v1/chat/completions、https://api.openai.com/v1 和 https://api.openai.com/。机器人将根据不同的用途自动分配不同的端点。
 
 - 是否有必要配置 web_hook 环境变量？
 

@@ -7,19 +7,15 @@ import traceback
 import utils.decorators as decorators
 
 from md2tgmd.src.md2tgmd import escape, split_code, replace_all
-from aient.src.aient.utils.prompt import translator_en2zh_prompt, translator_prompt
-from aient.src.aient.utils.scripts import Document_extract, claude_replace
-from aient.src.aient.core.utils import get_engine, get_image_message, get_text_message
+from aient.aient.utils.prompt import translator_en2zh_prompt, translator_prompt
+from aient.aient.utils.scripts import Document_extract
+from aient.aient.core.utils import get_engine, get_image_message, get_text_message
 import config
 from config import (
     WEB_HOOK,
     PORT,
     BOT_TOKEN,
     GET_MODELS,
-    GOOGLE_AI_API_KEY,
-    VERTEX_PROJECT_ID,
-    VERTEX_PRIVATE_KEY,
-    VERTEX_CLIENT_EMAIL,
     Users,
     PREFERENCES,
     LANGUAGES,
@@ -39,6 +35,7 @@ from config import (
     get_model_groups,
     CUSTOM_MODELS_LIST,
     MODEL_GROUPS,
+    get_initial_model,
 )
 
 from utils.i18n import strings
@@ -248,10 +245,7 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
     image_has_send = 0
     model_name = engine
     language = Users.get_config(convo_id, "language")
-    if "claude" in model_name:
-        system_prompt = Users.get_config(convo_id, "claude_systemprompt")
-    else:
-        system_prompt = Users.get_config(convo_id, "systemprompt")
+    system_prompt = Users.get_config(convo_id, "systemprompt")
     plugins = Users.extract_plugins_config(convo_id)
 
     Frequency_Modification = 20
@@ -259,7 +253,7 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
         Frequency_Modification = 25
     if message_thread_id or convo_id.startswith("-"):
         Frequency_Modification = 35
-    if "gemini" in model_name and (GOOGLE_AI_API_KEY or (VERTEX_CLIENT_EMAIL and VERTEX_PRIVATE_KEY and VERTEX_PROJECT_ID)):
+    if "gemini" in model_name:
         Frequency_Modification = 1
 
 
@@ -288,8 +282,6 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
             if sum([line.strip().startswith("```") for line in result.split('\n')]) % 2 != 0:
                 tmpresult = tmpresult + "\n```"
             tmpresult = title + tmpresult
-            if "claude" in model_name:
-                tmpresult = claude_replace(tmpresult)
             if "message_search_stage_" in data:
                 tmpresult = strings[data][get_current_lang(convo_id)]
             history = robot.conversation[convo_id]
@@ -876,6 +868,8 @@ async def unknown(update, context): # 当用户输入未知命令时，返回文
     # await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
 
 async def post_init(application: Application) -> None:
+    if GET_MODELS:
+        await get_initial_model()
     await application.bot.set_my_commands([
         BotCommand('info', 'Basic information'),
         BotCommand('reset', 'Reset the bot'),

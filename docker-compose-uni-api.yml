@@ -3,9 +3,10 @@ services:
     container_name: uni-api
     image: yym68686/uni-api:latest
     ports:
-      - 8001:8000
+      - 8000:8000
     volumes:
       - ${API_YAML_PATH}:/home/api.yaml
+    restart: unless-stopped
 
   mybot:
     container_name: mybot
@@ -14,8 +15,8 @@ services:
       - uni-api
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
-      - API=sk-KjjI60Yf0JFcsvgRmXqFwgGmWUd9GZnmi3KlvowmRWpWpQRo
-      - API_URL=http://uni-api:8000/v1/chat/completions
+      - API_KEY=
+      - BASE_URL=http://uni-api:8000/v1/chat/completions
       - GET_MODELS=True
     volumes:
       - ./user_configs:/home/user_configs

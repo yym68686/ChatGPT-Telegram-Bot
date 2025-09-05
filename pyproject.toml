@@ -1,0 +1,24 @@
+[project]
+name = "chatgpt-telegram-bot"
+version = "1.0.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.13.5",
+    "chardet>=5.2.0",
+    "duckduckgo-search==5.3.1",
+    "fake-useragent>=2.2.0",
+    "fastapi>=0.116.1",
+    "html2text>=2025.4.15",
+    "httpx-socks>=0.10.1",
+    "httpx[http2]>=0.28.1",
+    "lxml-html-clean>=0.4.2",
+    "msgspec>=0.19.0",
+    "pdfminer-six==20240706",
+    "pillow>=11.3.0",
+    "python-dotenv>=1.1.1",
+    "python-telegram-bot[job-queue,rate-limiter,webhooks]>=22.3",
+    "pytz>=2025.2",
+    "requests>=2.32.5",
+]

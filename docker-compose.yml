@@ -5,8 +5,8 @@ services:
     image: yym68686/chatgpt:latest
     environment:
       - BOT_TOKEN=
-      - API=
-      - API_URL=
+      - BASE_URL=
+      - API_KEY=
     volumes:
       - ./user_configs:/home/user_configs
     ports:
