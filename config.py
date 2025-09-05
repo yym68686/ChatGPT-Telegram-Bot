@@ -193,16 +193,6 @@ class UserConfig:
         if not os.path.exists(CONFIG_DIR):
             return
 
-        # 定义旧键名到新键名的映射关系 old_key -> new_key
-        key_mapping = {
-            "SEARCH": "get_search_results",
-            "URL": "get_url_content",
-            "ARXIV": "download_read_arxiv_pdf",
-            "CODE": "run_python_script",
-            "IMAGE": "generate_image",
-            "get_date_time_weekday": "get_time"
-        }
-
         for filename in os.listdir(CONFIG_DIR):
             if filename.endswith('.json'):
                 user_id = filename[:-5]  # 移除 '.json' 后缀
@@ -211,9 +201,9 @@ class UserConfig:
 
                 # 检查并进行键名映射转换
                 updated_config = False
-                for old_key, new_key in key_mapping.items():
-                    if old_key in user_config:
-                        user_config[new_key] = user_config.pop(old_key)
+                for new_plugin, status in self.plugins.items():
+                    if new_plugin not in user_config:
+                        user_config[new_plugin] = status
                         updated_config = True
 
                 # 如果配置有更新，保存回文件
