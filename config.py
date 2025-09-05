@@ -256,7 +256,7 @@ class UserConfig:
 
     def get_config(self, user_id = None, parameter_name = None):
         if parameter_name not in self.parameter_name_list:
-            raise ValueError("parameter_name is not in the parameter_name_list")
+            raise ValueError(f"parameter_name {parameter_name} is not in the parameter_name_list: {self.parameter_name_list}")
         if self.mode == "global":
             return self.users["global"][parameter_name]
         if self.mode == "multiusers":
@@ -265,7 +265,7 @@ class UserConfig:
 
     def set_config(self, user_id = None, parameter_name = None, value = None):
         if parameter_name not in self.parameter_name_list:
-            raise ValueError("parameter_name is not in the parameter_name_list")
+            raise ValueError(f"parameter_name {parameter_name} is not in the parameter_name_list: {self.parameter_name_list}")
         if self.mode == "global":
             self.users["global"][parameter_name] = value
             update_user_config("global", parameter_name, value)
