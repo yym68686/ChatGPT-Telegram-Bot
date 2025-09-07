@@ -7,7 +7,6 @@ import traceback
 import utils.decorators as decorators
 
 from md2tgmd.src.md2tgmd import escape, split_code, replace_all
-from aient.aient.utils.prompt import translator_en2zh_prompt, translator_prompt
 from aient.aient.utils.scripts import Document_extract
 from aient.aient.core.utils import get_engine, get_image_message, get_text_message
 import config
@@ -84,7 +83,7 @@ time_stamps = defaultdict(lambda: [])
 @decorators.GroupAuthorization
 @decorators.Authorization
 @decorators.APICheck
-async def command_bot(update, context, language=None, prompt=translator_prompt, title="", has_command=True):
+async def command_bot(update, context, title="", has_command=True):
     stop_event.clear()
     message, rawtext, image_url, chatid, messageid, reply_to_message_text, update_message, message_thread_id, convo_id, file_url, reply_to_message_file_content, voice_text = await GetMesageInfo(update, context)
 
@@ -92,14 +91,6 @@ async def command_bot(update, context, language=None, prompt=translator_prompt, 
         if has_command:
             message = ' '.join(context.args)
         pass_history = Users.get_config(convo_id, "PASS_HISTORY")
-        if prompt and has_command:
-            if translator_prompt == prompt:
-                if language == "english":
-                    prompt = prompt.format(language)
-                else:
-                    prompt = translator_en2zh_prompt
-                pass_history = 0
-            message = prompt + message
         if message == None:
             message = voice_text
         # print("message", message)
@@ -893,8 +884,6 @@ async def post_init(application: Application) -> None:
         BotCommand('reset', 'Reset the bot'),
         BotCommand('start', 'Start the bot'),
         BotCommand('model', 'Change AI model'),
-        BotCommand('en2zh', 'Translate to Chinese'),
-        BotCommand('zh2en', 'Translate to English'),
     ])
     description = (
         "I am an Assistant, a large language model trained by OpenAI. I will do my best to help answer your questions."
@@ -925,11 +914,9 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", reset_chat))
     application.add_handler(CommandHandler("model", change_model))
-    application.add_handler(CommandHandler("en2zh", lambda update, context: command_bot(update, context, "Simplified Chinese")))
-    application.add_handler(CommandHandler("zh2en", lambda update, context: command_bot(update, context, "english")))
     application.add_handler(InlineQueryHandler(inlinequery))
     application.add_handler(CallbackQueryHandler(button_press))
-    application.add_handler(MessageHandler((filters.TEXT | filters.VOICE) & ~filters.COMMAND, lambda update, context: command_bot(update, context, prompt=None, has_command=False), block = False))
+    application.add_handler(MessageHandler((filters.TEXT | filters.VOICE) & ~filters.COMMAND, lambda update, context: command_bot(update, context, has_command=False), block = False))
     application.add_handler(MessageHandler(
         filters.CAPTION &
         (
@@ -945,7 +932,7 @@ if __name__ == '__main__':
                 filters.Document.FileExtension("py") |
                 filters.Document.FileExtension("yml")
             )
-        ), lambda update, context: command_bot(update, context, prompt=None, has_command=False)))
+        ), lambda update, context: command_bot(update, context, has_command=False)))
     application.add_handler(MessageHandler(
         ~filters.CAPTION &
         (

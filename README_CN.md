@@ -463,6 +463,14 @@ Koyeb 的免费服务可能有点不稳定，所以部署失败是很常见的�
 
 对于模型组也是如此。错误写法：`CUSTOM_MODELS="GPT:gpt-5;Claude:claude-3-opus"`。正确写法：`CUSTOM_MODELS=GPT:gpt-5;Claude:claude-3-opus`。如果你的组名或模型名包含特殊字符，请注意正确转义。
 
+- 如何同时使用多个 API 提供商，例如同时使用 Gemini 和 OpenAI？
+
+本项目一次只能配置一个 API 提供商。例如，如果 `BASE_URL` 设置为 Gemini 的 API 地址，那么就无法同时使用 OpenAI 的 API。要同时使用多个提供商，您必须通过 `uni-api` 项目。`uni-api` 可以将各种不同提供商的 API 格式统一转换为 OpenAI 格式。本项目仅支持 OpenAI 格式的 API，因此通过 `uni-api` 进行转换后，您就可以在本项目中同时使用来自几十个不同提供商的模型。需要强调的是，“OpenAI 格式”并不意味着只能使用 OpenAI 的模型，许多其他提供商（如 Gemini、Groq、Cloudflare 等）也支持通过 OpenAI 兼容的格式来调用他们的 API。
+
+- 你为什么改变了 API 密钥的整个基础，现在我无法在不改变 API 的情况下同时使用 grok 和 gemini？
+
+开发者删除了除了OpenAI格式API之外的其他API，目前你想使用其他格式的API必须通过开发者的另外一个项目uni-api统一转换为OpenAI格式，你可以通过uni-api配置几十个不同的提供商在tg bot同时使用。这样做的目的是减少维护成本，开发者仅需要维护uni-api来适配所有最新的功能。当然gemini官方支持OpenAI格式的端点，例如：`https://generativelanguage.googleapis.com/v1/chat/completions`。
+
 ## 参考文献
 
 https://core.telegram.org/bots/api
