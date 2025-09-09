@@ -159,7 +159,7 @@ flyctl launch --image yym68686/chatgpt:latest
 
 ```bash
 flyctl secrets set BOT_TOKEN=bottoken
-flyctl secrets set API=
+flyctl secrets set API_KEY=
 # 可选
 flyctl secrets set WEB_HOOK=https://flyio-app-name.fly.dev/
 flyctl secrets set NICK=javis
@@ -198,7 +198,7 @@ https://api.telegram.org/bot<token>/getWebhookInfo
 ```bash
 docker run -p 80:8080 --name chatbot -dit \
     -e BOT_TOKEN=your_telegram_bot_token \
-    -e API= \
+    -e API_KEY= \
     -e BASE_URL= \
     -v ./user_configs:/home/user_configs \
     yym68686/chatgpt:latest
@@ -214,7 +214,7 @@ services:
     image: yym68686/chatgpt:latest
     environment:
       - BOT_TOKEN=
-      - API=
+      - API_KEY=
       - BASE_URL=
     volumes:
       - ./user_configs:/home/user_configs
@@ -247,7 +247,7 @@ docker pull yym68686/chatgpt:latest
 docker rm -f chatbot
 docker run -p 8080:8080 -dit --name chatbot \
 -e BOT_TOKEN= \
--e API= \
+-e API_KEY= \
 -e BASE_URL= \
 -e GOOGLE_API_KEY= \
 -e GOOGLE_CSE_ID= \
