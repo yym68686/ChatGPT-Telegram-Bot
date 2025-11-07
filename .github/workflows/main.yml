@@ -6,12 +6,14 @@ on:
     branches:
       - main
     paths:
-      - main.py
-      - utils.py
-      - core/**
-      - core
+      - bot.py
+      - config.py
+      - aient/**
+      - md2tgmd/**
+      - utils/**
       - Dockerfile
       - .dockerignore
+      - .gitignore
       - pyproject.toml
       - docker-compose.yml
       - .github/workflows/main.yml
