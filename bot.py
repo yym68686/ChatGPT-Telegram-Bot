@@ -122,8 +122,8 @@ async def command_bot(update, context, title="", has_command=True):
                 bot_info = await context.bot.get_me(read_timeout=time_out, write_timeout=time_out, connect_timeout=time_out, pool_timeout=time_out)
                 bot_info_username = bot_info.username
             except Exception as e:
-                bot_info_username = update_message.reply_to_message.from_user.username
                 print("error:", e)
+                bot_info_username = update_message.reply_to_message.from_user.username
 
             if update_message.reply_to_message \
             and update_message.from_user.is_bot == False \
