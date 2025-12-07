@@ -1,6 +1,6 @@
 [project]
 name = "chatgpt-telegram-bot"
-version = "1.0.18"
+version = "1.0.19"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
