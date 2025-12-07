@@ -55,8 +55,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 logger = logging.getLogger()
 
 logging.getLogger("httpx").setLevel(logging.CRITICAL)
-logging.getLogger("chromadb.telemetry.posthog").setLevel(logging.WARNING)
-logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
+logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
 class SpecificStringFilter(logging.Filter):
     def __init__(self, specific_string):
@@ -285,6 +284,9 @@ async def getChatGPT(update_message, context, title, robot, message, chatid, mes
                 except Exception as e:
                     logger.warning(f"Could not process base64 image: {e}")
                 continue
+            if result.strip().startswith("![image](data:image/") and image_has_send:
+                await context.bot.delete_message(chat_id=chatid, message_id=answer_messageid)
+                break
             tmpresult = result
             if re.sub(r"```", '', result.split("\n")[-1]).count("`") % 2 != 0:
                 tmpresult = result + "`"

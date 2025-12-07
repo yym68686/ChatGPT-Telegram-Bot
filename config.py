@@ -174,20 +174,17 @@ class UserConfig:
         self.preferences = preferences
         self.plugins = plugins
         self.systemprompt = systemprompt
-        self.users = NestedDict()
-        self.users["global"] = self.get_init_preferences()
-        # self.users = {
-        #     "global": self.get_init_preferences()
-        # }
-        self.users["global"].update(self.preferences)
-        self.users["global"].update(self.plugins)
-        self.users["global"].update(self.languages)
         self.mode = mode
+        self.users = NestedDict()
         self.load_all_configs()
+        if "global" not in self.users.keys():
+            self.users["global"] = self.get_init_preferences()
+            self.users["global"].update(self.preferences)
+            self.users["global"].update(self.plugins)
+            self.users["global"].update(self.languages)
+            for key in list(self.users["global"].keys()):
+                update_user_config("global", key, self.users["global"][key])
         self.parameter_name_list = list(self.users["global"].keys())
-        for key in self.parameter_name_list:
-            update_user_config("global", key, self.users["global"][key])
-
 
     def load_all_configs(self):
         if not os.path.exists(CONFIG_DIR):
