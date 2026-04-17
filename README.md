@@ -51,6 +51,7 @@ The following is a list of environment variables related to the bot's core setti
 | NICK | The default is empty, and NICK is the name of the bot. The bot will only respond when the message starts with NICK that the user inputs, otherwise the bot will respond to any message. Especially in group chats, if there is no NICK, the bot will reply to all messages. | No |
 | GOOGLE_API_KEY | If you need to use Google search, you need to set it. If you do not set this environment variable, the bot will default to provide duckduckgo search. | No |
 | GOOGLE_CSE_ID | If you need to use Google search, you need to set it together with GOOGLE_API_KEY. | No |
+| TAVILY_API_KEY | Tavily search API key. When set, Tavily is used as the primary search provider with Google/DuckDuckGo as fallback. Get a key at [app.tavily.com](https://app.tavily.com). | No |
 | whitelist | Set which users can access the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None`, which means that the bot is open to everyone. | No |
 | BLACK_LIST | Set which users are prohibited from accessing the bot, and connect the user IDs authorized to use the bot with ','. The default value is `None` | No |
 | ADMIN_LIST | Set up an admin list. Only admins can use the `/info` command to configure the bot. | No |

@@ -21,4 +21,5 @@ dependencies = [
     "python-telegram-bot[job-queue,rate-limiter,webhooks]>=22.3",
     "pytz>=2025.2",
     "requests>=2.32.5",
+    "tavily-python>=0.5.0",
 ]
