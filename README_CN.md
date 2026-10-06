@@ -121,6 +121,16 @@ ChatGPT Telegram 机器人是一个强大的 Telegram 机器人，支持兼容 O
 
 3. [安装 pull](https://github.com/apps/pull) 自动同步本仓库。
 
+## ZopDay 远程部署
+
+### 一键部署
+
+点击下面的按钮可以在 ZopDay 上使用构建好的 Docker 镜像一键部署：
+
+[![Deploy to ZopDay](https://zop.dev/deploytozopday-inkhard.svg)](https://zop.dev/zopday/app/deploy?image=yym68686/chatgpt:latest&port=8080&name=chatgpt)
+
+打开部署页后，可以选择使用 ZopCloud 托管运行，或者连接自己的 AWS、GCP 账号部署到自有云上，然后在环境变量中补全 `BOT_TOKEN` 和 `API_KEY` 即可。`BASE_URL` 仅在使用第三方 API 时需要填写，`WEB_HOOK` 可以填写首次部署后 ZopDay 分配的地址。
+
 ## Zeabur 远程部署
 
 一键部署：

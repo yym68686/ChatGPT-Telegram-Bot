@@ -119,6 +119,16 @@ In the environment variables, fill in BOT_TOKEN, API, BASE_URL, and click the de
 
 3. [Install pull](https://github.com/apps/pull) to automatically sync this repository.
 
+## ZopDay Remote Deployment
+
+### One-click deployment
+
+Click the button below to deploy the pre-built Docker image on ZopDay with one click:
+
+[![Deploy to ZopDay](https://zop.dev/deploytozopday-inkhard.svg)](https://zop.dev/zopday/app/deploy?image=yym68686/chatgpt:latest&port=8080&name=chatgpt)
+
+After opening the deploy page, choose ZopCloud to run it fully managed, or connect your own AWS or GCP account to run it there, then fill in `BOT_TOKEN` and `API_KEY` in the environment variables. `BASE_URL` is only needed when you use a third-party API, and `WEB_HOOK` can be set to the address ZopDay assigns after the first deploy.
+
 ## Zeabur Remote Deployment
 
 One-click deployment:
